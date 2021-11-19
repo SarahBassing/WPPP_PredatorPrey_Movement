@@ -118,7 +118,7 @@
 
   
   #  Save for later use
-  # write.csv(meso_info, paste0('meso_info ', Sys.Date(), '.csv'))
+  # write.csv(meso_info, paste0('./Data/meso_info ', Sys.Date(), '.csv'))
   
   ####  Running list of collars that got nixed in this stage  ####
   #  MVCOY53M, MCVOY98M, MVCOY72F, NEBOB9F
@@ -318,12 +318,13 @@
   
   #  Drop oddball location that's clearly outside NEBOB33M home range
   meso_skinny <- meso_skinny[!(meso_skinny$ID == "NEBOB33M" & meso_skinny$Longitude > -117.4),]
+  
   #  Exclude locations associated with translocation, dispersal, extra-territorial forays
   #  NEBOB13F: Translocation (3/28/19 - 8/8/19)
   meso_skinny <- meso_skinny[!(meso_skinny$ID == "NEBOB13F" & meso_skinny$Floordt < "2019-10-12 00:00:00"),]
   # #  MVBOB71M: Dispersal (9/22/19 - 10/11/19) and remains far outside study area
   # meso_skinny <- meso_skinny[!(meso_skinny$ID == "MVBOB71M" & meso_skinny$Floordt > "2019-09-22 00:00:00" & meso_skinny$Floordt < "2019-10-12 00:00:00"),]
-  # # Cut all locations after dispersal since it moves so far outside study area
+  # # Cut all locations after dispersal since MVBOB71M moves so far outside study area
   meso_skinny <- meso_skinny[!(meso_skinny$ID == "MVBOB71M" & meso_skinny$Floordt > "2019-09-22 00:00:00"),]
   # #  MVBOB66M: Extra-territorial foray (11/28/19 - 3/6/20)
   # #  Appears to be transient in general (used different home ranges each season & year)
@@ -341,7 +342,7 @@
   # write.csv(meso_skinny, paste0('meso_skinny ', Sys.Date(), '.csv'))
   # write.csv(meso_skinny_noDispersal, paste0('meso_skinny_noDispersal', Sys.Date(), '.csv'))
   
-  #  FYI: meso_skinny 2021-07-22.csv excludes translocation and MVBOB71M's
+  #  FYI: meso_skinny 2021-07-22.csv and 2021-11-12.csv excludes translocation and MVBOB71M's
   #  dispersal/new territory on the Colville but does not exclude other apparent
   #  extra-territorial movements or general transient behavior.
 
@@ -490,3 +491,5 @@
  
 
   #  Fin
+  #  Next step is Collar_Truncating&Filtering.R script
+  
