@@ -27,10 +27,19 @@
   library(tidyverse)
   
   #'  Source cleaned telemetry data
-  # source("./Scripts/Collar_Truncating&Filtering.R")
-  load("./Data/Collar_Truncating&Filtering_2021-05-01.RData")
+  # source("G:/My Drive/1_Repositories/CamTraps_and_Collars/Scripts/Collar_Truncating&Filtering.R")
+  #load("G:/My Drive/1_Repositories/CamTraps_and_Collars/Data/Collar_Truncating&Filtering_2021-05-01.RData")
   #load("./Data/Collar_Truncating&Filtering_noDispersal_2021-07-22.RData") #2021-06-14
+  load("./Data/Collar_Truncating&Filtering_noDispMig_2021-11-16.RData")
+  
+  #' I chose to use relocation data that excludes obvious dispersal events that
+  #' take carnivores away from extent of study areas and relocation data during
+  #' mule deer migrations because these long-distance movements are very different
+  #' than the typical within-home range movements that I'm interested in studying.
+  #' Dispersals and migrations tend to be very directed and quick (citations?) 
+  #' compared to general encamped and exploratory behaviors in an animal's HR.
 
+  
   ####  Data preparation  ####
   #'  Select relevant columns
   #'  Keeping version of datetime that have been floored to beginning of hour
@@ -40,7 +49,7 @@
   colnames(rawELK) <- c("ID", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
   #'  Only keep first track to practice with
   # rawELK1 <- subset(rawELK, ID == unique(ID)[2])
-  rawMD <- md_gtg %>% #md_gtg_nomig  # md data depends on whether migrations are included
+  rawMD <- md_gtg_nomig %>% #md_gtg  # depends on whether migration movements are excluded
     dplyr::select(ID, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
     arrange(ID, Floordt)
   colnames(rawMD) <- c("ID", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
@@ -143,30 +152,30 @@
   rawBOB_maps <- plot_telem(rawBOB)
   rawCOY_maps <- plot_telem(rawCOY)
 
-  #'  Save plots as PDF to review and look for evidence of migration or dispersal
-  # pdf("./Outputs/GPSlocs_byseason_maps.pdf")
-  # for (i in 1:length(unique(rawMD_maps))) {
-  #   print(rawMD_maps[[i]])
-  # }
-  # for (i in 1:length(unique(rawELK_maps))) {
-  #   print(rawELK_maps[[i]])
-  # }
-  # for (i in 1:length(unique(rawWTD_maps))) {
-  #   print(rawWTD_maps[[i]])
-  # }
-  # for (i in 1:length(unique(rawCOUG_maps))) {
-  #   print(rawCOUG_maps[[i]])
-  # }
-  # for (i in 1:length(unique(rawWOLF_maps))) {
-  #   print(rawWOLF_maps[[i]])
-  # }
-  # for (i in 1:length(unique(rawBOB_maps))) {
-  #   print(rawBOB_maps[[i]])
-  # }
-  # for (i in 1:length(unique(rawCOY_maps))) {
-  #   print(rawCOY_maps[[i]])
-  # }
-  # dev.off()
+  #' #'  Save plots as PDF to review and look for evidence of migration or dispersal
+  #' pdf("./Outputs/GPSlocs_byseason_maps.pdf")
+  #' for (i in 1:length(unique(rawMD_maps))) {
+  #'   print(rawMD_maps[[i]])
+  #' }
+  #' for (i in 1:length(unique(rawELK_maps))) {
+  #'   print(rawELK_maps[[i]])
+  #' }
+  #' for (i in 1:length(unique(rawWTD_maps))) {
+  #'   print(rawWTD_maps[[i]])
+  #' }
+  #' for (i in 1:length(unique(rawCOUG_maps))) {
+  #'   print(rawCOUG_maps[[i]])
+  #' }
+  #' for (i in 1:length(unique(rawWOLF_maps))) {
+  #'   print(rawWOLF_maps[[i]])
+  #' }
+  #' for (i in 1:length(unique(rawBOB_maps))) {
+  #'   print(rawBOB_maps[[i]])
+  #' }
+  #' for (i in 1:length(unique(rawCOY_maps))) {
+  #'   print(rawCOY_maps[[i]])
+  #' }
+  #' dev.off()
 
 
   #'  Identify bursts of sequential locations & where there are prolonged gaps
@@ -255,8 +264,8 @@
                      WTD_smr_track, WTD_wtr_track, COUG_smr_track, COUG_wtr_track,
                      WOLF_smr_track, WOLF_wtr_track, BOB_smr_track, BOB_wtr_track,
                      COY_smr_track, COY_wtr_track)
-  # save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks.RData")
-  save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_noDispersal.RData")
+  #save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks.RData")
+  save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig.RData")
   
   
   #'  Load tracks
