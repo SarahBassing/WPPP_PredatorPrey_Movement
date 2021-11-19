@@ -724,6 +724,7 @@
   
   
   #  Fin
+  #  Next step is Collar_Truncating&Filtering.R script
 
   
   
