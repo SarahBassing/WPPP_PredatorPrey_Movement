@@ -46,7 +46,7 @@
   wolf_skinny <- wolf_skinny[!(wolf_skinny$ID == "W88M" & wolf_skinny$Longitude <= -120.75),]
   # W88M goes on a secondary walkabout north- Nix anything north of 49.3 Lat
   wolf_skinny <- wolf_skinny[!(wolf_skinny$ID == "W88M" & wolf_skinny$Latitude >= 49.3),]
-  # W70F dispered & established Onion Crk pack - Nix anything north of 48.7 Lat
+  # W70F dispersed & established Onion Crk pack - Nix anything north of 48.7 Lat
   wolf_skinny <- wolf_skinny[!(wolf_skinny$ID == "W70F" & wolf_skinny$Latitude >= 48.7),]
   
   
@@ -175,4 +175,7 @@
   #'  Nix W88M west of 120.75W Long- extra-territorial adventure
   #'  Nix W91F south of 48.2N Lat & east of 117.75W Long - dispersed & never returned
   #'  Nix W70F north of 48.7 Lat - she dispersed starting May 20, 2017 & est. Onion Crk pack
+  
+  #'  Next step is Collar_Truncating&Filtering.R script
+  
   
