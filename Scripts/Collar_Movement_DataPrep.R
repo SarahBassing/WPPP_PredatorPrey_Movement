@@ -30,7 +30,8 @@
   # source("G:/My Drive/1_Repositories/CamTraps_and_Collars/Scripts/Collar_Truncating&Filtering.R")
   #load("G:/My Drive/1_Repositories/CamTraps_and_Collars/Data/Collar_Truncating&Filtering_2021-05-01.RData")
   #load("./Data/Collar_Truncating&Filtering_noDispersal_2021-07-22.RData") #2021-06-14
-  load("./Data/Collar_Truncating&Filtering_noDispMig_2021-11-16.RData")
+  # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-11-16.RData") # includes some deer data with low fix rate, esp. the white-tail data
+  load("./Data/Collar_Truncating&Filtering_noDispMig_2021-12-02.RData")
   
   #' I chose to use relocation data that excludes obvious dispersal events that
   #' take carnivores away from extent of study areas and relocation data during
