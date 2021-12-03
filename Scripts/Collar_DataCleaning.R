@@ -42,13 +42,13 @@
   #  Note the "ï.."
   md_cap <- read.csv("./Data/Capture (MD)_11.02.21.csv", stringsAsFactors = FALSE) %>% #_11.16.20
     mutate(IndividualIdentifier = ï..IndividualIdentifier) %>%
-    select(-ï..IndividualIdentifier)
+    dplyr::select(-ï..IndividualIdentifier)
   elk_cap <- read.csv("./Data/Capture (Elk)_11.02.21.csv", stringsAsFactors = FALSE) %>%
     mutate(IndividualIdentifier = ï..IndividualIdentifier) %>%
-    select(-ï..IndividualIdentifier)
+    dplyr::select(-ï..IndividualIdentifier)
   wtd_cap <- read.csv("./Data/Capture (WTD)_11.02.21.csv", stringsAsFactors = FALSE) %>%
     mutate(IndividualIdentifier = ï..IndividualIdentifier) %>%
-    select(-ï..IndividualIdentifier) 
+    dplyr::select(-ï..IndividualIdentifier) 
   
   #str(md_cap)#; head(md_cap)
   
@@ -77,21 +77,21 @@
            UTCdt = with_tz(daytime, "UTC"),
            Finaldt = with_tz(UTCdt, tzone = "Etc/GMT+8"),
            Floordt = floor_date(Finaldt, unit = "hour")) %>%
-    select(-c(ï..OBJECTID, InWashingtonJurisdiction)) # remove i..OBJECTID for 11.02.21 data
+    dplyr::select(-c(ï..OBJECTID, InWashingtonJurisdiction)) # remove i..OBJECTID for 11.02.21 data
   elk_tel <- read.csv("./Data/dev_telem_elk_11.02.21.csv") %>%  
     mutate(OBJECTID = ï..OBJECTID,
            daytime = mdy_hms(ObservationDateTimePST, tz = "America/Los_Angeles"),
            UTCdt = with_tz(daytime, "UTC"),
            Finaldt = with_tz(UTCdt, tzone = "Etc/GMT+8"),
            Floordt = floor_date(Finaldt, unit = "hour")) %>%
-    select(-c(ï..OBJECTID, InWashingtonJurisdiction))
+    dplyr::select(-c(ï..OBJECTID, InWashingtonJurisdiction))
   wtd_tel <- read.csv("./Data/dev_telem_wtd_11.02.21.csv") %>%
     mutate(OBJECTID = ï..OBJECTID,
            daytime = mdy_hms(ObservationDateTimePST, tz = "America/Los_Angeles"),
            UTCdt = with_tz(daytime, "UTC"),
            Finaldt = with_tz(UTCdt, tzone = "Etc/GMT+8"),  
            Floordt = floor_date(Finaldt, unit = "hour")) %>%
-    select(-c(ï..OBJECTID, InWashingtonJurisdiction))
+    dplyr::select(-c(ï..OBJECTID, InWashingtonJurisdiction))
   no_fix <- read.csv("./Data/dev_telem_vec_nofix_11.02.21.csv") %>%
     #  Add extra columns to match the telemetry data with successful fixes
     mutate(Latitude = "NA",
@@ -104,7 +104,7 @@
            UTCdt = with_tz(daytime, "UTC"),
            Finaldt = with_tz(UTCdt, tzone = "Etc/GMT+8"),
            Floordt = floor_date(Finaldt, unit = "hour")) %>%
-    select(-ï..OBJECTID) %>% # remove i..OBJECTID for 11.02.21 data
+    dplyr::select(-ï..OBJECTID) %>% # remove i..OBJECTID for 11.02.21 data
     #select(-OBJECTID) %>%
     #  Reorganize columns to match column order in telemetry data
     relocate(c("Latitude", "Longitude"), .after = CollarID) %>%
@@ -308,9 +308,6 @@
   write.csv(md_master, paste0('md_master ', Sys.Date(), '.csv'))
   write.csv(elk_master, paste0('elk_master ', Sys.Date(), '.csv'))
   write.csv(wtd_master, paste0('wtd_master ', Sys.Date(), '.csv'))
-  
-  
-  ####  NEED TO ADD SOMETHING THAT PLOTS DISTANCE BTWN TIMES TO MAKE SURE I'M NOT MISSING LOCATIONS/ATTEMPTED FIXES
   
   
   ####  ====================================================
