@@ -1,9 +1,9 @@
-  #'  ============================================
-  #'  Resource Selection Functions
+  #'  =======================================================
+  #'  Data prep & generation for Resource Selection Functions
   #'  Washington Predator-Prey Project
   #'  Sarah Bassing
   #'  November 2021
-  #'  ============================================
+  #'  =======================================================
   #'  Script to randomly sample "available" points from the home range of each 
   #'  collared individual and build resource selection function models for each
   #'  species. These will be used as a predictive surface of the relative
@@ -18,7 +18,7 @@
   #'  Cleaned telemetry and covariate data were prepared for with the
   #'  Collar_Movement_DataPrep.R and Collar_Covariate_Extraction.R scripts 
   #'  which take FOREVER to run. 
-  #'  ============================================
+  #'  ========================================================
   
   #'  Clean workspace & load libraries
   rm(list = ls())  
