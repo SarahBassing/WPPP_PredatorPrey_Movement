@@ -19,7 +19,7 @@
   #'  ============================================
   
   #'  Clear memory
-  rm(list=ls())
+  # rm(list=ls())
   
   #'  Load libraries
   library(momentuHMM)
