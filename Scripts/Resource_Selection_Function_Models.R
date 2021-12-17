@@ -1,27 +1,53 @@
   #'  ============================================
-  #'  Resource Selection Functions (cam vs collar analysis)
+  #'  3rd Order Resource Selection Functions (RSFs)
   #'  Washington Predator-Prey Project
   #'  Sarah Bassing
-  #'  May 2021
+  #'  December 2021
   #'  ============================================
-  #'  Script to build resource selection function models for comparison to 
-  #'  occupancy models and HMMs.
+  #'  Script to run 3rd order resource selection functions (RSFs) and evaluate
+  #'  predictive capacity with K-fold cross validation. Final RSFs will be used
+  #'  as covariates to represent probability of predator/prey presence across 
+  #'  study areas.
+  #'  
+  #'  Notes on K-fold CV metrics:
+  #'  From cvms vignette (pg. 6)
+  #'  Confusion matrix: The Pos_ columns tells you whether a row is a True
+  #'  Positive (TP), True Negative (TN), False Positive (FP), or False Negative 
+  #'  (FN), depending on which level is the "positive" class. I.e. the level you 
+  #'  wish to predict.
+  #'  Pg. 24-26 of cvms vignette describe how metrics are calculated
+  #'  Sensitivity = true positive rate
+  #'  Specificity = true negative rate
+  #'  
+  #'  Kappa statistic is a measure of how closely the observations predicted by
+  #'  the model matched the testing data, controlling for the accuracy of the 
+  #'  model as measured by the expected accuracy. The kappa statistic is a 
+  #'  measure of model performance and is directly comparable to other kappa 
+  #'  statistics for competing models. Landis and Koch considers 0-0.20 as slight, 
+  #'  0.21-0.40 as fair, 0.41-0.60 as moderate, 0.61-0.80 as substantial, and 
+  #'  0.81-1 as almost perfect. Fleiss considers kappas > 0.75 as excellent, 
+  #'  0.40-0.75 as fair to good, and < 0.40 as poor. Note that both scales are 
+  #'  somewhat arbitrary and what's a "good" kappa value is going to depend on 
+  #'  the context and objective of the model. Always consider the kappa statistic
+  #'  within context of the confusion matrix. 
+  #'  (https://stats.stackexchange.com/questions/82162/cohens-kappa-in-plain-english)
   #'  
   #'  Cleaned telemetry and covariate data were prepared with
-  #'  Collar_RSF_DataPrep.R script which take FOREVER to run. 
+  #'  Collar_RSF_DataPrep.R script. 
   #'  ============================================
   
   #'  Clear memory
   rm(list=ls())
 
-  #'  Load packages for selecting available points
+  #'  Load packages
   library(tidyverse)
   library(car)
-  # library(caret)
+  library(cvms)
+  library(groupdata2)
+  library(knitr)
   library(lme4)
   
   #'  Load used and available locations, and covariate data
-  #'  3rd Order Selection
   load("./Outputs/RSF_pts/md_dat_all_2021-12-10.RData")
   load("./Outputs/RSF_pts/elk_dat_all_2021-12-10.RData")
   load("./Outputs/RSF_pts/wtd_dat_all_2021-12-10.RData")
@@ -89,20 +115,20 @@
     return(locs)
   }
   #'  Run season & species-specific data through prep function
-  mdData_smr <- spp_dataPrep(md_dat_all[md_dat_all$Season == "Summer18" | md_dat_all$Season == "Summer19",])
-  mdData_wtr <- spp_dataPrep(md_dat_all[md_dat_all$Season == "Winter1819" | md_dat_all$Season == "Winter1920",])
-  elkData_smr <- spp_dataPrep(elk_dat_all[elk_dat_all$Season == "Summer18" | elk_dat_all$Season == "Summer19",])
-  elkData_wtr <- spp_dataPrep(elk_dat_all[elk_dat_all$Season == "Winter1819" | elk_dat_all$Season == "Winter1920",])
-  wtdData_smr <- spp_dataPrep(wtd_dat_all[wtd_dat_all$Season == "Summer18" | wtd_dat_all$Season == "Summer19",])
-  wtdData_wtr <- spp_dataPrep(wtd_dat_all[wtd_dat_all$Season == "Winter1819" | wtd_dat_all$Season == "Winter1920",])
-  cougData_smr <- spp_dataPrep(coug_dat_all[coug_dat_all$Season == "Summer18" | coug_dat_all$Season == "Summer19",])
-  cougData_wtr <- spp_dataPrep(coug_dat_all[coug_dat_all$Season == "Winter1819" | coug_dat_all$Season == "Winter1920",])
-  wolfData_smr <- spp_dataPrep(wolf_dat_all[wolf_dat_all$Season == "Summer18" | wolf_dat_all$Season == "Summer19",])
-  wolfData_wtr <- spp_dataPrep(wolf_dat_all[wolf_dat_all$Season == "Winter1819" | wolf_dat_all$Season == "Winter1920",])
-  bobData_smr <- spp_dataPrep(bob_dat_all[bob_dat_all$Season == "Summer18" | bob_dat_all$Season == "Summer19",])
-  bobData_wtr <- spp_dataPrep(bob_dat_all[bob_dat_all$Season == "Winter1819" | bob_dat_all$Season == "Winter1920",])
-  coyData_smr <- spp_dataPrep(coy_dat_all[coy_dat_all$Season == "Summer18" | coy_dat_all$Season == "Summer19",])
-  coyData_wtr <- spp_dataPrep(coy_dat_all[coy_dat_all$Season == "Winter1819" | coy_dat_all$Season == "Winter1920",])
+  mdData_smr <- spp_dataPrep(md_dat_all[md_dat_all$Season == "Summer18" | md_dat_all$Season == "Summer19" | md_dat_all$Season == "Summer20",])
+  mdData_wtr <- spp_dataPrep(md_dat_all[md_dat_all$Season == "Winter1819" | md_dat_all$Season == "Winter1920" | md_dat_all$Season == "Winter2021",])
+  elkData_smr <- spp_dataPrep(elk_dat_all[elk_dat_all$Season == "Summer18" | elk_dat_all$Season == "Summer19" | elk_dat_all$Season == "Summer20",])
+  elkData_wtr <- spp_dataPrep(elk_dat_all[elk_dat_all$Season == "Winter1819" | elk_dat_all$Season == "Winter1920" | elk_dat_all$Season == "Winter2021",])
+  wtdData_smr <- spp_dataPrep(wtd_dat_all[wtd_dat_all$Season == "Summer18" | wtd_dat_all$Season == "Summer19" | wtd_dat_all$Season == "Summer20",])
+  wtdData_wtr <- spp_dataPrep(wtd_dat_all[wtd_dat_all$Season == "Winter1819" | wtd_dat_all$Season == "Winter1920" | wtd_dat_all$Season == "Winter2021",])
+  cougData_smr <- spp_dataPrep(coug_dat_all[coug_dat_all$Season == "Summer18" | coug_dat_all$Season == "Summer19" | coug_dat_all$Season == "Summer20",])
+  cougData_wtr <- spp_dataPrep(coug_dat_all[coug_dat_all$Season == "Winter1819" | coug_dat_all$Season == "Winter1920" | coug_dat_all$Season == "Winter2021",])
+  wolfData_smr <- spp_dataPrep(wolf_dat_all[wolf_dat_all$Season == "Summer18" | wolf_dat_all$Season == "Summer19"| wolf_dat_all$Season == "Summer20",])
+  wolfData_wtr <- spp_dataPrep(wolf_dat_all[wolf_dat_all$Season == "Winter1819" | wolf_dat_all$Season == "Winter1920"| wolf_dat_all$Season == "Winter2021",])
+  bobData_smr <- spp_dataPrep(bob_dat_all[bob_dat_all$Season == "Summer18" | bob_dat_all$Season == "Summer19"| bob_dat_all$Season == "Summer20",])
+  bobData_wtr <- spp_dataPrep(bob_dat_all[bob_dat_all$Season == "Winter1819" | bob_dat_all$Season == "Winter1920"| bob_dat_all$Season == "Winter2021",])
+  coyData_smr <- spp_dataPrep(coy_dat_all[coy_dat_all$Season == "Summer18" | coy_dat_all$Season == "Summer19" | coy_dat_all$Season == "Summer20",])
+  coyData_wtr <- spp_dataPrep(coy_dat_all[coy_dat_all$Season == "Winter1819" | coy_dat_all$Season == "Winter1920" | coy_dat_all$Season == "Winter2021",])
   
   #'  Function to create correlation matrix for all continuous covariates at once
   cov_correlation <- function(dat) {
@@ -131,11 +157,12 @@
 
   #'  Elevation & TPI are highly correlated (almost 100%) for all datasets so nixing TPI entirely
   #'  Elevation & Human Modified correlated in MD smr/wtr, ELK smr, & COY smr- nixing Human Mod for those models
-  #'  % Shrub correlated with Elevation, RoadDen, and Human Modified in MD smr- nixing % Shrub
-  #'  Dist2Edg correlated with % Forest & % Grass in ELK wtr- nixing Dist2Edge for this model
-  #'  % Forest & Grass correlated in COUG and WOLF wtr- nixing % Grass for those models
-  #'  % Grass & Shrub correlated for BOb smr- nixing % Grass for this model
-  #'  % Forest & Canopy Cover, % Forest & Shrub correlated for BOB wtr- nixing Canopy & % Shrub for this model
+  #'  Using Landcover_type instead of % Forest, % Grass, & % Shrub because...
+  #'  % Shrub correlated with Elevation, RoadDen, and Human Modified in MD smr
+  #'  Dist2Edg correlated with % Forest & % Grass in ELK wtr
+  #'  % Forest & Grass correlated in COUG and WOLF wtr
+  #'  % Grass & Shrub correlated for BOb smr
+  #'  % Forest & Canopy Cover, % Forest & Shrub correlated for BOB wtr
   
  
   #' #https://www.youtube.com/watch?v=BQ1VAZ7jNYQ helpful video but I don't think you can use this for models with random effects
@@ -165,75 +192,6 @@
   
   #https://github.com/LudvigOlsen/cvms#examples
   #https://cran.r-project.org/web/packages/cvms/cvms.pdf
-  library(cvms)
-  library(groupdata2)
-  library(knitr)
-  
-  coydata = coyData_smr[coyData_smr$Year == "Year1",]
-  
-  #'  Partition the data into training and testing datasets
-  set.seed(2021)
-  data_partitioned <- partition(
-    coydata,
-    p = 0.8,
-    cat_col = "Used",
-    list_out = TRUE
-  )
-  train_set <- data_partitioned[[1]]
-  test_set <- data_partitioned[[2]]
-  
-  #'  Set seed to create folds
-  set.seed(2021)
-  #'  Partition training data into balanced folds using groupdata2 package
-  train_df <- fold(train_set, k = 2, cat_col = "Used") %>%
-    mutate(Used = as.factor(Used)) %>%
-    arrange(.folds)
-  
-  #'  Define model
-  # formulas <- "Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1 | ID)" 
-  # + Landcover_type causing issues, probably b/c very few or no observations in "Other" category for this species/seasons/year
-  formulas <- c(
-    "Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1 | ID)",
-    "Used ~ Slope + CanopyCover + Dist2Edge + (1 | ID)" #playing around with defining multiple models for funsies
-  )
-  
-  #'  Create model function that returns a fitted model object
-  #'  Really not sure what's up with the hyperparameters here but it's included in the vignette so I included it
-  glm_model_fn <- function(train_data, formula, hyperparameters) {
-    glmer(formula = formula, data = train_data, family = binomial(link = "logit"))
-  }
-  
-  #'  Create predict function that returns the predictions
-  #'  Really not sure what's up with the hyperparameters here but it's included in the vignette so I included it
-  glm_predict_fn <- function(test_data, model, formula, hyperparameters, train_data) {
-    stats::predict(
-      object = model,
-      newdata = test_data,
-      type = "response",
-      allow.new.levels = TRUE
-    )
-  }
-  
-  #'  Cross-validate the model function
-  CV1 <- cross_validate_fn(
-    train_df,
-    formulas = formulas,
-    type = "binomial",
-    model_fn = glm_model_fn,
-    predict_fn = glm_predict_fn,
-    fold_cols = ".folds"
-  )
-  #  View coefficients per fold
-  CV1$`Coefficients`[[1]] %>% kable()
-  CV1$`Coefficients`[[2]] %>% kable()
-  # K-fold CV Metrics
-  CV1$`Results`[[1]] %>% kable()
-  CV1$`Results`[[2]] %>% kable()
-  CV1 %>% select(1:15) %>% kable(digits = 5)
-  # Confusion matrix
-  CV1$`Confusion Matrix`[[1]] %>% kable()
-  
- 
   
   #' coydata = coyData_smr[coyData_smr$Year == "Year1",]
   #' 
@@ -251,24 +209,98 @@
   #' #'  Set seed to create folds
   #' set.seed(2021)
   #' #'  Partition training data into balanced folds using groupdata2 package
-  #' train_df <- fold(train_set, k = 2, cat_col = "Used")
+  #' train_df <- fold(train_set, k = 2, cat_col = "Used") %>%
+  #'   mutate(Used = as.factor(Used)) %>%
+  #'   arrange(.folds)
+  #' 
   #' #'  Define model
-  #' formulas <- "Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1 | ID)" #+ Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + 
-  #' #'  Run K-fold cross validation with training data and model (preprocessing ONLY if data have NOT been centered & scaled above)
-  #' CV1 <- cross_validate(train_df, formulas = formulas, family = "binomial", REML = FALSE) #positive = 2, preprocessing = "standardize", 
+  #' # formulas <- "Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1 | ID)" 
+  #' # + Landcover_type causing issues, probably b/c very few or no observations in "Other" category for this species/seasons/year
+  #' formulas <- c(
+  #'   "Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1 | ID)",
+  #'   "Used ~ Slope + CanopyCover + Dist2Edge + (1 | ID)" #playing around with defining multiple models for funsies
+  #' )
+  #' 
+  #' #'  Create model function that returns a fitted model object
+  #' #'  Really not sure what's up with the hyperparameters here but it's included in the vignette so I included it
+  #' glm_model_fn <- function(train_data, formula, hyperparameters) {
+  #'   glmer(formula = formula, data = train_data, family = binomial(link = "logit"))
+  #' }
+  #' 
+  #' #'  Create predict function that returns the predictions
+  #' #'  Really not sure what's up with the hyperparameters here but it's included in the vignette so I included it
+  #' glm_predict_fn <- function(test_data, model, formula, hyperparameters, train_data) {
+  #'   stats::predict(
+  #'     object = model,
+  #'     newdata = test_data,
+  #'     type = "response",
+  #'     allow.new.levels = TRUE
+  #'   )
+  #' }
+  #' 
+  #' #'  Cross-validate the model function
+  #' CV1 <- cross_validate_fn(
+  #'   train_df,
+  #'   formulas = formulas,
+  #'   type = "binomial",
+  #'   model_fn = glm_model_fn,
+  #'   predict_fn = glm_predict_fn,
+  #'   fold_cols = ".folds"
+  #' )
   #' #  View coefficients per fold
-  #' # CV1[[20]][[1]]
   #' CV1$`Coefficients`[[1]] %>% kable()
-  #' # Metrics
-  #' CV1 %>% select(1:9) %>% kable(digits = 5)
+  #' CV1$`Coefficients`[[2]] %>% kable()
+  #' # K-fold CV Metrics
+  #' CV1$`Results`[[1]] %>% kable()
+  #' CV1$`Results`[[2]] %>% kable()
+  #' CV1 %>% select(1:15) %>% kable(digits = 5)
   #' # Confusion matrix
   #' CV1$`Confusion Matrix`[[1]] %>% kable()
-  #' 
-  #' #### WHAT DO I DO FROM HERE?!?!?! DO I JUST WANT THE METRICS TO REPORT TO SHOW HOW ACCURATE THE MODEL IS
+  
+ 
+  ####  K-fold CV  ####
+
+  coydata = coyData_smr[coyData_smr$Year == "Year2",]
+
+  #' #'  Partition the data into training and testing datasets
+  #' set.seed(2021)
+  #' data_partitioned <- partition(
+  #'   coydata,
+  #'   p = 0.8,
+  #'   cat_col = "Used",
+  #'   list_out = TRUE
+  #' )
+  #' train_set <- data_partitioned[[1]]
+  #' test_set <- data_partitioned[[2]]
+
+    #'  Partition training data into balanced folds using groupdata2 package with cat_col = "Used"
+  set.seed(2021)
+  fold_df <- fold(coydata, k = 3)
+  
+  #'  Define model
+  formulas <- "Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1 | ID)" 
+  # NOTE: + Landcover_type causing issues, probably b/c very few or no observations in "Other" category for this species/seasons/year
+  
+  #'  Run K-fold cross-validation
+  #'  Positive argument indicates the level from `targets` (Used) to predict (positive = 1 means predict the 0's, postive = 2 means predict the 1's)
+  #'  Preprocessing argument centers & scales UNstandardized continuous covariates for each fold, but this always produces errors when I try to use it
+  CV1 <- cross_validate(fold_df, formulas = formulas, family = "binomial", positive = 2) #preprocessing = "standardize", REML = FALSE
+  
+  #'  View coefficients per fold
+  CV1$`Coefficients`[[1]] %>% kable()
+  # Metrics
+  CV1 %>% select(1:15) %>% kable(digits = 5)
+  #' Confusion matrix- important when considering Kappa statistic and calculating accuracy metrics
+  CV1$`Confusion Matrix`[[1]] %>% kable()
+  
+  # Compute the average of the k recorded errors. This is called the cross-validation error serving as the performance metric for the model.
+
+  
+  
+  
+  #' #### WHAT DO I DO FROM HERE?!?!?! DO I JUST WANT THE METRICS TO REPORT HOW ACCURATE THE MODEL IS
   #' #### OR DO I WANT THE FINAL COEFFICIENTS ESTIMATED ACROSS THE K-FOLDS? IF I WANT THAT, HOW DO I GET A 
-  #' #### SINGLE COEF FOR EACH PARAMETER INSTEAD OF THE K ESTIMATES? AND WHERE DO THE TEST DATA COME IN?
-  #' #### ONCE I HAVE THE K-FOLD ESTIMATES, HOW DO I VALIDATE THE ESTIMATES AGAINST THE TEST DATA? OR DO I JUST
-  #' #### TRY TO PREDICT THE TEST DATA BASED ON THE K-FOLD ESTIMATES?
+  #' #### SINGLE COEF FOR EACH PARAMETER INSTEAD OF THE K ESTIMATES? 
   #' 
   #' 
   #' #'  Validate model
@@ -307,6 +339,58 @@
   #'  for individual. Habitat covariates excluded based on species (see notes 
   #'  above) and convergence issues. Annual models run separately so predicted 
   #'  distributions are specific to the species, season, and year.
+  
+  glmm_fn <- function(mod, dat) {
+    glmm_mod <- glmer(formula = mod, data = dat, family = binomial(link = "logit"))
+    print(summary(glmm_mod))
+    print(car::vif(glmm_mod))
+    
+    return(glmm_mod)
+  }
+  #'  Run species, season, and year specific models through glmm function
+  
+  ####  Mule Deer RSFs  ####
+  #'  Dropping HumanMod in mulie models due to high correlation with other covariates
+  md_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_smr[mdData_smr$Year == "Year1",])
+  md_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_smr[mdData_smr$Year == "Year2",])
+  md_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_smr[mdData_smr$Year == "Year3",])
+  
+  md_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_wtr[mdData_wtr$Year == "Year1",])
+  md_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_wtr[mdData_wtr$Year == "Year2",])
+  md_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_wtr[mdData_wtr$Year == "Year3",])
+  
+  ####  Elk RSFs  ####
+  #'  Dropping HumanMod in elk summer models due to high correlation with other covariates
+  elk_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_smr[elkData_smr$Year == "Year1",])
+  elk_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_smr[elkData_smr$Year == "Year2",])
+  elk_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_smr[elkData_smr$Year == "Year3",])
+  
+  elk_wtr1819  <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr[elkData_wtr$Year == "Year1",])
+  elk_wtr1920  <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr[elkData_wtr$Year == "Year2",])
+  elk_wtr2021  <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr[elkData_wtr$Year == "Year3",])
+  
+  ####  White-tailed Deer RSFs  ####
+  wtd_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[wtdData_smr$Year == "Year1",])
+  wtd_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[wtdData_smr$Year == "Year2",])
+  wtd_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[wtdData_smr$Year == "Year3",])
+
+  #'  "Other" & "Wetland", maybe "Developed" landcover types causing issues with wtd winter 18-19 model convergence
+  wtd_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr[wtdData_wtr$Year == "Year1",])
+  wtd_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr[wtdData_wtr$Year == "Year2",])
+  wtd_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr[wtdData_wtr$Year == "Year3",])
+  
+  ####  Cougar RSFs  ####
+  
+  
+  ####  Wolf RSFs  ####
+  
+  
+  ####  Bobcat RSFs  ####
+  
+  
+  ####  Coyote RSFs  ####
+  coy_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1|ID)", dat = coyData_smr[coyData_smr$Year == "Year1",])
+  
   
   ####  Mule Deer RSF  ####
   #'  SUMMER 2018
@@ -353,19 +437,19 @@
   #'  SUMMER 2018
   #'  Dropping HumanMod due to high correlation with other covariates
   elk_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),  
-                        data = elkData_smr[elkData_smr  == "Year1",], family = binomial(link = "logit"))
+                        data = elkData_smr[elkData_smr$Year == "Year1",], family = binomial(link = "logit"))
   summary(elk_smr18)
   car::vif(elk_smr18)
   #'  SUMMER 2019
   #'  Dropping HumanMod due to high correlation with other covariates
-  elk_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + PLandcover_type + (1|ID),  
-                     data = elkData_smr[elkData_smr  == "Year2",], family = binomial(link = "logit"))
+  elk_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),  
+                     data = elkData_smr[elkData_smr$Year == "Year2",], family = binomial(link = "logit"))
   summary(elk_smr19)
   car::vif(elk_smr19)
   #'  SUMMER 2020
   #'  Dropping HumanMod due to high correlation with other covariates
   elk_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),  
-                     data = elkData_smr[elkData_smr  == "Year3",], family = binomial(link = "logit"))
+                     data = elkData_smr[elkData_smr$Year  == "Year3",], family = binomial(link = "logit"))
   summary(elk_smr20)
   car::vif(elk_smr20)
   
@@ -375,14 +459,13 @@
   summary(elk_wtr1819)
   car::vif(elk_wtr1819)
   #'  WINTER 2019-2020
-  #'  Dropping Dist2Edge due to high correlation with other covariates
-  elk_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Landcover_type + (1|ID), 
+  elk_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
                        data = elkData_wtr[elkData_wtr$Year == "Year2",], family = binomial(link = "logit"))
   summary(elk_wtr1920)
   car::vif(elk_wtr1920)
   #'  WINTER 2020-2021
-  #'  Dropping Dist2Edge due to high correlation with other covariates
-  elk_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Landcover_type + (1|ID), 
+  #'  Dropped Landcover_type due to convergence issues- likely due to few observations of "Other" category, possibly "Wetland" too
+  elk_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), #+ Landcover_type 
                        data = elkData_wtr[elkData_wtr$Year == "Year3",], family = binomial(link = "logit"))
   summary(elk_wtr2021)
   car::vif(elk_wtr2021)
@@ -391,121 +474,262 @@
   
   ####  White-tailed Deer RSF  ####
   #'  SUMMER 2018
-  #'  Dropping HumanMod due to high correlation with other covariates
-  wtd_global_smr <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                          data = wtdData_smr, family = binomial(link = "logit"))
-  summary(wtd_global_smr)
-  car::vif(wtd_global_smr)
+  wtd_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                          data = wtdData_smr[wtdData_smr$Year == "Year1",], family = binomial(link = "logit"))
+  summary(wtd_smr18)
+  car::vif(wtd_smr18)
+  #'  SUMMER 2019
+  wtd_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                     data = wtdData_smr[wtdData_smr$Year == "Year2",], family = binomial(link = "logit"))
+  summary(wtd_smr19)
+  car::vif(wtd_smr19)
+  #'  SUMMER 2020
+  wtd_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                     data = wtdData_smr[wtdData_smr$Year == "Year3",], family = binomial(link = "logit"))
+  summary(wtd_smr20)
+  car::vif(wtd_smr20)
 
-  #'  WINTERS 2018-2019 & 2019-2020
-  wtd_global_wtr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXGrass + PercXShrub + RoadDen + (1|ID) + (1|Year), 
-                          data = wtdData_wtr, family = binomial(link = "logit"))
-  summary(wtd_global_wtr)
-  car::vif(wtd_global_wtr)
+  #'  WINTER 2018-2019
+  #'  "Other" & "Wetland", maybe "Developed" landcover types causing issues with model convergence
+  wtd_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), #+ Landcover_type
+                          data = wtdData_wtr[wtdData_wtr$Year == "Year1",], family = binomial(link = "logit"))
+  summary(wtd_wtr1819)
+  car::vif(wtd_wtr1819)
+  #'  WINTER 2019-2020
+  wtd_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                       data = wtdData_wtr[wtdData_wtr$Year == "Year2",], family = binomial(link = "logit"))
+  summary(wtd_wtr1920)
+  car::vif(wtd_wtr1920)
+  #'  WINTER 2020-2021
+  wtd_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                       data = wtdData_wtr[wtdData_wtr$Year == "Year3",], family = binomial(link = "logit"))
+  summary(wtd_wtr2021)
+  car::vif(wtd_wtr2021)
   
   
   ####  Cougar RSF  ####
-  #'  Random effect for individual & year
-  #'  SUMMERS 2018 & 2019
-  coug_global_smr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXGrass + PercXShrub + RoadDen + (1|ID) + (1|Year), 
-                          data = cougData_smr, family = binomial(link = "logit"))
-  summary(coug_global_smr)
-  car::vif(coug_global_smr)
+  #'  SUMMER 2018
+  #'  HumanMod not significant
+  coug_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                          data = cougData_smr[cougData_smr$Year == "Year1",], family = binomial(link = "logit"))
+  summary(coug_smr18)
+  car::vif(coug_smr18)
+  #'  SUMMER 2019
+  coug_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                      data = cougData_smr[cougData_smr$Year == "Year2",], family = binomial(link = "logit"))
+  summary(coug_smr19)
+  car::vif(coug_smr19)
+  #'  SUMMER 2020
+  #'  HumanMod not significant
+  coug_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                      data = cougData_smr[cougData_smr$Year == "Year3",], family = binomial(link = "logit"))
+  summary(coug_smr20)
+  car::vif(coug_smr20)
   
-  #'  WINTERS 2018-2019 & 2019-2020
-  #'  Dropping PercXGrass due to high correlation with PercForMix
-  # coug_global_wtr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXGrass + PercXShrub + RoadDen + (1|ID) + (1|Year), 
-  #                         data = cougData_wtr, family = binomial(link = "logit"))
-  coug_global_wtr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXShrub + RoadDen + (1|ID) + (1|Year), 
-                           data = cougData_wtr, family = binomial(link = "logit"))
-  summary(coug_global_wtr)
-  car::vif(coug_global_wtr)
+  #'  WINTER 2018-2019
+  #'  RoadDen not significant
+  coug_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                           data = cougData_wtr[cougData_wtr$Year == "Year1",], family = binomial(link = "logit"))
+  summary(coug_wtr1819)
+  car::vif(coug_wtr1819)
+  #'  WINTER 2019-2020
+  #'  RoadDen not significant
+  coug_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                        data = cougData_wtr[cougData_wtr$Year == "Year2",], family = binomial(link = "logit"))
+  summary(coug_wtr1920)
+  car::vif(coug_wtr1920)
+  #'  WINTER 2020-2021
+  #'  "Other" & "Wetland" landcover types causing issues with model convergence
+  coug_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  # + Landcover_type
+                        data = cougData_wtr[cougData_wtr$Year == "Year3",], family = binomial(link = "logit"))
+  summary(coug_wtr2021)
+  car::vif(coug_wtr2021)
   
   
   ####  Wolf RSF  ####
-  #'  Random effect for individual; too few collars active both years for year effect
-  #'  SUMMERS 2018 & 2019
-  wolf_global_smr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXGrass + PercXShrub + RoadDen + (1|ID), 
-                       data = wolfData_smr, family = binomial(link = "logit"))  #1/9 collars active both years
-  summary(wolf_global_smr)
-  car::vif(wolf_global_smr)
+  #'  SUMMER 2018
+  #'  "Other" & "Wetland" landcover types causing issues with model convergence
+  wolf_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), # + Landcover_type
+                       data = wolfData_smr[wolfData_smr$Year == "Year1",], family = binomial(link = "logit")) 
+  summary(wolf_smr18)
+  car::vif(wolf_smr18)
+  #'  SUMMER 2019
+  #'  "Other" & "Wetland" landcover types causing issues with model convergence
+  wolf_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  # + Landcover_type
+                      data = wolfData_smr[wolfData_smr$Year == "Year2",], family = binomial(link = "logit")) 
+  summary(wolf_smr19)
+  car::vif(wolf_smr19)
+  #'  SUMMER 2020
+  #'  "Other" & "Wetland" landcover types causing issues with model convergence
+  wolf_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  # + Landcover_type
+                      data = wolfData_smr[wolfData_smr$Year == "Year3",], family = binomial(link = "logit")) 
+  summary(wolf_smr20)
+  car::vif(wolf_smr20)
   
-  #'  WINTERS 2018-2019 & 2019-2020
-  #'  Dropping PercXGrass due to high correlation with PercForMix  
-  # wolf_global_wtr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXGrass + PercXShrub + RoadDen + (1|ID), 
-  #                          data = wolfData_wtr, family = binomial(link = "logit")) #no collars active both years
-  wolf_global_wtr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXShrub + RoadDen + (1|ID), 
-                           data = wolfData_wtr, family = binomial(link = "logit")) #no collars active both years
-  summary(wolf_global_wtr)
-  car::vif(wolf_global_wtr)
+  #'  WINTER 2018-2019
+  #'  "Other" & "Wetland" landcover types causing issues with model convergence
+  wolf_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  #  + Landcover_type
+                           data = wolfData_wtr[wolfData_wtr$Year == "Year1",], family = binomial(link = "logit")) 
+  summary(wolf_wtr1819)
+  car::vif(wolf_wtr1819)
+  #'  WINTER 2019-2020
+  #'  "Other" & "Wetland" landcover types causing issues with model convergence
+  wolf_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), #  + Landcover_type
+                        data = wolfData_wtr[wolfData_wtr$Year == "Year2",], family = binomial(link = "logit"))
+  summary(wolf_wtr1920)
+  car::vif(wolf_wtr1920)
+  #'  WINTER 2020-2021
+  #'  "Other" & "Wetland" landcover types causing issues with model convergence
+  wolf_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), # + Landcover_type
+                        data = wolfData_wtr[wolfData_wtr$Year == "Year3",], family = binomial(link = "logit"))
+  summary(wolf_wtr2021)
+  car::vif(wolf_wtr2021)
 
   
   ####  Bobcat RSF  ####
-  #'  Random effect for individual; too few collars active both years for year effect
-  #'  SUMMERS 2018 & 2019
-  bob_global_smr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXGrass + PercXShrub + RoadDen + (1|ID), 
-                           data = bobData_smr, family = binomial(link = "logit")) #1/10 collars active both years
-  summary(bob_global_smr)
-  car::vif(bob_global_smr)
+  #' #'  SUMMER 2018
+  #' #'  Only data for MVBOB90M in summer 2018--- not enough data to make inference about bobcat resource selection across 2 study areas
+  #' bob_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+  #'                          data = bobData_smr[bobData_smr$Year == "Year1",], family = binomial(link = "logit")) 
+  #' summary(bob_smr18)
+  #' car::vif(bob_smr18)
+  #'  SUMMER 2019
+  #'  "Developed" landcover type causing issues with model convergence
+  bob_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  #+ Landcover_type
+                     data = bobData_smr[bobData_smr$Year == "Year2",], family = binomial(link = "logit")) 
+  summary(bob_smr19)
+  car::vif(bob_smr19)
+  #'  SUMMER 2020
+  #'  Quadratic term on Elevation, Slope, RoadDen, Canopy Cover not significant
+  #'  "Developed" landcover type causing issues with model convergence
+  bob_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), # + Landcover_type
+                     data = bobData_smr[bobData_smr$Year == "Year3",], family = binomial(link = "logit")) 
+  summary(bob_smr20)
+  car::vif(bob_smr20)
   
-  #'  WINTERS 2018-2019 & 2019-2020  
-  #'  Dropping PercXShrub due to high correlation with PercForMix
-  # bob_global_wtr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXGrass + PercXShrub + RoadDen + (1|ID), 
-  #                          data = bobData_wtr, family = binomial(link = "logit")) #1/11 collars active both years
-  bob_global_wtr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXGrass + RoadDen + (1|ID), 
-                          data = bobData_wtr, family = binomial(link = "logit")) #1/11 collars active both years
-  summary(bob_global_wtr)
-  car::vif(bob_global_wtr)
-  #  Winter1920 MVBOB71M disperses somewhere on the Colville reservation between 
-  #  two study areas and make the OK bobcat MCP super big as a result. Cut his
-  #  winter 1920 data completely (exclude from RSF and MCP).
+  #' #'  WINTER 2018-2019  
+  #' #'  Only data for MVBOB88M & MVBOB90M winter 18-19 --- not enough data to make inference about bobcat resource selection across 2 study areas
+  #' bob_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+  #'                         data = bobData_wtr[bobData_wtr$Year == "Year1",], family = binomial(link = "logit")) 
+  #' summary(bob_wtr1819)
+  #' car::vif(bob_wtr1819)
+  #'  WINTER 2019-2020 
+  #'  Dist2Water, Canopy Cover not significant 
+  bob_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                       data = bobData_wtr[bobData_wtr$Year == "Year2",], family = binomial(link = "logit")) 
+  summary(bob_wtr1920)
+  car::vif(bob_wtr1920)
+  #'  WINTER 2020-2021 
+  #'  Quadratic term on Elevation, RoadDen, Dist2Water not significant 
+  bob_wtr2021 <- glmer(Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), #+ I(Elev^2)
+                       data = bobData_wtr[bobData_wtr$Year == "Year3",], family = binomial(link = "logit")) 
+  summary(bob_wtr2021)
+  car::vif(bob_wtr2021)
   
   
   ####  Coy RSF  ####
   #'  SUMMER 2018
+  #'  Data from only MVCOY68F, NECOY1F, NECOY2M, & NECOY3F in summer 18 --- not really enough to extrapolate selection across study areas
   #'  Dropping HumanMod due to high correlation with other covariates
-  coy_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + PercForMix + PercXGrass + PercXShrub + (1|ID), 
+  #'  "Other" & "Wetland" landcover types causing issues with model convergence
+  coy_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1|ID), # + Landcover_type
                            data = coyData_smr[coyData_smr$Year == "Year1",], family = binomial(link = "logit")) 
   summary(coy_smr18)
   car::vif(coy_smr18)
   #'  SUMMER 2019
   #'  Dropping HumanMod due to high correlation with other covariates
-  coy_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + PercForMix + PercXGrass + PercXShrub + (1|ID), 
+  #'  Quadratic term on Elev and Dist2Edge not significant
+  coy_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
                      data = coyData_smr[coyData_smr$Year == "Year2",], family = binomial(link = "logit")) 
   summary(coy_smr19)
   car::vif(coy_smr19)
   #'  SUMMER 2020
   #'  Dropping HumanMod due to high correlation with other covariates
-  coy_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + PercForMix + PercXGrass + PercXShrub + (1|ID), 
+  #'  "Other" & "Wetland" landcover types causing issues with model convergence???
+  coy_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
                      data = coyData_smr[coyData_smr$Year == "Year3",], family = binomial(link = "logit")) 
   summary(coy_smr20)
   car::vif(coy_smr20)
   
-  #'  WINTERS 2018-2019 & 2019-2020  
-  #'  Dropping PercXGrass due to high correlation with PercForMix
-  coy_global_wtr <- glmer(Used ~ 1 + Elev + Slope + PercForMix + PercXShrub + RoadDen + (1|ID) + (1|Year), 
-                          data = coyData_wtr, family = binomial(link = "logit")) 
-  summary(coy_global_wtr)
-  car::vif(coy_global_wtr)
+  #'  WINTER 2018-2019
+  #'  Data from only MVCOY68F, NECOY1F, NECOY2M, NECOY3F & NECOY4M in winter 18-19 --- not really enough to extrapolate selection across study areas
+  coy_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                          data = coyData_wtr[coyData_wtr$Year == "Year1",], family = binomial(link = "logit")) 
+  summary(coy_wtr1819)
+  car::vif(coy_wtr1819)
+  #'  WINTER 2019-2020
+  coy_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
+                       data = coyData_wtr[coyData_wtr$Year == "Year2",], family = binomial(link = "logit")) 
+  summary(coy_wtr1920)
+  car::vif(coy_wtr1920)
+  #'  WINTER 2020-2021
+  #'  "Other" & maybe "Wetland" landcover category causing conversion issues
+  coy_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge  + (1|ID), # + Landcover_type
+                       data = coyData_wtr[coyData_wtr$Year == "Year3",], family = binomial(link = "logit")) 
+  summary(coy_wtr2021)
+  car::vif(coy_wtr2021)
   
   
   #'  Save
-  save(md_global_smr, file = paste0("./Outputs/RSF_output/md_RSF_smr_NoHM_", Sys.Date(), ".RData"))  #'  KEEP TRACK of whether human modified was excluded from models!
-  save(md_global_wtr, file = paste0("./Outputs/RSF_output/md_RSF_wtr_NoHM_", Sys.Date(), ".RData"))
-  save(elk_global_smr, file = paste0("./Outputs/RSF_output/elk_RSF_smr_NoHM_", Sys.Date(), ".RData"))
-  save(elk_global_wtr, file = paste0("./Outputs/RSF_output/elk_RSF_wtr_NoHM_", Sys.Date(), ".RData"))
-  save(wtd_global_smr, file = paste0("./Outputs/RSF_output/wtd_RSF_smr_NoHM_", Sys.Date(), ".RData"))
-  save(wtd_global_wtr, file = paste0("./Outputs/RSF_output/wtd_RSF_wtr_NoHM_", Sys.Date(), ".RData"))
-  save(coug_global_smr, file = paste0("./Outputs/RSF_output/coug_RSF_smr_NoHM_", Sys.Date(), ".RData"))
-  save(coug_global_wtr, file = paste0("./Outputs/RSF_output/coug_RSF_wtr_NoHM_", Sys.Date(), ".RData"))
-  save(wolf_global_smr, file = paste0("./Outputs/RSF_output/wolf_RSF_smr_NoHM_", Sys.Date(), ".RData"))
-  save(wolf_global_wtr, file = paste0("./Outputs/RSF_output/wolf_RSF_wtr_NoHM_", Sys.Date(), ".RData"))
-  save(bob_global_smr, file = paste0("./Outputs/RSF_output/bob_RSF_smr_NoHM_", Sys.Date(), ".RData"))
-  save(bob_global_wtr, file = paste0("./Outputs/RSF_output/bob_RSF_wtr_NoHM_", Sys.Date(), ".RData"))
-  save(coy_global_smr, file = paste0("./Outputs/RSF_output/coy_RSF_smr_NoHM_", Sys.Date(), ".RData"))
-  save(coy_global_wtr, file = paste0("./Outputs/RSF_output/coy_RSF_wtr_NoHM_", Sys.Date(), ".RData"))
+  RSF_MD_list <- list(md_smr18, md_smr19, md_smr20, md_wtr1819, md_wtr1920, md_wtr2021)
+  RSF_ELK_list <- list(elk_smr18, elk_smr19, elk_smr20, elk_wtr1819, elk_wtr1920, elk_wtr2021)
+  RSF_WTD_list <- list(wtd_smr18, wtd_smr19, wtd_smr20, wtd_wtr1819, wtd_wtr1920, wtd_wtr2021)
+  RSF_COUG_list <- list(coug_smr18, coug_smr19, coug_smr20, coug_wtr1819, coug_wtr1920, coug_wtr2021)
+  RSF_WOLF_list <- list(wolf_smr18, wolf_smr19, wolf_smr20, wolf_wtr1819, wolf_wtr1920, wolf_wtr2021)
+  RSF_BOB_list <- list(bob_smr18, bob_smr19, bob_smr20, bob_wtr1819, bob_wtr1920, bob_wtr2021)
+  RSF_COY_list <- list(coy_smr18, coy_smr19, coy_smr20, coy_wtr1819, coy_wtr1920, coy_wtr2021)
   
-  save(md_SA_only_smr, file = paste0("./Outputs/RSF_output/md_RSF_smr_SAonly_", Sys.Date(), ".RData"))  
+  save(RSF_MD_list, file = paste0("./Outputs/RSF_output/RSF_MD_list_", Sys.Date(), ".RData"))
+  save(RSF_ELK_list, file = paste0("./Outputs/RSF_output/RSF_ELK_list_", Sys.Date(), ".RData"))
+  save(RSF_WTD_list, file = paste0("./Outputs/RSF_output/RSF_WTD_list_", Sys.Date(), ".RData"))
+  save(RSF_COUG_list, file = paste0("./Outputs/RSF_output/RSF_COUG_list_", Sys.Date(), ".RData"))
+  save(RSF_WOLF_list, file = paste0("./Outputs/RSF_output/RSF_WOLF_list_", Sys.Date(), ".RData"))
+  save(RSF_BOB_list, file = paste0("./Outputs/RSF_output/RSF_BOB_list_", Sys.Date(), ".RData"))
+  save(RSF_COY_list, file = paste0("./Outputs/RSF_output/RSF_COY_list_", Sys.Date(), ".RData"))
+  
+  
+  # save(md_smr18, file = paste0("./Outputs/RSF_output/md_RSF_smr18_", Sys.Date(), ".RData"))
+  # save(md_smr19, file = paste0("./Outputs/RSF_output/md_RSF_smr19_", Sys.Date(), ".RData"))
+  # save(md_smr20, file = paste0("./Outputs/RSF_output/md_RSF_smr20_", Sys.Date(), ".RData"))
+  # save(md_wtr1819, file = paste0("./Outputs/RSF_output/md_RSF_wtr1819_", Sys.Date(), ".RData"))
+  # save(md_wtr1920, file = paste0("./Outputs/RSF_output/md_RSF_wtr1920_", Sys.Date(), ".RData"))
+  # save(md_wtr2021, file = paste0("./Outputs/RSF_output/md_RSF_wtr2021_", Sys.Date(), ".RData"))
+  # save(elk_smr18, file = paste0("./Outputs/RSF_output/elk_RSF_smr18_", Sys.Date(), ".RData"))
+  # save(elk_smr19, file = paste0("./Outputs/RSF_output/elk_RSF_smr19_", Sys.Date(), ".RData"))
+  # save(elk_smr20, file = paste0("./Outputs/RSF_output/elk_RSF_smr20_", Sys.Date(), ".RData"))
+  # save(elk_wtr1819, file = paste0("./Outputs/RSF_output/elk_RSF_wtr1819_", Sys.Date(), ".RData"))
+  # save(elk_wtr1920, file = paste0("./Outputs/RSF_output/elk_RSF_wtr1920_", Sys.Date(), ".RData"))
+  # save(elk_wtr2021, file = paste0("./Outputs/RSF_output/elk_RSF_wtr2021_", Sys.Date(), ".RData"))
+  # save(wtd_smr18, file = paste0("./Outputs/RSF_output/wtd_RSF_smr18_", Sys.Date(), ".RData"))
+  # save(wtd_smr19, file = paste0("./Outputs/RSF_output/wtd_RSF_smr19_", Sys.Date(), ".RData"))
+  # save(wtd_smr20, file = paste0("./Outputs/RSF_output/wtd_RSF_smr20_", Sys.Date(), ".RData"))
+  # save(wtd_wtr1819, file = paste0("./Outputs/RSF_output/wtd_RSF_wtr1819_", Sys.Date(), ".RData"))
+  # save(wtd_wtr1920, file = paste0("./Outputs/RSF_output/wtd_RSF_wtr1920_", Sys.Date(), ".RData"))
+  # save(wtd_wtr2021, file = paste0("./Outputs/RSF_output/wtd_RSF_wtr2021_", Sys.Date(), ".RData"))
+  # save(coug_smr18, file = paste0("./Outputs/RSF_output/coug_RSF_smr18_", Sys.Date(), ".RData"))
+  # save(coug_smr19, file = paste0("./Outputs/RSF_output/coug_RSF_smr19_", Sys.Date(), ".RData"))
+  # save(coug_smr20, file = paste0("./Outputs/RSF_output/coug_RSF_smr20_", Sys.Date(), ".RData"))
+  # save(coug_wtr1819, file = paste0("./Outputs/RSF_output/coug_RSF_wtr1819_", Sys.Date(), ".RData"))
+  # save(coug_wtr1920, file = paste0("./Outputs/RSF_output/coug_RSF_wtr1920_", Sys.Date(), ".RData"))
+  # save(coug_wtr2021, file = paste0("./Outputs/RSF_output/coug_RSF_wtr2021_", Sys.Date(), ".RData"))
+  # save(wolf_smr18, file = paste0("./Outputs/RSF_output/wolf_RSF_smr18_", Sys.Date(), ".RData"))
+  # save(wolf_smr19, file = paste0("./Outputs/RSF_output/wolf_RSF_smr19_", Sys.Date(), ".RData"))
+  # save(wolf_smr20, file = paste0("./Outputs/RSF_output/wolf_RSF_smr20_", Sys.Date(), ".RData"))
+  # save(wolf_wtr1819, file = paste0("./Outputs/RSF_output/wolf_RSF_wtr1819_", Sys.Date(), ".RData"))
+  # save(wolf_wtr1920, file = paste0("./Outputs/RSF_output/wolf_RSF_wtr1920_", Sys.Date(), ".RData"))
+  # save(wolf_wtr2021, file = paste0("./Outputs/RSF_output/wolf_RSF_wtr2021_", Sys.Date(), ".RData"))
+  # save(coy_smr18, file = paste0("./Outputs/RSF_output/coy_RSF_smr18_", Sys.Date(), ".RData"))
+  # save(coy_smr19, file = paste0("./Outputs/RSF_output/coy_RSF_smr19_", Sys.Date(), ".RData"))
+  # save(coy_smr20, file = paste0("./Outputs/RSF_output/coy_RSF_smr20_", Sys.Date(), ".RData"))
+  # save(coy_wtr1819, file = paste0("./Outputs/RSF_output/coy_RSF_wtr1819_", Sys.Date(), ".RData"))
+  # save(coy_wtr1920, file = paste0("./Outputs/RSF_output/coy_RSF_wtr1920_", Sys.Date(), ".RData"))
+  # save(coy_wtr2021, file = paste0("./Outputs/RSF_output/coy_RSF_wtr2021_", Sys.Date(), ".RData"))
+  # save(bob_smr18, file = paste0("./Outputs/RSF_output/bob_RSF_smr18_", Sys.Date(), ".RData"))
+  # save(bob_smr19, file = paste0("./Outputs/RSF_output/bob_RSF_smr19_", Sys.Date(), ".RData"))
+  # save(bob_smr20, file = paste0("./Outputs/RSF_output/bob_RSF_smr20_", Sys.Date(), ".RData"))
+  # save(bob_wtr1819, file = paste0("./Outputs/RSF_output/bob_RSF_wtr1819_", Sys.Date(), ".RData"))
+  # save(bob_wtr1920, file = paste0("./Outputs/RSF_output/bob_RSF_wtr1920_", Sys.Date(), ".RData"))
+  # save(bob_wtr2021, file = paste0("./Outputs/RSF_output/bob_RSF_wtr2021_", Sys.Date(), ".RData"))
   
   
   ####  Summary tables  ####
@@ -513,23 +737,14 @@
   #'  Functions extract outputs for each sub-model and appends species/season info
   
   #'  Pull out RSF results
-  load("./Outputs/RSF_output/md_RSF_smr_noHM_2021-09-23.RData")  #' Make sure I read in the right dataset 2021-09-13
-  load("./Outputs/RSF_output/md_RSF_wtr_noHM_2021-09-23.RData")
-  load("./Outputs/RSF_output/elk_RSF_smr_noHM_2021-09-23.RData")
-  load("./Outputs/RSF_output/elk_RSF_wtr_noHM_2021-09-23.RData") 
-  load("./Outputs/RSF_output/wtd_RSF_smr_noHM_2021-09-23.RData")
-  load("./Outputs/RSF_output/wtd_RSF_wtr_noHM_2021-09-23.RData")
-  load("./Outputs/RSF_output/coug_RSF_smr_noHM_2021-09-23.RData")
-  load("./Outputs/RSF_output/coug_RSF_wtr_noHM_2021-09-23.RData")
-  load("./Outputs/RSF_output/wolf_RSF_smr_noHM_2021-10-30.RData") # note these are different
-  load("./Outputs/RSF_output/wolf_RSF_wtr_noHM_2021-10-30.RData") # excludes dispersal events
-  load("./Outputs/RSF_output/bob_RSF_smr_noHM_2021-09-23.RData")
-  load("./Outputs/RSF_output/bob_RSF_wtr_noHM_2021-09-23.RData")
-  load("./Outputs/RSF_output/coy_RSF_smr_noHM_2021-09-23.RData")
-  load("./Outputs/RSF_output/coy_RSF_wtr_noHM_2021-09-23.RData")
-  
-  load("./Outputs/RSF_output/md_RSF_smr_SAonly_2021-11-10.RData")
-  
+  load("./Outputs/RSF_output/RSF_MD_list_2021-12-18.RData")
+  load("./Outputs/RSF_output/RSF_ELK_list_2021-12-18.RData")
+  load("./Outputs/RSF_output/RSF_WTD_list_2021-12-18.RData")
+  load("./Outputs/RSF_output/RSF_COUG_list_2021-12-18.RData") 
+  load("./Outputs/RSF_output/RSF_WOLF_list_2021-12-18.RData")
+  load("./Outputs/RSF_output/RSF_BOB_list_2021-12-18.RData")
+  load("./Outputs/RSF_output/RSF_COY_list_2021-12-18.RData")
+
 
   #'  Function to save parameter estimates & p-values
   #'  use coef(mod) to look at random effects estimates
