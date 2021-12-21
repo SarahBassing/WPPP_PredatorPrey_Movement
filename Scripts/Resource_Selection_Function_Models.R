@@ -9,6 +9,9 @@
   #'  as covariates to represent probability of predator/prey presence across 
   #'  study areas.
   #'  
+  #'  Using backwards step selection for initial covariate selection, then K-fold
+  #'  cross validation to test model performance for predicting.
+  #'  
   #'  Notes on K-fold CV metrics:
   #'  From cvms vignette (pg. 6)
   #'  Confusion matrix: The Pos_ columns tells you whether a row is a True
@@ -129,6 +132,38 @@
   bobData_wtr <- spp_dataPrep(bob_dat_all[bob_dat_all$Season == "Winter1819" | bob_dat_all$Season == "Winter1920"| bob_dat_all$Season == "Winter2021",])
   coyData_smr <- spp_dataPrep(coy_dat_all[coy_dat_all$Season == "Summer18" | coy_dat_all$Season == "Summer19" | coy_dat_all$Season == "Summer20",])
   coyData_wtr <- spp_dataPrep(coy_dat_all[coy_dat_all$Season == "Winter1819" | coy_dat_all$Season == "Winter1920" | coy_dat_all$Season == "Winter2021",])
+  
+  #'  Landcover_type categories causing convergence issues for some species due to
+  #'  too few observations in some categories (e.g., "Other", "Wetland") so
+  #'  reclassifying into fewer categories
+  reclass_landcov <- function(locs) {
+    locs <- locs %>%
+      mutate(
+        Landcover_type = as.character(as.factor(Landcover_type)),
+        Landcover_type = ifelse(Landcover_type == "Developed", "Other", Landcover_type)
+      )
+    locs$Landcover_type <- droplevels(as.factor(locs$Landcover_type))
+    locs$Landcover_type <- relevel(locs$Landcover_type, ref = "Forest")
+    
+    return(locs)
+  }
+  #'  Reclassify landcover categories
+  mdData_smr_reclass <- reclass_landcov(mdData_smr)
+  mdData_wtr_reclass <- reclass_landcov(mdData_wtr)
+  elkData_smr_reclass <- reclass_landcov(elkData_smr)
+  elkData_wtr_reclass <- reclass_landcov(elkData_wtr)
+  wtdData_smr_reclass <- reclass_landcov(wtdData_smr)
+  wtdData_wtr_reclass <- reclass_landcov(wtdData_wtr)
+  cougData_smr_reclass <- reclass_landcov(cougData_smr)
+  cougData_wtr_reclass <- reclass_landcov(cougData_wtr)
+  wolfData_smr_reclass <- reclass_landcov(wolfData_smr)
+  wolfData_wtr_reclass <- reclass_landcov(wolfData_wtr)
+  bobData_smr_reclass <- reclass_landcov(bobData_smr)
+  bobData_wtr_reclass <- reclass_landcov(bobData_wtr)
+  coyData_smr_reclass <- reclass_landcov(coyData_smr)
+  coyData_wtr_reclass <- reclass_landcov(coyData_wtr)
+  
+  
   
   #'  Function to create correlation matrix for all continuous covariates at once
   cov_correlation <- function(dat) {
@@ -259,8 +294,8 @@
   
  
   ####  K-fold CV  ####
-
-  coydata = coyData_smr[coyData_smr$Year == "Year2",]
+  mddata = mdData_smr[mdData_smr$Year == "Year3",]
+  coydata = coyData_smr_reclass[coyData_smr_reclass$Year == "Year3",]
 
   #' #'  Partition the data into training and testing datasets
   #' set.seed(2021)
@@ -275,16 +310,15 @@
 
     #'  Partition training data into balanced folds using groupdata2 package with cat_col = "Used"
   set.seed(2021)
-  fold_df <- fold(coydata, k = 3)
+  fold_df <- fold(mddata, k = 2)
   
   #'  Define model
-  formulas <- "Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1 | ID)" 
-  # NOTE: + Landcover_type causing issues, probably b/c very few or no observations in "Other" category for this species/seasons/year
-  
+  formulas <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
+
   #'  Run K-fold cross-validation
   #'  Positive argument indicates the level from `targets` (Used) to predict (positive = 1 means predict the 0's, postive = 2 means predict the 1's)
   #'  Preprocessing argument centers & scales UNstandardized continuous covariates for each fold, but this always produces errors when I try to use it
-  CV1 <- cross_validate(fold_df, formulas = formulas, family = "binomial", positive = 2) #preprocessing = "standardize", REML = FALSE
+  CV1 <- cross_validate(fold_df, formulas = formulas, family = "binomial", positive = 2) #preprocessing = "standardize", REML = FALSE, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
   
   #'  View coefficients per fold
   CV1$`Coefficients`[[1]] %>% kable()
@@ -338,7 +372,10 @@
   #'  Functions to run logistic mixed effects models that include random effect 
   #'  for individual. Habitat covariates excluded based on species (see notes 
   #'  above) and convergence issues. Annual models run separately so predicted 
-  #'  distributions are specific to the species, season, and year.
+  #'  distributions are specific to the species, season, and year. Landcover_type
+  #'  reclassified for some species where too few observations occurred in "Other"
+  #'  category- "Other" and "Developed" combined in these cases (input data labeled
+  #'  with _reclass to distinguish the differences in landcover classifications).
   
   glmm_fn <- function(mod, dat) {
     glmm_mod <- glmer(formula = mod, data = dat, family = binomial(link = "logit"))
@@ -365,309 +402,77 @@
   elk_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_smr[elkData_smr$Year == "Year2",])
   elk_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_smr[elkData_smr$Year == "Year3",])
   
-  elk_wtr1819  <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr[elkData_wtr$Year == "Year1",])
-  elk_wtr1920  <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr[elkData_wtr$Year == "Year2",])
-  elk_wtr2021  <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr[elkData_wtr$Year == "Year3",])
+  elk_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr_reclass[elkData_wtr_reclass$Year == "Year1",])
+  elk_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr_reclass[elkData_wtr_reclass$Year == "Year2",])
+  elk_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr_reclass[elkData_wtr_reclass$Year == "Year3",])
   
   ####  White-tailed Deer RSFs  ####
-  wtd_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[wtdData_smr$Year == "Year1",])
+  wtd_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[wtdData_smr$Year == "Year1",]) # + CanopyCover + Dist2Water
   wtd_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[wtdData_smr$Year == "Year2",])
   wtd_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[wtdData_smr$Year == "Year3",])
 
-  #'  "Other" & "Wetland", maybe "Developed" landcover types causing issues with wtd winter 18-19 model convergence
-  wtd_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr[wtdData_wtr$Year == "Year1",])
-  wtd_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr[wtdData_wtr$Year == "Year2",])
-  wtd_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr[wtdData_wtr$Year == "Year3",])
+  wtd_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr_reclass[wtdData_wtr_reclass$Year == "Year1",]) # + Dist2Water + CanopyCover + RoadDen + HumanMod
+  wtd_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr_reclass[wtdData_wtr_reclass$Year == "Year2",])
+  wtd_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr_reclass[wtdData_wtr_reclass$Year == "Year3",])
   
   ####  Cougar RSFs  ####
+  coug_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_smr[cougData_smr$Year == "Year1",])  # + HumanMod
+  coug_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_smr[cougData_smr$Year == "Year2",])
+  coug_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_smr[cougData_smr$Year == "Year3",]) #  + HumanMod
   
+  coug_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_wtr_reclass[cougData_wtr_reclass$Year == "Year1",]) # + RoadDen
+  coug_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_wtr_reclass[cougData_wtr_reclass$Year == "Year2",]) # + RoadDen
+  coug_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_wtr_reclass[cougData_wtr_reclass$Year == "Year3",]) # + RoadDen + Dist2Water
   
   ####  Wolf RSFs  ####
+  #'  "Other", "Developed", & "Wetland" landcover types causing issues with model
+  #'  convergence for all wolf models so lumping all together as one class
+  reclass_landcov <- function(locs) {
+    locs <- locs %>%
+    mutate(
+      Landcover_type = as.character(as.factor(Landcover_type)),
+      Landcover_type = ifelse(Landcover_type == "Wetland", "Other", Landcover_type)
+    )
+  locs$Landcover_type <- droplevels(as.factor(locs$Landcover_type))
+  locs$Landcover_type <- relevel(locs$Landcover_type, ref = "Forest")
   
+  return(locs)
+  }
+  wolfData_smr_reclass2 <- reclass_landcov(wolfData_smr_reclass)
+  wolfData_wtr_reclass2 <- reclass_landcov(wolfData_wtr_reclass)
+  
+  wolf_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_smr_reclass2[wolfData_smr_reclass2$Year == "Year1",])
+  wolf_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_smr_reclass2[wolfData_smr_reclass2$Year == "Year2",])
+  wolf_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_smr_reclass2[wolfData_smr_reclass2$Year == "Year3",])
+  
+  wolf_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_wtr_reclass2[wolfData_wtr_reclass2$Year == "Year1",])  # + Dist2Water
+  wolf_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_wtr_reclass2[wolfData_wtr_reclass2$Year == "Year2",])  # + Dist2Water
+  wolf_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_wtr_reclass2[wolfData_wtr_reclass2$Year == "Year3",])
   
   ####  Bobcat RSFs  ####
+  #'  Only data for MVBOB90M in smr18--- not enough data to make inference about bobcat resource selection across 2 study areas
+  # bob_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_smr[bobData_smr$Year == "Year1",])
+  bob_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_smr_reclass[bobData_smr_reclass$Year == "Year2",])
+  bob_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_smr_reclass[bobData_smr_reclass$Year == "Year3",])  # + CanopyCover + I(Elev^2) + Slope  + RoadDen
   
+  #'  Only data for MVBOB88M & MVBOB90M wtr1819--- not enough data to make inference about bobcat resource selection across 2 study areas
+  # bob_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_wtr[bobData_wtr$Year == "Year1",])
+  bob_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_wtr[bobData_wtr$Year == "Year2",]) # + Dist2Water  + CanopyCover
+  bob_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_wtr[bobData_wtr$Year == "Year3",]) # + Dist2Water  + RoadDen  + I(Elev^2)
   
   ####  Coyote RSFs  ####
-  coy_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1|ID)", dat = coyData_smr[coyData_smr$Year == "Year1",])
-  
-  
-  ####  Mule Deer RSF  ####
-  #'  SUMMER 2018
+  #'  Data from only MVCOY68F, NECOY1F, NECOY2M, & NECOY3F in snmr18--- hesitant to extrapolate selection across study areas
   #'  Dropping HumanMod due to high correlation with other covariates
-  md_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),   
-                         data = mdData_smr[mdData_smr$Year == "Year1",], family = binomial(link = "logit"))
-  summary(md_smr18)
-  car::vif(md_smr18)
-  #'  SUMMER 2019
-  #'  Dropping HumanMod due to high correlation with other covariates
-  md_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                    data = mdData_smr[mdData_smr$Year == "Year2",], family = binomial(link = "logit"))
-  summary(md_smr19)
-  car::vif(md_smr19)
-  #'  SUMMER 2020
-  #'  Dropping HumanMod due to high correlation with other covariates
-  md_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                    data = mdData_smr[mdData_smr$Year == "Year3",], family = binomial(link = "logit"))
-  summary(md_smr20)
-  car::vif(md_smr20)
-
-  #'  WINTER 2018-2019
-  #'  Dropping HumanMod due to high correlation with other covariates
-  md_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),
-                          data = mdData_wtr[mdData_wtr$Year == "Year1",], family = binomial(link = "logit"))
-  summary(md_wtr1819)
-  car::vif(md_wtr1819)
-  #'  WINTER 2019-2020
-  #'  Dropping HumanMod due to high correlation with other covariates
-  md_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),
-                      data = mdData_wtr[mdData_wtr$Year == "Year2",], family = binomial(link = "logit"))
-  summary(md_wtr1920)
-  car::vif(md_wtr1920)
-  #'  WINTER 2020-2021
-  #'  Dropping HumanMod due to high correlation with other covariates
-  md_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),
-                      data = mdData_wtr[mdData_wtr$Year == "Year3",], family = binomial(link = "logit"))
-  summary(md_wtr2021)
-  car::vif(md_wtr2021)
+  coy_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_smr_reclass[coyData_smr_reclass$Year == "Year1",]) # + I(Elev^2) 
+  coy_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = coyData_smr_reclass[coyData_smr_reclass$Year == "Year2",]) # + Dist2Edge
+  coy_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_smr_reclass[coyData_smr_reclass$Year == "Year3",])
+  
+  #'  Data from only MVCOY68F, NECOY1F, NECOY2M, NECOY3F & NECOY4M in wtr1819--- hesitant to extrapolate selection across study areas
+  coy_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + Dist2Water + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_wtr_reclass[coyData_wtr_reclass$Year == "Year1",]) # + RoadDen + I(Elev^2) + CanopyCover + Slope
+  coy_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Landcover_type + (1|ID)", dat = coyData_wtr_reclass[coyData_wtr_reclass$Year == "Year2",]) # + CanopyCover  + Dist2Edge
+  coy_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_wtr_reclass[coyData_wtr_reclass$Year == "Year3",])
   
   
-  
-  ####  Elk RSF  ####
-  #'  SUMMER 2018
-  #'  Dropping HumanMod due to high correlation with other covariates
-  elk_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),  
-                        data = elkData_smr[elkData_smr$Year == "Year1",], family = binomial(link = "logit"))
-  summary(elk_smr18)
-  car::vif(elk_smr18)
-  #'  SUMMER 2019
-  #'  Dropping HumanMod due to high correlation with other covariates
-  elk_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),  
-                     data = elkData_smr[elkData_smr$Year == "Year2",], family = binomial(link = "logit"))
-  summary(elk_smr19)
-  car::vif(elk_smr19)
-  #'  SUMMER 2020
-  #'  Dropping HumanMod due to high correlation with other covariates
-  elk_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID),  
-                     data = elkData_smr[elkData_smr$Year  == "Year3",], family = binomial(link = "logit"))
-  summary(elk_smr20)
-  car::vif(elk_smr20)
-  
-  #'  WINTER 2018-2019
-  elk_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                          data = elkData_wtr[elkData_wtr$Year == "Year1",], family = binomial(link = "logit"))
-  summary(elk_wtr1819)
-  car::vif(elk_wtr1819)
-  #'  WINTER 2019-2020
-  elk_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                       data = elkData_wtr[elkData_wtr$Year == "Year2",], family = binomial(link = "logit"))
-  summary(elk_wtr1920)
-  car::vif(elk_wtr1920)
-  #'  WINTER 2020-2021
-  #'  Dropped Landcover_type due to convergence issues- likely due to few observations of "Other" category, possibly "Wetland" too
-  elk_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), #+ Landcover_type 
-                       data = elkData_wtr[elkData_wtr$Year == "Year3",], family = binomial(link = "logit"))
-  summary(elk_wtr2021)
-  car::vif(elk_wtr2021)
-  
-  
-  
-  ####  White-tailed Deer RSF  ####
-  #'  SUMMER 2018
-  wtd_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                          data = wtdData_smr[wtdData_smr$Year == "Year1",], family = binomial(link = "logit"))
-  summary(wtd_smr18)
-  car::vif(wtd_smr18)
-  #'  SUMMER 2019
-  wtd_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                     data = wtdData_smr[wtdData_smr$Year == "Year2",], family = binomial(link = "logit"))
-  summary(wtd_smr19)
-  car::vif(wtd_smr19)
-  #'  SUMMER 2020
-  wtd_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                     data = wtdData_smr[wtdData_smr$Year == "Year3",], family = binomial(link = "logit"))
-  summary(wtd_smr20)
-  car::vif(wtd_smr20)
-
-  #'  WINTER 2018-2019
-  #'  "Other" & "Wetland", maybe "Developed" landcover types causing issues with model convergence
-  wtd_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), #+ Landcover_type
-                          data = wtdData_wtr[wtdData_wtr$Year == "Year1",], family = binomial(link = "logit"))
-  summary(wtd_wtr1819)
-  car::vif(wtd_wtr1819)
-  #'  WINTER 2019-2020
-  wtd_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                       data = wtdData_wtr[wtdData_wtr$Year == "Year2",], family = binomial(link = "logit"))
-  summary(wtd_wtr1920)
-  car::vif(wtd_wtr1920)
-  #'  WINTER 2020-2021
-  wtd_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                       data = wtdData_wtr[wtdData_wtr$Year == "Year3",], family = binomial(link = "logit"))
-  summary(wtd_wtr2021)
-  car::vif(wtd_wtr2021)
-  
-  
-  ####  Cougar RSF  ####
-  #'  SUMMER 2018
-  #'  HumanMod not significant
-  coug_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                          data = cougData_smr[cougData_smr$Year == "Year1",], family = binomial(link = "logit"))
-  summary(coug_smr18)
-  car::vif(coug_smr18)
-  #'  SUMMER 2019
-  coug_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                      data = cougData_smr[cougData_smr$Year == "Year2",], family = binomial(link = "logit"))
-  summary(coug_smr19)
-  car::vif(coug_smr19)
-  #'  SUMMER 2020
-  #'  HumanMod not significant
-  coug_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                      data = cougData_smr[cougData_smr$Year == "Year3",], family = binomial(link = "logit"))
-  summary(coug_smr20)
-  car::vif(coug_smr20)
-  
-  #'  WINTER 2018-2019
-  #'  RoadDen not significant
-  coug_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                           data = cougData_wtr[cougData_wtr$Year == "Year1",], family = binomial(link = "logit"))
-  summary(coug_wtr1819)
-  car::vif(coug_wtr1819)
-  #'  WINTER 2019-2020
-  #'  RoadDen not significant
-  coug_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                        data = cougData_wtr[cougData_wtr$Year == "Year2",], family = binomial(link = "logit"))
-  summary(coug_wtr1920)
-  car::vif(coug_wtr1920)
-  #'  WINTER 2020-2021
-  #'  "Other" & "Wetland" landcover types causing issues with model convergence
-  coug_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  # + Landcover_type
-                        data = cougData_wtr[cougData_wtr$Year == "Year3",], family = binomial(link = "logit"))
-  summary(coug_wtr2021)
-  car::vif(coug_wtr2021)
-  
-  
-  ####  Wolf RSF  ####
-  #'  SUMMER 2018
-  #'  "Other" & "Wetland" landcover types causing issues with model convergence
-  wolf_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), # + Landcover_type
-                       data = wolfData_smr[wolfData_smr$Year == "Year1",], family = binomial(link = "logit")) 
-  summary(wolf_smr18)
-  car::vif(wolf_smr18)
-  #'  SUMMER 2019
-  #'  "Other" & "Wetland" landcover types causing issues with model convergence
-  wolf_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  # + Landcover_type
-                      data = wolfData_smr[wolfData_smr$Year == "Year2",], family = binomial(link = "logit")) 
-  summary(wolf_smr19)
-  car::vif(wolf_smr19)
-  #'  SUMMER 2020
-  #'  "Other" & "Wetland" landcover types causing issues with model convergence
-  wolf_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  # + Landcover_type
-                      data = wolfData_smr[wolfData_smr$Year == "Year3",], family = binomial(link = "logit")) 
-  summary(wolf_smr20)
-  car::vif(wolf_smr20)
-  
-  #'  WINTER 2018-2019
-  #'  "Other" & "Wetland" landcover types causing issues with model convergence
-  wolf_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  #  + Landcover_type
-                           data = wolfData_wtr[wolfData_wtr$Year == "Year1",], family = binomial(link = "logit")) 
-  summary(wolf_wtr1819)
-  car::vif(wolf_wtr1819)
-  #'  WINTER 2019-2020
-  #'  "Other" & "Wetland" landcover types causing issues with model convergence
-  wolf_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), #  + Landcover_type
-                        data = wolfData_wtr[wolfData_wtr$Year == "Year2",], family = binomial(link = "logit"))
-  summary(wolf_wtr1920)
-  car::vif(wolf_wtr1920)
-  #'  WINTER 2020-2021
-  #'  "Other" & "Wetland" landcover types causing issues with model convergence
-  wolf_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), # + Landcover_type
-                        data = wolfData_wtr[wolfData_wtr$Year == "Year3",], family = binomial(link = "logit"))
-  summary(wolf_wtr2021)
-  car::vif(wolf_wtr2021)
-
-  
-  ####  Bobcat RSF  ####
-  #' #'  SUMMER 2018
-  #' #'  Only data for MVBOB90M in summer 2018--- not enough data to make inference about bobcat resource selection across 2 study areas
-  #' bob_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-  #'                          data = bobData_smr[bobData_smr$Year == "Year1",], family = binomial(link = "logit")) 
-  #' summary(bob_smr18)
-  #' car::vif(bob_smr18)
-  #'  SUMMER 2019
-  #'  "Developed" landcover type causing issues with model convergence
-  bob_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID),  #+ Landcover_type
-                     data = bobData_smr[bobData_smr$Year == "Year2",], family = binomial(link = "logit")) 
-  summary(bob_smr19)
-  car::vif(bob_smr19)
-  #'  SUMMER 2020
-  #'  Quadratic term on Elevation, Slope, RoadDen, Canopy Cover not significant
-  #'  "Developed" landcover type causing issues with model convergence
-  bob_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + (1|ID), # + Landcover_type
-                     data = bobData_smr[bobData_smr$Year == "Year3",], family = binomial(link = "logit")) 
-  summary(bob_smr20)
-  car::vif(bob_smr20)
-  
-  #' #'  WINTER 2018-2019  
-  #' #'  Only data for MVBOB88M & MVBOB90M winter 18-19 --- not enough data to make inference about bobcat resource selection across 2 study areas
-  #' bob_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-  #'                         data = bobData_wtr[bobData_wtr$Year == "Year1",], family = binomial(link = "logit")) 
-  #' summary(bob_wtr1819)
-  #' car::vif(bob_wtr1819)
-  #'  WINTER 2019-2020 
-  #'  Dist2Water, Canopy Cover not significant 
-  bob_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                       data = bobData_wtr[bobData_wtr$Year == "Year2",], family = binomial(link = "logit")) 
-  summary(bob_wtr1920)
-  car::vif(bob_wtr1920)
-  #'  WINTER 2020-2021 
-  #'  Quadratic term on Elevation, RoadDen, Dist2Water not significant 
-  bob_wtr2021 <- glmer(Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), #+ I(Elev^2)
-                       data = bobData_wtr[bobData_wtr$Year == "Year3",], family = binomial(link = "logit")) 
-  summary(bob_wtr2021)
-  car::vif(bob_wtr2021)
-  
-  
-  ####  Coy RSF  ####
-  #'  SUMMER 2018
-  #'  Data from only MVCOY68F, NECOY1F, NECOY2M, & NECOY3F in summer 18 --- not really enough to extrapolate selection across study areas
-  #'  Dropping HumanMod due to high correlation with other covariates
-  #'  "Other" & "Wetland" landcover types causing issues with model convergence
-  coy_smr18 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1|ID), # + Landcover_type
-                           data = coyData_smr[coyData_smr$Year == "Year1",], family = binomial(link = "logit")) 
-  summary(coy_smr18)
-  car::vif(coy_smr18)
-  #'  SUMMER 2019
-  #'  Dropping HumanMod due to high correlation with other covariates
-  #'  Quadratic term on Elev and Dist2Edge not significant
-  coy_smr19 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                     data = coyData_smr[coyData_smr$Year == "Year2",], family = binomial(link = "logit")) 
-  summary(coy_smr19)
-  car::vif(coy_smr19)
-  #'  SUMMER 2020
-  #'  Dropping HumanMod due to high correlation with other covariates
-  #'  "Other" & "Wetland" landcover types causing issues with model convergence???
-  coy_smr20 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                     data = coyData_smr[coyData_smr$Year == "Year3",], family = binomial(link = "logit")) 
-  summary(coy_smr20)
-  car::vif(coy_smr20)
-  
-  #'  WINTER 2018-2019
-  #'  Data from only MVCOY68F, NECOY1F, NECOY2M, NECOY3F & NECOY4M in winter 18-19 --- not really enough to extrapolate selection across study areas
-  coy_wtr1819 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                          data = coyData_wtr[coyData_wtr$Year == "Year1",], family = binomial(link = "logit")) 
-  summary(coy_wtr1819)
-  car::vif(coy_wtr1819)
-  #'  WINTER 2019-2020
-  coy_wtr1920 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID), 
-                       data = coyData_wtr[coyData_wtr$Year == "Year2",], family = binomial(link = "logit")) 
-  summary(coy_wtr1920)
-  car::vif(coy_wtr1920)
-  #'  WINTER 2020-2021
-  #'  "Other" & maybe "Wetland" landcover category causing conversion issues
-  coy_wtr2021 <- glmer(Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge  + (1|ID), # + Landcover_type
-                       data = coyData_wtr[coyData_wtr$Year == "Year3",], family = binomial(link = "logit")) 
-  summary(coy_wtr2021)
-  car::vif(coy_wtr2021)
   
   
   #'  Save
