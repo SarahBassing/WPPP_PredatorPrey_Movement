@@ -67,18 +67,18 @@
   ####  Match & Extract Google Earth Engine image data to telemetry data  ####
   #'  Original functions written by Crego et al. (2021) examples
   #'  These original functions are now imbedded in a monster function
-  match_ee_data <- function(datasf){ #tempwin, imagecoll, band, sp.res, tmp.res, start.date, end.date, 
+  match_ee_data <- function(datasf, imagecoll, tempwin, band, sp.res, tmp.res){ #tempwin, imagecoll, band, sp.res, tmp.res, start.date, end.date, 
     
     #'  Function to add property with time in milliseconds
     add_date <- function(feature) {
       date <- ee$Date(ee$String(feature$get("Date")))$millis()
-      feature$set(list(date_millis=date))
+      feature$set(list(date_millis = date))
     }
     
     #'  Join EE image & telemetry locations based on a maxDifference Filter within 
     #'  a specified temporal window. Set temporal window in days for filter. This 
     #'  will depend on the remote sensing data used.
-    tempwin <- 16#tempwin#16 # eventually un-hardcode this
+    tempwin <- tempwin#16 # eventually un-hardcode this
     
     #'  Create the filter
     maxDiffFilter <- ee$Filter$maxDifference(
@@ -92,8 +92,8 @@
     #'  the EE image closest in time to the particular GPS fix location). 
     #'  This is baller.
     saveBestJoin <- ee$Join$saveBest(
-      matchKey ="bestImage",
-      measureKey ="timeDiff"
+      matchKey = "bestImage",
+      measureKey = "timeDiff"
     )
     
     #'  Function to add property with raster pixel value from the matched EE image
@@ -106,7 +106,7 @@
       #'  (adjust this using the scale argument- consider the resolution of the
       #'  EE image!). Also adjust the temporal resolution (tileScale) base on
       #'  temporal res of the EE image????
-      pixel_value <- img1$sample(region = point, scale = 250, tileScale = 16, dropNulls = F) #scale = 250 #tileScale = 16 #scale = sp.res, tileScale = tmp.res,
+      pixel_value <- img1$sample(region = point, scale = sp.res, tileScale = tmp.res, dropNulls = F) #scale = 250 #tileScale = 16 #scale = sp.res, tileScale = tmp.res,
       #'  Return the data containing pixel value and image date
       feature$setMulti(list(PixelVal = pixel_value$first()$get(band), DateTimeImage = img1$get('system:index')))
     }
@@ -121,18 +121,17 @@
       feature$select(selectProperties)
     }
     
-    #'  Define start and end date range based on timing of relocation data
-    start <- "2018-06-30" #start.date#
-    end <- "2020-11-01" #end.date#
+    #' #'  Define start and end date range based on timing of relocation data
+    #' start <- "2018-06-30" #start.date#
+    #' end <- "2020-11-01" #end.date#
     
     #'  Define EE image collection you want to extract from
     #'  Try to un-hardcode this eventually
-    imagecoll <- ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS NDVI/EVI imagecoll
-    # imagecoll <- ee.ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global 500m
+    imagecoll <- imagecoll#ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS NDVI/EVI imagecoll
     
     #'  Name the data band to use (based on EE image)
     #'  Try to un-hardcode this eventually
-    band <- "NDVI"#band #"NDVI" 
+    band <- band #"NDVI" 
     # band <- "NDSI" # https://developers.google.com/earth-engine/datasets/catalog/MODIS_006_MOD10A1#bands
     
     #'  Chunk location data into groups to loop through when extracting pixel values
@@ -178,29 +177,48 @@
     
     #'  Rename column with pixel values based on the defined band name
     names(dataoutput)[4] <- band
-    dataoutput
     
-    #'  NDVI data are extracted on one scale but need to be re-scaled to a more
-    #'  meaningful range of values
-    dataoutput <- mutate(dataoutput, NDVI_scale = NDVI*0.0001)
-    #  NOTE: Scale Factor is 0.0001 for the NDVI values (pg. 9 of MODIS User's Guide)
-    #  so all NDVI values need to be rescaled by 0.0001 to be in the right range (-1 to 1)
+    #'  View & return output
+    print(dataoutput)
+    return(dataoutput)
+  }
+  #'  Define time window of interest for extracting data
+  start <- "2018-06-30"
+  end <- "2020-11-01" 
+  #'  Define EE image collections
+  imageNDVI <- ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS Terra NDVI/EVI 16day, 250m resolution
+  imageSNOW <- ee.ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global 500m
+  
+  
+  #'  Run reformated animal location data through this monster function to
+  #'  match & extract EE images 
+  # tst <- list(data_ee_list[[13]])  #, data_ee_list[[14]]
+  ee_NDVI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16) #tempwin = 16, imagecoll = imagecoll, band = "NDVI",  sp.res = 250, tmp.res = 16, 
+  ee_SNOW <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOW, tempwin = 16, band = "SnowCover", sp.res = 250, tmp.res = 16) 
+  
+  
+  ####  Re-scale NDVI values  ####
+  #'  ONLY RUN IF WORKING WITH NDVI DATA!
+  #'  MODIS data are scaled by a factor of 0.0001 for ease of extraction (see 
+  #'  pg. 9 of MODIS User's Guide) but NDVI should range -1 to 1. All extracted 
+  #'  NDVI values need to be rescaled by 0.0001 to be in the correct range.
+  ndvi_rescale <- function(ee_data, plotit = F) {
+    #'  Create new column with re-scaled NDVI values
+    dataoutput <- mutate(ee_data, NDVI_scale = NDVI*0.0001)
+    #'  Visualize
+    plot(dataoutput$NDVI_scale)
+    hist(dataoutput$NDVI_scale)
     
     return(dataoutput)
   }
-  #'  Feed reformated animal location data through this monster function to
-  #'  match & extract EE images with spatiotemporally varying location data.
-  tst <- list(data_ee_list[[13]], data_ee_list[[14]])
-  imagecoll <- ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS NDVI/EVI
-  tst2 <- lapply(tst, match_ee_data) #tempwin = 16, imagecoll = imagecoll, band = "NDVI", start.date = "2018-06-30", end.date = "2020-11-01", sp.res = 250, tmp.res = 16, 
+  ee_NDVI <- lapply(ee_NDVI, ndvi_rescale, T)
+  
+ 
   
   
   
-  
-  
-  
-  
-  
+  #'  Citation for Snow Cover Data
+  #'  Hall, D. K., V. V. Salomonson, and G. A. Riggs. 2016. MODIS/Terra Snow Cover Daily L3 Global 500m Grid. Version 6. Boulder, Colorado USA: NASA National Snow and Ice Data Center Distributed Active Archive Center.
   
   
     
