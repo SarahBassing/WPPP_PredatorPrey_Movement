@@ -187,14 +187,14 @@
   end <- "2020-11-01" 
   #'  Define EE image collections
   imageNDVI <- ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS Terra NDVI/EVI 16day, 250m resolution
-  imageSNOW <- ee.ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global 500m
+  imageSNOW <- ee.ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global daily, 500m resolution
   
   
   #'  Run reformated animal location data through this monster function to
   #'  match & extract EE images 
-  # tst <- list(data_ee_list[[13]])  #, data_ee_list[[14]]
-  ee_NDVI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16) #tempwin = 16, imagecoll = imagecoll, band = "NDVI",  sp.res = 250, tmp.res = 16, 
-  ee_SNOW <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOW, tempwin = 16, band = "SnowCover", sp.res = 250, tmp.res = 16) 
+  tst <- list(data_ee_list[[13]], data_ee_list[[14]])  #, data_ee_list[[14]]
+  ee_NDVI <- lapply(tst, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)  
+  ee_SNOW <- lapply(tst, match_ee_data, imagecoll = imageSNOW, tempwin = 1, band = "SnowCover", sp.res = 500, tmp.res = 1) 
   
   
   ####  Re-scale NDVI values  ####
@@ -213,8 +213,25 @@
   }
   ee_NDVI <- lapply(ee_NDVI, ndvi_rescale, T)
   
- 
-  
+  ####  Join datasets  ####
+  join_data <- function(crwOut_data, ndvi) { #, ndvi, snow
+    #'  Make sure each observation has the unique Animal ID
+    full_crwOut <- crwOut_data[[2]]
+    crwOut <- full_crwOut %>%
+      separate(ID, sep = "_", into = "AnimalID",  extra = "drop")
+    ee_covs <- as.data.frame(cbind(crwOut$AnimalID, crwOut$Season, crwOut$StudyArea, crwOut$mu.x, crwOut$mu.y))
+    #'  Add a unique ID for each observation for easier joining
+    ee_covs$ID <- as.integer(1:nrow(ee_covs))
+    ee_covs <- ee_covs %>%
+      full_join(ndvi, by = "ID") %>%
+    dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDVI)) %>%
+    relocate(ID, .after = (NDVI_scale))
+    colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "Date", "NDVI", "ID")
+    
+    return(ee_covs)
+  }
+  coy_ee <- join_data(crwOut_ALL[[13]], ee_NDVI[[13]])
+
   
   
   #'  Citation for Snow Cover Data
