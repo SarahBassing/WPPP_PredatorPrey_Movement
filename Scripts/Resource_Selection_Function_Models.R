@@ -199,171 +199,77 @@
   #'  % Grass & Shrub correlated for BOb smr
   #'  % Forest & Canopy Cover, % Forest & Shrub correlated for BOB wtr
   
- 
-  #' #https://www.youtube.com/watch?v=BQ1VAZ7jNYQ helpful video but I don't think you can use this for models with random effects
-  #' coydata = coyData_smr[coyData_smr$Year == "Year1",]
-  #' library(caret)
-  #' #'  Partitioning of the data- create index matrix of selected values
-  #' #'  Set seed to split data
-  #' set.seed(2021)
-  #' #'  Randomly split data once into training and test data (80:20)
-  #' index <- createDataPartition(coydata$Used, p = 0.8, list = FALSE, times = 1)
-  #' #'  Create training and test data frame based on indexed data
-  #' train_df <- coydata[index,]
-  #' test_df <- coydata[-index,]
-  #' #'  Specify type of training method and number of folds
-  #' ctrlspecs <- trainControl(method = "cv", number = 5, savePredictions = "all",
-  #'                           classProbs = TRUE) # save predictions & class probabilities
-  #' #'  Set random seed split training data into folds
-  #' set.seed(2021)
-  #' #'  Specify the statistical model
-  #' model1 <- train(Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type,
-  #'                 data = train_df, method = "glm", family = binomial, trCrontrol = ctrlspecs)
-  #' #'  Predict outcome using model from train_df applied to the test_df
-  #' predicted <- predict(model1, newdata = test_df)
-  #' #'  Create confusion matrix to get the classification accuracy, etc.
-  #' confusionMatrix(data = predicted, test_df$Used)
-  
-  
+
+  ####  K-fold CV  ####
   #https://github.com/LudvigOlsen/cvms#examples
   #https://cran.r-project.org/web/packages/cvms/cvms.pdf
   
-  #' coydata = coyData_smr[coyData_smr$Year == "Year1",]
-  #' 
-  #' #'  Partition the data into training and testing datasets
+  
+  #'  Function to run k-fold cross validation on each RSF
+  #'  Requires the data set, number of folds (K), and regression model be defined
+  k_fold_rsf <- function(dat, K, mod) {
+    
+    #'  Set seed so its reproducible
+    set.seed(2021)
+    
+    #'  Partition data into folds
+    #'  Use groupdata2 package with cat_col = "Used" to balance folds proportional
+    #'  to 0's and 1's in dataset
+    fold_df <- fold(dat, k = K) #k = 2
+    
+    #'  Define model
+    mod <- mod #"Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
+    
+    #'  Run K-fold cross-validation
+    #'  Positive argument indicates the level from `targets` (Used) to predict 
+    #'  (positive = 1 means predict the 0's, postive = 2 means predict the 1's)
+    #'  Preprocessing argument centers & scales UNstandardized continuous covariates 
+    #'  for each fold, but this always produces errors when I try to use it
+    CV1 <- cross_validate(fold_df, formulas = mod, family = "binomial", positive = 2, REML = FALSE) #preprocessing = "standardize", #control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+    
+    #'  View coefficients per fold
+    print(CV1$`Coefficients`[[1]] %>% kable())
+    # Metrics
+    print(CV1 %>% select(1:15) %>% kable(digits = 5))
+    #' Confusion matrix- important when considering Kappa statistic and calculating accuracy metrics
+    print(CV1$`Confusion Matrix`[[1]] %>% kable())
+    
+    return(CV1)
+  }
+  #'  Assess predictive capacity for each RSF
+  bob_wtr1920_cv <- k_fold_rsf(dat = bobData_wtr[bobData_wtr$Year == "Year2",], K = 2, mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)")
+  
+  
+  
+  
+  #' mddata = mdData_smr[mdData_smr$Year == "Year3",]
+  #' coydata = coyData_smr_reclass[coyData_smr_reclass$Year == "Year3",]
+  #' #'  Partition training data
+  #' #'  Use groupdata2 package with cat_col = "Used" to balance folds proportional
+  #' #'  to 0's and 1's in dataset
   #' set.seed(2021)
-  #' data_partitioned <- partition(
-  #'   coydata,
-  #'   p = 0.8,
-  #'   cat_col = "Used",
-  #'   list_out = TRUE
-  #' )
-  #' train_set <- data_partitioned[[1]]
-  #' test_set <- data_partitioned[[2]]
-  #' 
-  #' #'  Set seed to create folds
-  #' set.seed(2021)
-  #' #'  Partition training data into balanced folds using groupdata2 package
-  #' train_df <- fold(train_set, k = 2, cat_col = "Used") %>%
-  #'   mutate(Used = as.factor(Used)) %>%
-  #'   arrange(.folds)
+  #' fold_df <- fold(mddata, k = 2)
   #' 
   #' #'  Define model
-  #' # formulas <- "Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1 | ID)" 
-  #' # + Landcover_type causing issues, probably b/c very few or no observations in "Other" category for this species/seasons/year
-  #' formulas <- c(
-  #'   "Used ~ Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + (1 | ID)",
-  #'   "Used ~ Slope + CanopyCover + Dist2Edge + (1 | ID)" #playing around with defining multiple models for funsies
-  #' )
+  #' formulas <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
   #' 
-  #' #'  Create model function that returns a fitted model object
-  #' #'  Really not sure what's up with the hyperparameters here but it's included in the vignette so I included it
-  #' glm_model_fn <- function(train_data, formula, hyperparameters) {
-  #'   glmer(formula = formula, data = train_data, family = binomial(link = "logit"))
-  #' }
+  #' #'  Run K-fold cross-validation
+  #' #'  Positive argument indicates the level from `targets` (Used) to predict (positive = 1 means predict the 0's, postive = 2 means predict the 1's)
+  #' #'  Preprocessing argument centers & scales UNstandardized continuous covariates for each fold, but this always produces errors when I try to use it
+  #' CV1 <- cross_validate(fold_df, formulas = formulas, family = "binomial", positive = 2) #preprocessing = "standardize", REML = FALSE, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
   #' 
-  #' #'  Create predict function that returns the predictions
-  #' #'  Really not sure what's up with the hyperparameters here but it's included in the vignette so I included it
-  #' glm_predict_fn <- function(test_data, model, formula, hyperparameters, train_data) {
-  #'   stats::predict(
-  #'     object = model,
-  #'     newdata = test_data,
-  #'     type = "response",
-  #'     allow.new.levels = TRUE
-  #'   )
-  #' }
-  #' 
-  #' #'  Cross-validate the model function
-  #' CV1 <- cross_validate_fn(
-  #'   train_df,
-  #'   formulas = formulas,
-  #'   type = "binomial",
-  #'   model_fn = glm_model_fn,
-  #'   predict_fn = glm_predict_fn,
-  #'   fold_cols = ".folds"
-  #' )
-  #' #  View coefficients per fold
+  #' #'  View coefficients per fold
   #' CV1$`Coefficients`[[1]] %>% kable()
-  #' CV1$`Coefficients`[[2]] %>% kable()
-  #' # K-fold CV Metrics
-  #' CV1$`Results`[[1]] %>% kable()
-  #' CV1$`Results`[[2]] %>% kable()
+  #' # Metrics
   #' CV1 %>% select(1:15) %>% kable(digits = 5)
-  #' # Confusion matrix
+  #' #' Confusion matrix- important when considering Kappa statistic and calculating accuracy metrics
   #' CV1$`Confusion Matrix`[[1]] %>% kable()
   
- 
-  ####  K-fold CV  ####
-  mddata = mdData_smr[mdData_smr$Year == "Year3",]
-  coydata = coyData_smr_reclass[coyData_smr_reclass$Year == "Year3",]
-
-  #' #'  Partition the data into training and testing datasets
-  #' set.seed(2021)
-  #' data_partitioned <- partition(
-  #'   coydata,
-  #'   p = 0.8,
-  #'   cat_col = "Used",
-  #'   list_out = TRUE
-  #' )
-  #' train_set <- data_partitioned[[1]]
-  #' test_set <- data_partitioned[[2]]
-
-    #'  Partition training data into balanced folds using groupdata2 package with cat_col = "Used"
-  set.seed(2021)
-  fold_df <- fold(mddata, k = 2)
-  
-  #'  Define model
-  formulas <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
-
-  #'  Run K-fold cross-validation
-  #'  Positive argument indicates the level from `targets` (Used) to predict (positive = 1 means predict the 0's, postive = 2 means predict the 1's)
-  #'  Preprocessing argument centers & scales UNstandardized continuous covariates for each fold, but this always produces errors when I try to use it
-  CV1 <- cross_validate(fold_df, formulas = formulas, family = "binomial", positive = 2) #preprocessing = "standardize", REML = FALSE, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
-  
-  #'  View coefficients per fold
-  CV1$`Coefficients`[[1]] %>% kable()
-  # Metrics
-  CV1 %>% select(1:15) %>% kable(digits = 5)
-  #' Confusion matrix- important when considering Kappa statistic and calculating accuracy metrics
-  CV1$`Confusion Matrix`[[1]] %>% kable()
-  
-  # Compute the average of the k recorded errors. This is called the cross-validation error serving as the performance metric for the model.
-
   
   
   
-  #' #### WHAT DO I DO FROM HERE?!?!?! DO I JUST WANT THE METRICS TO REPORT HOW ACCURATE THE MODEL IS
-  #' #### OR DO I WANT THE FINAL COEFFICIENTS ESTIMATED ACROSS THE K-FOLDS? IF I WANT THAT, HOW DO I GET A 
-  #' #### SINGLE COEF FOR EACH PARAMETER INSTEAD OF THE K ESTIMATES? 
-  #' 
-  #' 
-  #' #'  Validate model
-  #' validate(train_data = train_set,
-  #'          test_data = test_set,
-  #'          formulas = "Used ~ Elev + I(Elev^2) + (1|ID)",
-  #'          partitions_col = ".partitions",
-  #'          family = "binomial")
-  #' 
-  #' 
-  #' 
-  #' mddata = mdData_smr[mdData_smr$Year == "Year1",]
-  #' #'  Set seed to split data
-  #' set.seed(2021)
-  #' #'  Randomly split data once into training and test data (80:20) using caret package
-  #' index <- createDataPartition(mddata$Used, p = 0.8, list = FALSE, times = 1)
-  #' #'  Create training and test data frame based on indexed data
-  #' train_df <- mddata[index,]
-  #' test_df <- mddata[-index,]
-  #' #'  Set seed to create folds
-  #' set.seed(2021)
-  #' #'  Partition training data into balanced folds using groupdata2 package
-  #' train_df <- fold(train_df, k = 5, cat_col = "Used")   # Can't group with id_col b/c number of observations differ with each ID
-  #' #'  Define model
-  #' formulas <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1 | ID)"
-  #' #'  Run K-fold cross validation with training data and model
-  #' coytst <- cross_validate(train_df, formulas = formulas, family = "binomial", REML = FALSE)
-  #' coytst
-  #' #'  Report Accuracy and Kappa statistics!
+  #'  Compute the average of the k recorded errors. This is called the cross-validation error serving as the performance metric for the model.
+  #'  Report Accuracy and Kappa statistics!
    
   
   
