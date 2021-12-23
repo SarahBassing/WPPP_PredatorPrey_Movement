@@ -388,9 +388,9 @@
   
   ####  Mule Deer RSFs  ####
   #'  Dropping HumanMod in mulie models due to high correlation with other covariates
-  md_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_smr[mdData_smr$Year == "Year1",])
-  md_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_smr[mdData_smr$Year == "Year2",])
-  md_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_smr[mdData_smr$Year == "Year3",])
+  md_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + RoadDen + CanopyCover + Landcover_type + (1|ID)", dat =  mdData_smr[mdData_smr$Year == "Year1",])  # + Slope  + Dist2Water  + Dist2Edge
+  md_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat =  mdData_smr[mdData_smr$Year == "Year2",]) # + Dist2Edge
+  md_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat =  mdData_smr[mdData_smr$Year == "Year3",]) # + Dist2Edge  + Slope
   
   md_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_wtr[mdData_wtr$Year == "Year1",]) # + RoadDen  + I(Elev^2)
   md_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat =  mdData_wtr[mdData_wtr$Year == "Year2",])
@@ -471,10 +471,7 @@
   coy_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + Dist2Water + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_wtr_reclass[coyData_wtr_reclass$Year == "Year1",]) # + RoadDen + I(Elev^2) + CanopyCover + Slope
   coy_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Landcover_type + (1|ID)", dat = coyData_wtr_reclass[coyData_wtr_reclass$Year == "Year2",]) # + CanopyCover  + Dist2Edge
   coy_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_wtr_reclass[coyData_wtr_reclass$Year == "Year3",])
-  
-  
-  
-  
+
   #'  Save
   RSF_MD_list <- list(md_smr18, md_smr19, md_smr20, md_wtr1819, md_wtr1920, md_wtr2021)
   RSF_ELK_list <- list(elk_smr18, elk_smr19, elk_smr20, elk_wtr1819, elk_wtr1920, elk_wtr2021)
