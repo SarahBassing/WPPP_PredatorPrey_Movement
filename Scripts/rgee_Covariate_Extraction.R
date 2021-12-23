@@ -131,7 +131,7 @@
     
     #'  Name the data band to use (based on EE image)
     #'  Try to un-hardcode this eventually
-    band <- band #"NDVI" 
+    band <- band 
     # band <- "NDSI" # https://developers.google.com/earth-engine/datasets/catalog/MODIS_006_MOD10A1#bands
     
     #'  Chunk location data into groups to loop through when extracting pixel values
@@ -176,7 +176,9 @@
     print(end_time - start_time)
     
     #'  Rename column with pixel values based on the defined band name
-    names(dataoutput)[4] <- band
+    # names(dataoutput)[4] <- band
+    colnames(dataoutput)[colnames(dataoutput) == "PixelVal"] <- band
+    
     
     #'  View & return output
     print(dataoutput)
@@ -185,16 +187,19 @@
   #'  Define time window of interest for extracting data
   start <- "2018-06-30"
   end <- "2020-11-01" 
-  #'  Define EE image collections
+  #'  EE image collections
   imageNDVI <- ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS Terra NDVI/EVI 16day, 250m resolution
-  imageSNOW <- ee.ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global daily, 500m resolution
+  imageSNOWCOVER <- ee$ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global (Normalized Difference Snow Index (NDSI)) daily, 500m resolution, values represent % coverage per pixel?
+  imageSNOWDEPTH <- ee$ImageCollection("NASA/GLDAS/V021/NOAH/G025/T3H")$filterDate(start,end) # NASA Global Land Data Assimilation System (GLDAS) daily, 27830m (or 0.25 degree) resolution, depth measured in meters
   
+    
   
   #'  Run reformated animal location data through this monster function to
   #'  match & extract EE images 
-  tst <- list(data_ee_list[[13]], data_ee_list[[14]])  #, data_ee_list[[14]]
+  tst <- list(data_ee_list[[14]])  #, data_ee_list[[13]]
   ee_NDVI <- lapply(tst, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)  
-  ee_SNOW <- lapply(tst, match_ee_data, imagecoll = imageSNOW, tempwin = 1, band = "SnowCover", sp.res = 500, tmp.res = 1) 
+  ee_SNOWCOVER <- lapply(tst, match_ee_data, imagecoll = imageSNOWCOVER, tempwin = 1, band = "NDSI_Snow_Cover", sp.res = 500, tmp.res = 1) 
+  ee_SNOWDEPTH <- lapply(tst, match_ee_data, imagecoll = imageSNOWDEPTH, tempwin = 1, band = "SnowDepth_inst", sp.res = 27830, tmp.res = 1)
   
   
   ####  Re-scale NDVI values  ####
@@ -228,6 +233,8 @@
     relocate(ID, .after = (NDVI_scale))
     colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "Date", "NDVI", "ID")
     
+    #  For snow cover data- need to change any value >100 to NA (these values indicate problem observations)
+    
     return(ee_covs)
   }
   coy_ee <- join_data(crwOut_ALL[[13]], ee_NDVI[[13]])
@@ -236,7 +243,8 @@
   
   #'  Citation for Snow Cover Data
   #'  Hall, D. K., V. V. Salomonson, and G. A. Riggs. 2016. MODIS/Terra Snow Cover Daily L3 Global 500m Grid. Version 6. Boulder, Colorado USA: NASA National Snow and Ice Data Center Distributed Active Archive Center.
-  
+  #'  Citation for Snow Depth Data
+  #'  Rodell, M., P.R. Houser, U. Jambor, J. Gottschalck, K. Mitchell, C.-J. Meng, K. Arsenault, B. Cosgrove, J. Radakovich, M. Bosilovich, J.K. Entin, J.P. Walker, D. Lohmann, and D. Toll, The Global Land Data Assimilation System, Bull. Amer. Meteor. Soc., 85(3), 381-394, 2004.
   
     
     
