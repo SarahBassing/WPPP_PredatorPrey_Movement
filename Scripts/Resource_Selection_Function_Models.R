@@ -49,6 +49,9 @@
   library(groupdata2)
   library(knitr)
   library(lme4)
+  library(parallel)
+  library(doParallel)
+  library(future.apply)
   
   #'  Load used and available locations, and covariate data
   load("./Outputs/RSF_pts/md_dat_all_2021-12-10.RData")
@@ -165,45 +168,54 @@
   
   
   
-  #'  Function to create correlation matrix for all continuous covariates at once
-  cov_correlation <- function(dat) {
-    used <- dat[dat$Used == 1,]
-    covs <- used[,c("Elev", "Slope", "TPI", "RoadDen", 
-                    "Dist2Water", "HumanMod", "CanopyCover", "Dist2Edge",
-                    "PercForMix", "PercXGrass", "PercXShrub")]
-    cor_matrix <- cor(covs, use = "complete.obs")
-    return(cor_matrix)
-  }
-  #'  Generate correlation matrix for each species and season
-  (md_smr_corr <- cov_correlation(mdData_smr)) 
-  (md_wtr_corr <- cov_correlation(mdData_wtr)) 
-  (elk_smr_corr <- cov_correlation(elkData_smr)) 
-  (elk_wtr_corr <- cov_correlation(elkData_wtr)) 
-  (wtd_smr_corr <- cov_correlation(wtdData_smr))
-  (wtd_wtr_corr <- cov_correlation(wtdData_wtr))
-  (coug_smr_corr <- cov_correlation(cougData_smr)) 
-  (coug_wtr_corr <- cov_correlation(cougData_wtr)) 
-  (wolf_smr_corr <- cov_correlation(wolfData_smr))
-  (wolf_wtr_corr <- cov_correlation(wolfData_wtr)) 
-  (bob_smr_corr <- cov_correlation(bobData_smr))
-  (bob_wtr_corr <- cov_correlation(bobData_wtr)) 
-  (coy_smr_corr <- cov_correlation(coyData_smr)) 
-  (coy_wtr_corr <- cov_correlation(coyData_wtr)) 
-
-  #'  Elevation & TPI are highly correlated (almost 100%) for all datasets so nixing TPI entirely
-  #'  Elevation & Human Modified correlated in MD smr/wtr, ELK smr, & COY smr- nixing Human Mod for those models
-  #'  Using Landcover_type instead of % Forest, % Grass, & % Shrub because...
-  #'  % Shrub correlated with Elevation, RoadDen, and Human Modified in MD smr
-  #'  Dist2Edg correlated with % Forest & % Grass in ELK wtr
-  #'  % Forest & Grass correlated in COUG and WOLF wtr
-  #'  % Grass & Shrub correlated for BOb smr
-  #'  % Forest & Canopy Cover, % Forest & Shrub correlated for BOB wtr
+  #' #'  Function to create correlation matrix for all continuous covariates at once
+  #' cov_correlation <- function(dat) {
+  #'   used <- dat[dat$Used == 1,]
+  #'   covs <- used[,c("Elev", "Slope", "TPI", "RoadDen", 
+  #'                   "Dist2Water", "HumanMod", "CanopyCover", "Dist2Edge",
+  #'                   "PercForMix", "PercXGrass", "PercXShrub")]
+  #'   cor_matrix <- cor(covs, use = "complete.obs")
+  #'   return(cor_matrix)
+  #' }
+  #' #'  Generate correlation matrix for each species and season
+  #' (md_smr_corr <- cov_correlation(mdData_smr)) 
+  #' (md_wtr_corr <- cov_correlation(mdData_wtr)) 
+  #' (elk_smr_corr <- cov_correlation(elkData_smr)) 
+  #' (elk_wtr_corr <- cov_correlation(elkData_wtr)) 
+  #' (wtd_smr_corr <- cov_correlation(wtdData_smr))
+  #' (wtd_wtr_corr <- cov_correlation(wtdData_wtr))
+  #' (coug_smr_corr <- cov_correlation(cougData_smr)) 
+  #' (coug_wtr_corr <- cov_correlation(cougData_wtr)) 
+  #' (wolf_smr_corr <- cov_correlation(wolfData_smr))
+  #' (wolf_wtr_corr <- cov_correlation(wolfData_wtr)) 
+  #' (bob_smr_corr <- cov_correlation(bobData_smr))
+  #' (bob_wtr_corr <- cov_correlation(bobData_wtr)) 
+  #' (coy_smr_corr <- cov_correlation(coyData_smr)) 
+  #' (coy_wtr_corr <- cov_correlation(coyData_wtr)) 
+  #' 
+  #' #'  Elevation & TPI are highly correlated (almost 100%) for all datasets so nixing TPI entirely
+  #' #'  Elevation & Human Modified correlated in MD smr/wtr, ELK smr, & COY smr- nixing Human Mod for those models
+  #' #'  Using Landcover_type instead of % Forest, % Grass, & % Shrub because...
+  #' #'  % Shrub correlated with Elevation, RoadDen, and Human Modified in MD smr
+  #' #'  Dist2Edg correlated with % Forest & % Grass in ELK wtr
+  #' #'  % Forest & Grass correlated in COUG and WOLF wtr
+  #' #'  % Grass & Shrub correlated for BOb smr
+  #' #'  % Forest & Canopy Cover, % Forest & Shrub correlated for BOB wtr
   
 
   ####  K-fold CV  ####
   #https://github.com/LudvigOlsen/cvms#examples
   #https://cran.r-project.org/web/packages/cvms/cvms.pdf
   
+  #'  Monitor time
+  start.time <- Sys.time()
+  #'  Set up to run in parallel
+  #'  Identify how many cores I want to use
+  detectCores(logical = FALSE)
+  cl <- parallel::makeCluster(4)  # change to 14 when working correctly on lab computer
+  #'  Run in parallel on local computer with specified number of cores
+  plan(cluster, workers = cl)
+  # registerDoParallel(4)
   
   #'  Function to run k-fold cross validation on each RSF
   #'  Requires the data set, number of folds (K), and regression model be defined
@@ -218,14 +230,14 @@
     fold_df <- fold(dat, k = K) #k = 2
     
     #'  Define model
-    mod <- mod #"Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
+    # mod <- mod #"Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
     
     #'  Run K-fold cross-validation
     #'  Positive argument indicates the level from `targets` (Used) to predict 
     #'  (positive = 1 means predict the 0's, postive = 2 means predict the 1's)
     #'  Preprocessing argument centers & scales UNstandardized continuous covariates 
     #'  for each fold, but this always produces errors when I try to use it
-    CV1 <- cross_validate(fold_df, formulas = mod, family = "binomial", positive = 2, REML = FALSE) #preprocessing = "standardize", #control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+    CV1 <- cross_validate(fold_df, formulas = mod, family = "binomial", positive = 2) #preprocessing = "standardize", REML = FALSE,  #control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
     
     #'  View coefficients per fold
     print(CV1$`Coefficients`[[1]] %>% kable())
@@ -237,8 +249,19 @@
     return(CV1)
   }
   #'  Assess predictive capacity for each RSF
-  bob_wtr1920_cv <- k_fold_rsf(dat = bobData_wtr[bobData_wtr$Year == "Year2",], K = 2, mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)")
+  #'  Run data & model for each species, season, & year in parallel
+  # bob_wtr1920_cv <- k_fold_rsf(dat = bobData_wtr[bobData_wtr$Year == "Year2",], K = 2, mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)")
+  # coy_smr20_cv <- k_fold_rsf(dat = coyData_smr_reclass[coyData_smr_reclass$Year == "Year3",], K = 2, mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)")
+  coy_smr20_cv <- future_lapply(dat = coyData_smr_reclass[coyData_smr_reclass$Year == "Year3",], FUN = k_fold_rsf, K = 2, mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)")
   
+  
+  
+  #'  End time keeping
+  end.time <- Sys.time()
+  #'  Stop running in parallel
+  parallel::stopCluster(cl)
+  #'  How long did this take?
+  difftime(end.time, start.time, units = "hours")
   
   
   
