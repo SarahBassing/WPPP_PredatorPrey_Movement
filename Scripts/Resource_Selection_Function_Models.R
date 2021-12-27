@@ -212,10 +212,10 @@
   #'  Set up to run in parallel
   #'  Identify how many cores I want to use
   detectCores(logical = FALSE)
-  cl <- parallel::makeCluster(4)  # change to 14 when working correctly on lab computer
-  #'  Run in parallel on local computer with specified number of cores
-  plan(cluster, workers = cl)
-  # registerDoParallel(4)
+  #' cl <- parallel::makeCluster(4)  # change to 14 when working correctly on lab computer
+  #' #'  Run in parallel on local computer with specified number of cores
+  #' plan(cluster, workers = cl)
+  registerDoParallel(8)
   
   #'  Function to run k-fold cross validation on each RSF
   #'  Requires the data set, number of folds (K), and regression model be defined
@@ -237,7 +237,7 @@
     #'  (positive = 1 means predict the 0's, postive = 2 means predict the 1's)
     #'  Preprocessing argument centers & scales UNstandardized continuous covariates 
     #'  for each fold, but this always produces errors when I try to use it
-    CV1 <- cross_validate(fold_df, formulas = mod, family = "binomial", positive = 2) #preprocessing = "standardize", REML = FALSE,  #control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+    CV1 <- cross_validate(fold_df, formulas = mod, family = "binomial", positive = 2, parallel = TRUE) #preprocessing = "standardize", REML = FALSE,  #control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
     
     #'  View coefficients per fold
     print(CV1$`Coefficients`[[1]] %>% kable())
@@ -251,17 +251,19 @@
   #'  Assess predictive capacity for each RSF
   #'  Run data & model for each species, season, & year in parallel
   # bob_wtr1920_cv <- k_fold_rsf(dat = bobData_wtr[bobData_wtr$Year == "Year2",], K = 2, mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)")
-  # coy_smr20_cv <- k_fold_rsf(dat = coyData_smr_reclass[coyData_smr_reclass$Year == "Year3",], K = 2, mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)")
-  coy_smr20_cv <- future_lapply(dat = coyData_smr_reclass[coyData_smr_reclass$Year == "Year3",], FUN = k_fold_rsf, K = 2, mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)")
+  coy_smr20_cv <- k_fold_rsf(dat = coyData_smr_reclass[coyData_smr_reclass$Year == "Year3",], K = 2, mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)")
+
   
-  
+  #'  Keep getting this warning message associated with running in parallel but 
+  #'  K-fold appears to be working so ignoring for now
+  #'  Warning messages: <anonymous>: ... may be used in an incorrect context: ‘.fun(piece, ...)’
   
   #'  End time keeping
   end.time <- Sys.time()
-  #'  Stop running in parallel
-  parallel::stopCluster(cl)
+  #' #'  Stop running in parallel
+  #' parallel::stopCluster(cl)
   #'  How long did this take?
-  difftime(end.time, start.time, units = "hours")
+  difftime(end.time, start.time, units = "mins")
   
   
   
