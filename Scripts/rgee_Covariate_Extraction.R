@@ -20,6 +20,7 @@
   #'  used in HMM movement analyses (Collar_Movement_DataPrep.R)
   #'  ============================================
   
+  #'  START A NEW SESSION IN R
   #'  Clean workspace
   rm(list = ls())
   
@@ -66,8 +67,10 @@
   
   ####  Match & Extract Google Earth Engine image data to telemetry data  ####
   #'  Original functions written by Crego et al. (2021) examples
-  #'  These original functions are now imbedded in a monster function
-  match_ee_data <- function(datasf, imagecoll, tempwin, band, sp.res, tmp.res){ #tempwin, imagecoll, band, sp.res, tmp.res, start.date, end.date, 
+  #'  These original functions are now embedded in a monster function that requires
+  #'  the data set, EE image collection, temporal window, image band, spatial & 
+  #'  temporal resolutions of the EE image to be defined.
+  match_ee_data <- function(datasf, imagecoll, tempwin, band, sp.res, tmp.res){  
     
     #'  Function to add property with time in milliseconds
     add_date <- function(feature) {
@@ -78,7 +81,7 @@
     #'  Join EE image & telemetry locations based on a maxDifference Filter within 
     #'  a specified temporal window. Set temporal window in days for filter. This 
     #'  will depend on the remote sensing data used.
-    tempwin <- tempwin#16 # eventually un-hardcode this
+    tempwin <- tempwin
     
     #'  Create the filter
     maxDiffFilter <- ee$Filter$maxDifference(
@@ -106,7 +109,7 @@
       #'  (adjust this using the scale argument- consider the resolution of the
       #'  EE image!). Also adjust the temporal resolution (tileScale) base on
       #'  temporal res of the EE image????
-      pixel_value <- img1$sample(region = point, scale = sp.res, tileScale = tmp.res, dropNulls = F) #scale = 250 #tileScale = 16 #scale = sp.res, tileScale = tmp.res,
+      pixel_value <- img1$sample(region = point, scale = sp.res, tileScale = tmp.res, dropNulls = F)
       #'  Return the data containing pixel value and image date
       feature$setMulti(list(PixelVal = pixel_value$first()$get(band), DateTimeImage = img1$get('system:index')))
     }
@@ -120,22 +123,17 @@
       #'  Return selected features
       feature$select(selectProperties)
     }
-    
-    #' #'  Define start and end date range based on timing of relocation data
-    #' start <- "2018-06-30" #start.date#
-    #' end <- "2020-11-01" #end.date#
-    
+
     #'  Define EE image collection you want to extract from
     #'  Try to un-hardcode this eventually
-    imagecoll <- imagecoll#ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS NDVI/EVI imagecoll
+    imagecoll <- imagecoll
     
     #'  Name the data band to use (based on EE image)
     #'  Try to un-hardcode this eventually
     band <- band 
-    # band <- "NDSI" # https://developers.google.com/earth-engine/datasets/catalog/MODIS_006_MOD10A1#bands
-    
+
     #'  Chunk location data into groups to loop through when extracting pixel values
-    #'  This is necessary if using the getInfo argument in when converting location
+    #'  This is necessary if using the getInfo argument when converting location
     #'  data to sf object (in ee_as_sf). This is not necessary if using the drive
     #'  or gsc arguments which export data through Google Drive/Cloud. See section
     #'  0.5 in Crego et al. (2021) example for further details
@@ -143,7 +141,7 @@
     #'  This is for up to 1 million points. To increase the max number of points, 
     #'  increase the value for max repetitions. To change the number of points to 
     #'  run per time, change the value in the argument each (up to 5000).
-    datasf$uniq <- rep(1:1000, each=1000)[1:nrow(datasf)] 
+    datasf$uniq <- rep(1:1000, each = 1000)[1:nrow(datasf)] 
     
     #'  Track amount of time it takes to extract data
     start_time <- Sys.time()
@@ -176,7 +174,6 @@
     print(end_time - start_time)
     
     #'  Rename column with pixel values based on the defined band name
-    # names(dataoutput)[4] <- band
     colnames(dataoutput)[colnames(dataoutput) == "PixelVal"] <- band
     
     
@@ -186,24 +183,53 @@
   }
   #'  Define time window of interest for extracting data
   start <- "2018-06-30"
-  end <- "2020-11-01" 
-  #'  EE image collections
+  end <- "2021-03-01" 
+  #'  EE image collections (https://developers.google.com/earth-engine/datasets)
   imageNDVI <- ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS Terra NDVI/EVI 16day, 250m resolution
   imageSNOWCOVER <- ee$ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global (Normalized Difference Snow Index (NDSI)) daily, 500m resolution, values represent % coverage per pixel?
   imageSNOWDEPTH <- ee$ImageCollection("NASA/GLDAS/V021/NOAH/G025/T3H")$filterDate(start,end) # NASA Global Land Data Assimilation System (GLDAS) daily, 27830m (or 0.25 degree) resolution, depth measured in meters
-  
-    
-  
+
   #'  Run reformated animal location data through this monster function to
   #'  match & extract EE images 
-  tst <- list(data_ee_list[[14]])  #, data_ee_list[[13]]
-  ee_NDVI <- lapply(tst, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)  
-  ee_SNOWCOVER <- lapply(tst, match_ee_data, imagecoll = imageSNOWCOVER, tempwin = 1, band = "NDSI_Snow_Cover", sp.res = 500, tmp.res = 1) 
-  ee_SNOWDEPTH <- lapply(tst, match_ee_data, imagecoll = imageSNOWDEPTH, tempwin = 1, band = "SnowDepth_inst", sp.res = 27830, tmp.res = 1)
+  # tst <- list(data_ee_list[[13]], data_ee_list[[14]])
+  ee_NDVI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_SNOWCOVER <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWCOVER, tempwin = 1, band = "NDSI_Snow_Cover", sp.res = 500, tmp.res = 1)
+  ee_SNOWDEPTH <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWDEPTH, tempwin = 1, band = "SnowDepth_inst", sp.res = 27830, tmp.res = 1)
   
   
+  #' #'  Extract maximum NDVI value for all winter locations to represent potential
+  #' #'  forage quality available post-growing season.
+  #' #'  Define EE ImageCollection
+  #' eendvi <- ee$ImageCollection("MODIS/006/MOD13Q1") %>%
+  #'   #'  Define date range of interest
+  #'   ee$ImageCollection$filterDate("2018-06-30", "2021-03-01") %>%
+  #'   ee$ImageCollection$map(
+  #'     function(x) {
+  #'       date <- ee$Date(x$get("system:time_start"))$format('YYYY_MM_dd')
+  #'       name <- ee$String$cat("Max_NDVI_", date)
+  #'       x$select("NDVI")$rename(name)
+  #'     }
+  #'   )
+  #' #'  Define a geometry
+  #' #'  Make spatial using sf (note: use coordinates labeled mu.x & mu.y so that
+  #' #'  the animal relocations & interpolated locations are used)
+  #' crwOut_sf <- st_as_sf(crwOut_ALL[[13]][[2]], coords = c('mu.x','mu.y'), crs = "+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs ") 
+  #' #'  Transform projection to WGS84 for Google Earth Engine
+  #' datasf <- st_transform(crwOut_sf, crs = 4326) 
+  #' 
+  #' 
+  #' #Extract values - getInfo
+  #' ee_nc_rain <- ee_extract(
+  #'   x = eendvi,
+  #'   y = datasf["ID"],
+  #'   scale = 250,
+  #'   fun = ee$Reducer$max(),
+  #'   sf = TRUE
+  #' )
+  
+
   ####  Re-scale NDVI values  ####
-  #'  ONLY RUN IF WORKING WITH NDVI DATA!
+  #'  ONLY RUN IF EXTRACTING NDVI DATA!
   #'  MODIS data are scaled by a factor of 0.0001 for ease of extraction (see 
   #'  pg. 9 of MODIS User's Guide) but NDVI should range -1 to 1. All extracted 
   #'  NDVI values need to be rescaled by 0.0001 to be in the correct range.
@@ -218,8 +244,19 @@
   }
   ee_NDVI <- lapply(ee_NDVI, ndvi_rescale, T)
   
+  ####  Clean Snow Cover values  ####
+  #'  ONLY RUN IF EXTRACTING SNOW COVER DATA!
+  #'  Any snow cover values >100 indicate a problem in the original ee data so 
+  #'  need to change these values to NA
+  snow_cover_na <- function(ee_data) {
+    dataoutput <- mutate(ee_data, Snow_Cover = ifelse(NDSI_Snow_Cover >100, NA, NDSI_Snow_Cover))
+    return(dataoutput)
+  }
+  ee_SNOWCOVER <- lapply(ee_SNOWCOVER, snow_cover_na)
+
+  
   ####  Join datasets  ####
-  join_data <- function(crwOut_data, ndvi) { #, ndvi, snow
+  join_data <- function(crwOut_data, ndvi, snow_cov, snow_dep) { 
     #'  Make sure each observation has the unique Animal ID
     full_crwOut <- crwOut_data[[2]]
     crwOut <- full_crwOut %>%
@@ -229,18 +266,47 @@
     ee_covs$ID <- as.integer(1:nrow(ee_covs))
     ee_covs <- ee_covs %>%
       full_join(ndvi, by = "ID") %>%
-    dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDVI)) %>%
-    relocate(ID, .after = (NDVI_scale))
-    colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "Date", "NDVI", "ID")
-    
-    #  For snow cover data- need to change any value >100 to NA (these values indicate problem observations)
-    
+        dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDVI)) %>%
+      full_join(snow_cov, by = "ID") %>%
+        dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDSI_Snow_Cover)) %>%
+      full_join(snow_dep, by = "ID") %>%
+        dplyr::select(-c(Date.y, Date, DateTimeImage, date_millis, uniq, geometry)) %>%
+     relocate(ID, .after = (SnowDepth_inst))
+    colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "Date", "NDVI", "Snow.Cover", "Snow.Depth", "ID")
+
     return(ee_covs)
   }
-  coy_ee <- join_data(crwOut_ALL[[13]], ee_NDVI[[13]])
+  #'  Combine EE values with species- and season-specific data
+  md_ee_smr <- join_data(crwOut_ALL[[1]], ee_NDVI[[1]], ee_SNOWCOVER[[1]], ee_SNOWDEPTH[[1]])
+  md_ee_wtr <- join_data(crwOut_ALL[[2]], ee_NDVI[[2]], ee_SNOWCOVER[[2]], ee_SNOWDEPTH[[2]])
+  elk_ee_smr <- join_data(crwOut_ALL[[3]], ee_NDVI[[3]], ee_SNOWCOVER[[3]], ee_SNOWDEPTH[[3]])
+  elk_ee_wtr <- join_data(crwOut_ALL[[4]], ee_NDVI[[4]], ee_SNOWCOVER[[4]], ee_SNOWDEPTH[[4]])
+  wtd_ee_smr <- join_data(crwOut_ALL[[5]], ee_NDVI[[5]], ee_SNOWCOVER[[5]], ee_SNOWDEPTH[[5]])
+  wtd_ee_wtr <- join_data(crwOut_ALL[[6]], ee_NDVI[[6]], ee_SNOWCOVER[[6]], ee_SNOWDEPTH[[6]])
+  coug_ee_smr <- join_data(crwOut_ALL[[7]], ee_NDVI[[7]], ee_SNOWCOVER[[7]], ee_SNOWDEPTH[[7]])
+  coug_ee_wtr <- join_data(crwOut_ALL[[8]], ee_NDVI[[8]], ee_SNOWCOVER[[8]], ee_SNOWDEPTH[[8]])
+  wolf_ee_smr <- join_data(crwOut_ALL[[9]], ee_NDVI[[8]], ee_SNOWCOVER[[9]], ee_SNOWDEPTH[[9]])
+  wolf_ee_wtr <- join_data(crwOut_ALL[[10]], ee_NDVI[[10]], ee_SNOWCOVER[[10]], ee_SNOWDEPTH[[10]])
+  bob_ee_smr <- join_data(crwOut_ALL[[11]], ee_NDVI[[11]], ee_SNOWCOVER[[11]], ee_SNOWDEPTH[[11]])
+  bob_ee_wtr <- join_data(crwOut_ALL[[12]], ee_NDVI[[12]], ee_SNOWCOVER[[12]], ee_SNOWDEPTH[[12]])
+  coy_ee_smr <- join_data(crwOut_ALL[[13]], ee_NDVI[[13]], ee_SNOWCOVER[[13]], ee_SNOWDEPTH[[13]])
+  coy_ee_wtr <- join_data(crwOut_ALL[[14]], ee_NDVI[[14]], ee_SNOWCOVER[[14]], ee_SNOWDEPTH[[14]])
+
+  #'  List all data together
+  ee_covs_list <- list(md_ee_smr, md_ee_wtr, elk_ee_smr, elk_ee_wtr, wtd_ee_smr, 
+                       wtd_ee_wtr, coug_ee_smr, coug_ee_wtr, wolf_ee_smr, 
+                       wolf_ee_wtr, bob_ee_smr, bob_ee_wtr, coy_ee_smr, coy_ee_wtr)
+  
+  #'  Save extracted EE data
+  save(ee_covs_list, file = paste0("./Outputs/Telemetry_covs/ee_covs_list_", Sys.Date(), ".RData"))
 
   
+  #'  Next: add these to other data-extraction script and combine for HMM analyses
   
+  
+  #'  Citation for MODIS/Terra Vegetation Indices 16-Day L3 Global 250 m SIN Grid:
+  #'  See LP DAAC citation policies for citing NASA products (https://lpdaac.usgs.gov/data/data-citation-and-policies/)
+  #'  DOI: 10.5067/MODIS/MOD13Q1.006
   #'  Citation for Snow Cover Data
   #'  Hall, D. K., V. V. Salomonson, and G. A. Riggs. 2016. MODIS/Terra Snow Cover Daily L3 Global 500m Grid. Version 6. Boulder, Colorado USA: NASA National Snow and Ice Data Center Distributed Active Archive Center.
   #'  Citation for Snow Depth Data
