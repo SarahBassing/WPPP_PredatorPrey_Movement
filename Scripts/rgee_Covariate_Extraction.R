@@ -188,13 +188,19 @@
   imageNDVI <- ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS Terra NDVI/EVI 16day, 250m resolution
   imageSNOWCOVER <- ee$ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global (Normalized Difference Snow Index (NDSI)) daily, 500m resolution, values represent % coverage per pixel?
   imageSNOWDEPTH <- ee$ImageCollection("NASA/GLDAS/V021/NOAH/G025/T3H")$filterDate(start,end) # NASA Global Land Data Assimilation System (GLDAS) daily, 27830m (or 0.25 degree) resolution, depth measured in meters
-
+  imageNDSI <- ee$ImageCollection("MODIS/MOD09GA_006_NDSI")$filterDate(start,end) # MODIS Terra Daily Normalized Difference Snow Index (NDSI) daily, 463.313 m resolution, missing data from Jan. 2019
+  imageSWE <- ee$ImageCollection("NASA/ORNL/DAYMET_V4")$filterDate(start,end) # Daymet V4: Daily Surface Weather and Climatological Summaries, Snow-Water Equivalent, daily, 1000m resolution, data up to Dec. 31, 2020
+  
+  
+  
   #'  Run reformated animal location data through this monster function to
   #'  match & extract EE images 
   # tst <- list(data_ee_list[[13]], data_ee_list[[14]])
   ee_NDVI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
   ee_SNOWCOVER <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWCOVER, tempwin = 1, band = "NDSI_Snow_Cover", sp.res = 500, tmp.res = 1)
   ee_SNOWDEPTH <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWDEPTH, tempwin = 1, band = "SnowDepth_inst", sp.res = 27830, tmp.res = 1)
+  ee_NDSI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDSI, tempwin = 1, band = "NDSI", sp.res = 463.313, tmp.res = 1)
+  ee_SWE <- lapply(data_ee_list, match_ee_data, imagecoll = imageSWE, tempwin = 1, band = "swe", sp.res = 1000, tmp.res = 1)
   
   
   
@@ -239,7 +245,7 @@
         function(x) {
           date <- ee$Date(x$get("system:time_start"))$format('YYYY_MM_dd')
           name <- ee$String$cat(band.name, date) # "NDVI_"
-          x$select("NDVI")$rename(name) #band
+          x$select(band)$rename(name) #"NDVI"
         }
       )
     
@@ -251,20 +257,35 @@
     #'  Transform projection to WGS84 for Google Earth Engine
     datasf <- st_transform(crwOut_sf, crs = 4326)
     
-    #'  Extract values using the Google drive method (lazy = TRUE so must follow
-    #'  with the ee_utils_funture_value function)
-    #'  Note this is spatially but not temporally matched
-    #'  THIS TAKES FOREVER
-    EE_allNDVI <- ee_extract(
-      x = eendvi,
-      y = datasf["geometry"],
-      scale = ee.scale, #ee.scale 250
-      fun = ee$Reducer$max(),
-      via = "drive",
-      lazy = TRUE,
-      sf = FALSE
-    )
-    EE_allNDVI <- EE_allNDVI %>% ee_utils_future_value()
+    #'  Chunk location data into groups to loop through (required for getInfo method)
+    datasf$uniq <- rep(1:1000, each = 1000)[1:nrow(datasf)] 
+    
+    #'  Track amount of time it takes to extract data
+    start_time <- Sys.time()
+    
+    #'  Create empty dataframe to hold extracted pixel values
+    EE_allNDVI <- data.frame()
+    
+    #'  Loop through location data in chunks to extract pixel values from EE images 
+    for(i in unique(datasf$uniq)) {
+      #'  Use getInfo method to extract values from GEE
+      dataoutput <- ee_extract(
+        x = eendvi,
+        y = datasf[i]["geometry"],
+        scale = ee.scale,
+        fun = ee$Reducer$max(),
+        sf = FALSE
+      )
+      #'  Append each loop
+      EE_allNDVI <- rbind(EE_allNDVI, dataoutput) 
+    }
+    
+    #'  How long did that take?
+    end_time <- Sys.time()
+    print(end_time - start_time)
+    #'  Quick peak
+    print(EE_allNDVI[1:6,1:4])
+
     
     #'  Find maximum NDVI values during annual growing season (April - Sept)
     #'  2018 growing season
@@ -345,9 +366,9 @@
     
     return(maxNDVI_df)
   }
-  # tst1 <- crwOut_ALL[[13]][[2]]
+  # tst1 <- crwOut_ALL[[13]]
   # tst1 <- tst1[1:100,]
-  # tst2 <- crwOut_ALL[[14]][[2]]
+  # tst2 <- crwOut_ALL[[14]]
   # tst2 <- tst2[1:100,]
   # tst_list <- list(tst1, tst2)
   #'  Define date range of interest
@@ -363,7 +384,7 @@
   ee.scale <- 250
   
   #'  find max NDVI for each species and season
-  ee_NDVImax <- lapply(data_ee_list, find_maxNDVI, eeimage = eeimage, 
+  ee_NDVImax <- lapply(crwOut_ALL, find_maxNDVI, eeimage = eeimage, 
                        start.date = start.date, end.date = end.date, 
                        band.name = band.name, band = band, ee.scale = ee.scale)
 
@@ -383,7 +404,7 @@
       full_join(ndvi, by = "ID") %>%
         dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDVI)) %>%
       full_join(maxndvi, by = c("ID", "Season", "StudyArea", "mu.x", "mu.y")) %>%
-        dplyr::select()
+        dplyr::select(-c(AnimalID2, Dates)) %>%
       full_join(snow_cov, by = "ID") %>%
         dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDSI_Snow_Cover)) %>%
       full_join(snow_dep, by = "ID") %>%
@@ -428,7 +449,8 @@
   #'  Hall, D. K., V. V. Salomonson, and G. A. Riggs. 2016. MODIS/Terra Snow Cover Daily L3 Global 500m Grid. Version 6. Boulder, Colorado USA: NASA National Snow and Ice Data Center Distributed Active Archive Center.
   #'  Citation for Snow Depth Data
   #'  Rodell, M., P.R. Houser, U. Jambor, J. Gottschalck, K. Mitchell, C.-J. Meng, K. Arsenault, B. Cosgrove, J. Radakovich, M. Bosilovich, J.K. Entin, J.P. Walker, D. Lohmann, and D. Toll, The Global Land Data Assimilation System, Bull. Amer. Meteor. Soc., 85(3), 381-394, 2004.
-  
+  #'  Daymet Snow-Water Equivalent
+  #'  Thornton, M.M., R. Shrestha, Y. Wei, P.E. Thornton, S. Kao, and B.E. Wilson. {2021}. Daymet: Daily Surface Weather Data on a 1-km Grid for North America, Version 4. ORNL DAAC, Oak Ridge, Tennessee, USA
     
     
   
