@@ -53,7 +53,7 @@
     #'  Transform projection to WGS84 for Google Earth Engine
     datasf <- st_transform(crwOut_sf, crs = 4326) 
     #'  Retain specific columns (things get wonky if there are additional columns)
-    datasf <- dplyr::select(datasf, c("Date", "ID", "geometry"))
+    datasf <- dplyr::select(datasf, c("AnimalID", "Season", "Date", "ID", "geometry"))
     
     return(datasf)
   }
@@ -195,13 +195,26 @@
   
   #'  Run reformated animal location data through this monster function to
   #'  match & extract EE images 
-  # tst <- list(data_ee_list[[13]], data_ee_list[[14]])
+  # tst <- list(data_ee_list[[9]], data_ee_list[[10]])
+  # tst3 <- list(data_ee_list[[9]][1:100,])
   ee_NDVI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
-  ee_SNOWCOVER <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWCOVER, tempwin = 1, band = "NDSI_Snow_Cover", sp.res = 500, tmp.res = 1)
-  ee_SNOWDEPTH <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWDEPTH, tempwin = 1, band = "SnowDepth_inst", sp.res = 27830, tmp.res = 1)
-  ee_NDSI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDSI, tempwin = 1, band = "NDSI", sp.res = 463.313, tmp.res = 1)
-  ee_SWE <- lapply(data_ee_list, match_ee_data, imagecoll = imageSWE, tempwin = 1, band = "swe", sp.res = 1000, tmp.res = 1)
+  # ee_SNOWCOVER <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWCOVER, tempwin = 1, band = "NDSI_Snow_Cover", sp.res = 500, tmp.res = 1)
+  # ee_SNOWDEPTH <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWDEPTH, tempwin = 1, band = "SnowDepth_inst", sp.res = 27830, tmp.res = 1)
+  # ee_NDSI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDSI, tempwin = 1, band = "NDSI", sp.res = 463.313, tmp.res = 1)
+  # ee_SWE <- lapply(data_ee_list, match_ee_data, imagecoll = imageSWE, tempwin = 1, band = "swe", sp.res = 1000, tmp.res = 1)
   
+  
+  ee_NDVI_md_smr <- match_ee_data(data_ee_list[[1]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_elk_smr <- match_ee_data(data_ee_list[[3]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_wtd_smr <- match_ee_data(data_ee_list[[5]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_coug_smr <- match_ee_data(data_ee_list[[7]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_wolf_smr <- match_ee_data(data_ee_list[[9]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_bob_smr <- match_ee_data(data_ee_list[[11]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_coy_smr <- match_ee_data(data_ee_list[[13]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  
+  ee_NDVImax_list <- list(ee_NDVI_md_smr, ee_NDVI_elk_smr, ee_NDVI_wtd_smr,
+                          ee_NDVI_coug_smr, ee_NDVI_wolf_smr, ee_NDVI_bob_smr,
+                          ee_NDVI_coy_smr)
   
   
   ####  Re-scale NDVI values  ####
@@ -220,15 +233,15 @@
   }
   ee_NDVI <- lapply(ee_NDVI, ndvi_rescale, T)
   
-  ####  Clean Snow Cover values  ####
-  #'  ONLY RUN IF EXTRACTING SNOW COVER DATA!
-  #'  Any snow cover values >100 indicate a problem in the original ee data so 
-  #'  need to change these values to NA
-  snow_cover_na <- function(ee_data) {
-    dataoutput <- mutate(ee_data, Snow_Cover = ifelse(NDSI_Snow_Cover >100, NA, NDSI_Snow_Cover))
-    return(dataoutput)
-  }
-  ee_SNOWCOVER <- lapply(ee_SNOWCOVER, snow_cover_na)
+  #' ####  Clean Snow Cover values  ####
+  #' #'  ONLY RUN IF EXTRACTING SNOW COVER DATA!
+  #' #'  Any snow cover values >100 indicate a problem in the original ee data so 
+  #' #'  need to change these values to NA
+  #' snow_cover_na <- function(ee_data) {
+  #'   dataoutput <- mutate(ee_data, Snow_Cover = ifelse(NDSI_Snow_Cover >100, NA, NDSI_Snow_Cover))
+  #'   return(dataoutput)
+  #' }
+  #' ee_SNOWCOVER <- lapply(ee_SNOWCOVER, snow_cover_na)
   
   
   
@@ -388,10 +401,28 @@
   short.list <- lapply(crwOut_ALL, drop_list)
   
   #'  find max NDVI for each species and season in the short list
-  ee_NDVImax <- lapply(short.list, find_maxNDVI, eeimage = eeimage, 
-                       start.date = start.date, end.date = end.date, 
-                       band.name = band.name, band = band, ee.scale = ee.scale)
-
+  # ee_NDVImax <- lapply(short.list, find_maxNDVI, eeimage = eeimage, 
+  #                      start.date = start.date, end.date = end.date, 
+  #                      band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_md_smr <- find_maxNDVI(short.list[[1]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  ee_NDVImax_md_wtr <- find_maxNDVI(short.list[[2]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_elk_smr <- find_maxNDVI(short.list[[3]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  ee_NDVImax_elk_wtr <- find_maxNDVI(short.list[[4]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_wtd_smr <- find_maxNDVI(short.list[[5]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  ee_NDVImax_wtd_wtr <- find_maxNDVI(short.list[[6]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_coug_smr <- find_maxNDVI(short.list[[7]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  ee_NDVImax_coug_wtr <- find_maxNDVI(short.list[[8]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_wolf_smr <- find_maxNDVI(short.list[[9]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  ee_NDVImax_wolf_wtr <- find_maxNDVI(short.list[[10]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_bob_smr <- find_maxNDVI(short.list[[11]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  ee_NDVImax_bob_wtr <- find_maxNDVI(short.list[[12]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_coy_smr <- find_maxNDVI(short.list[[13]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  ee_NDVImax_coy_wtr <- find_maxNDVI(short.list[[14]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  
+  ee_NDVImax_list <- list(ee_NDVImax_md_wtr, ee_NDVImax_elk_wtr, ee_NDVImax_wtd_wtr,
+                          ee_NDVImax_coug_wtr, ee_NDVImax_wolf_wtr, ee_NDVImax_bob_wtr,
+                          ee_NDVImax_coy_wtr)
+  
   # load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_covs_list_2021-12-28.RData")
 
   ####  Join datasets  ####
@@ -418,20 +449,20 @@
     return(ee_covs)
   }
   #'  Combine EE values with species- and season-specific data
-  md_ee_smr <- join_data(crwOut_ALL[[1]], ee_NDVI[[1]], ee_NDVImax[[1]], ee_SNOWCOVER[[1]], ee_SNOWDEPTH[[1]])
-  md_ee_wtr <- join_data(crwOut_ALL[[2]], ee_NDVI[[2]], ee_NDVImax[[2]], ee_SNOWCOVER[[2]], ee_SNOWDEPTH[[2]])
-  elk_ee_smr <- join_data(crwOut_ALL[[3]], ee_NDVI[[3]], ee_NDVImax[[3]], ee_SNOWCOVER[[3]], ee_SNOWDEPTH[[3]])
-  elk_ee_wtr <- join_data(crwOut_ALL[[4]], ee_NDVI[[4]], ee_NDVImax[[4]], ee_SNOWCOVER[[4]], ee_SNOWDEPTH[[4]])
-  wtd_ee_smr <- join_data(crwOut_ALL[[5]], ee_NDVI[[5]], ee_NDVImax[[5]], ee_SNOWCOVER[[5]], ee_SNOWDEPTH[[5]])
-  wtd_ee_wtr <- join_data(crwOut_ALL[[6]], ee_NDVI[[6]], ee_NDVImax[[6]], ee_SNOWCOVER[[6]], ee_SNOWDEPTH[[6]])
-  coug_ee_smr <- join_data(crwOut_ALL[[7]], ee_NDVI[[7]], ee_NDVImax[[7]], ee_SNOWCOVER[[7]], ee_SNOWDEPTH[[7]])
-  coug_ee_wtr <- join_data(crwOut_ALL[[8]], ee_NDVI[[8]], ee_NDVImax[[8]], ee_SNOWCOVER[[8]], ee_SNOWDEPTH[[8]])
-  wolf_ee_smr <- join_data(crwOut_ALL[[9]], ee_NDVI[[8]], ee_NDVImax[[9]], ee_SNOWCOVER[[9]], ee_SNOWDEPTH[[9]])
-  wolf_ee_wtr <- join_data(crwOut_ALL[[10]], ee_NDVI[[10]], ee_NDVImax[[10]], ee_SNOWCOVER[[10]], ee_SNOWDEPTH[[10]])
-  bob_ee_smr <- join_data(crwOut_ALL[[11]], ee_NDVI[[11]], ee_NDVImax[[11]], ee_SNOWCOVER[[11]], ee_SNOWDEPTH[[11]])
-  bob_ee_wtr <- join_data(crwOut_ALL[[12]], ee_NDVI[[12]], ee_NDVImax[[12]], ee_SNOWCOVER[[12]], ee_SNOWDEPTH[[12]])
-  coy_ee_smr <- join_data(crwOut_ALL[[13]], ee_NDVI[[13]], ee_NDVImax[[13]], ee_SNOWCOVER[[13]], ee_SNOWDEPTH[[13]])
-  coy_ee_wtr <- join_data(crwOut_ALL[[14]], ee_NDVI[[14]], ee_NDVImax[[14]], ee_SNOWCOVER[[14]], ee_SNOWDEPTH[[14]])
+  md_ee_smr <- join_data(crwOut_ALL[[1]], ee_NDVI[[1]]) #, ee_NDVImax[[1]], ee_SNOWCOVER[[1]], ee_SNOWDEPTH[[1]])
+  md_ee_wtr <- join_data(crwOut_ALL[[2]], ee_NDVImax[[1]]) #, ee_NDVImax[[2]], ee_SNOWCOVER[[2]], ee_SNOWDEPTH[[2]])
+  elk_ee_smr <- join_data(crwOut_ALL[[3]], ee_NDVI[[3]]) #, ee_NDVImax[[3]], ee_SNOWCOVER[[3]], ee_SNOWDEPTH[[3]])
+  elk_ee_wtr <- join_data(crwOut_ALL[[4]], ee_NDVImax[[2]]) #, ee_NDVImax[[4]], ee_SNOWCOVER[[4]], ee_SNOWDEPTH[[4]])
+  wtd_ee_smr <- join_data(crwOut_ALL[[5]], ee_NDVI[[5]]) #, ee_NDVImax[[5]], ee_SNOWCOVER[[5]], ee_SNOWDEPTH[[5]])
+  wtd_ee_wtr <- join_data(crwOut_ALL[[6]], ee_NDVImax[[3]]) #, ee_NDVImax[[6]], ee_SNOWCOVER[[6]], ee_SNOWDEPTH[[6]])
+  coug_ee_smr <- join_data(crwOut_ALL[[7]], ee_NDVI[[7]]) #, ee_NDVImax[[7]], ee_SNOWCOVER[[7]], ee_SNOWDEPTH[[7]])
+  coug_ee_wtr <- join_data(crwOut_ALL[[8]], ee_NDVImax[[4]]) #, ee_NDVImax[[8]], ee_SNOWCOVER[[8]], ee_SNOWDEPTH[[8]])
+  wolf_ee_smr <- join_data(crwOut_ALL[[9]], ee_NDVI[[8]]) #, ee_NDVImax[[9]], ee_SNOWCOVER[[9]], ee_SNOWDEPTH[[9]])
+  wolf_ee_wtr <- join_data(crwOut_ALL[[10]], ee_NDVImax[[5]]) #, ee_NDVImax[[10]], ee_SNOWCOVER[[10]], ee_SNOWDEPTH[[10]])
+  bob_ee_smr <- join_data(crwOut_ALL[[11]], ee_NDVI[[11]]) #, ee_NDVImax[[11]], ee_SNOWCOVER[[11]], ee_SNOWDEPTH[[11]])
+  bob_ee_wtr <- join_data(crwOut_ALL[[12]], ee_NDVImax[[6]]) #, ee_NDVImax[[12]], ee_SNOWCOVER[[12]], ee_SNOWDEPTH[[12]])
+  coy_ee_smr <- join_data(crwOut_ALL[[13]], ee_NDVI[[13]]) #, ee_NDVImax[[13]], ee_SNOWCOVER[[13]], ee_SNOWDEPTH[[13]])
+  coy_ee_wtr <- join_data(crwOut_ALL[[14]], ee_NDVImax[[7]]) #, ee_NDVImax[[14]], ee_SNOWCOVER[[14]], ee_SNOWDEPTH[[14]])
 
   #'  List all data together
   ee_covs_list <- list(md_ee_smr, md_ee_wtr, elk_ee_smr, elk_ee_wtr, wtd_ee_smr, 
