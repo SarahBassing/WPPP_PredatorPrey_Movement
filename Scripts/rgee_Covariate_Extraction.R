@@ -238,26 +238,26 @@
   find_maxNDVI <- function(crwOut_data, eeimage, start.date, end.date, band.name, band, ee.scale) {
     
     #'  Define EE ImageCollection
-    eendvi <- ee$ImageCollection(eeimage) %>% # "MODIS/006/MOD13Q1"
+    eendvi <- ee$ImageCollection(eeimage) %>% # "MODIS/006/MOD13Q1" 
       #'  Define date range of interest
-      ee$ImageCollection$filterDate(start.date, end.date) %>% # "2018-04-01", "2020-10-01"
+      ee$ImageCollection$filterDate(start.date, end.date) %>% # "2018-04-01", "2020-10-01" 
       ee$ImageCollection$map(
         function(x) {
           date <- ee$Date(x$get("system:time_start"))$format('YYYY_MM_dd')
-          name <- ee$String$cat(band.name, date) # "NDVI_"
-          x$select(band)$rename(name) #"NDVI"
+          name <- ee$String$cat(band.name, date) # "NDVI_" 
+          x$select(band)$rename(name) #"NDVI"  
         }
       )
     
     #'  Make telemetry locations spatial using sf (note: use coordinates labeled 
     #'  mu.x & mu.y so that interpolated locations are included)
-    full_crwOut <- crwOut_data[[2]]
-    crwOut_sf <- st_as_sf(full_crwOut, coords = c('mu.x','mu.y'), 
+    # full_crwOut <- crwOut_data
+    crwOut_sf <- st_as_sf(crwOut_data, coords = c('mu.x','mu.y'),  
                           crs = "+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs ")
     #'  Transform projection to WGS84 for Google Earth Engine
     datasf <- st_transform(crwOut_sf, crs = 4326)
     
-    #'  Chunk location data into groups to loop through (required for getInfo method)
+    #'  Chunk location data into groups to loop through 
     datasf$uniq <- rep(1:1000, each = 1000)[1:nrow(datasf)] 
     
     #'  Track amount of time it takes to extract data
@@ -274,18 +274,17 @@
         y = datasf[i]["geometry"],
         scale = ee.scale,
         fun = ee$Reducer$max(),
+        via = "getInfo",
         sf = FALSE
       )
       #'  Append each loop
       EE_allNDVI <- rbind(EE_allNDVI, dataoutput) 
     }
-    
-    #'  How long did that take?
     end_time <- Sys.time()
+    #'  How long did that take?
     print(end_time - start_time)
     #'  Quick peak
     print(EE_allNDVI[1:6,1:4])
-
     
     #'  Find maximum NDVI values during annual growing season (April - Sept)
     #'  2018 growing season
@@ -366,30 +365,34 @@
     
     return(maxNDVI_df)
   }
-  # tst1 <- crwOut_ALL[[13]]
-  # tst1 <- tst1[1:100,]
-  # tst2 <- crwOut_ALL[[14]]
-  # tst2 <- tst2[1:100,]
-  # tst_list <- list(tst1, tst2)
-  #'  Define date range of interest
-  #'  Starting date is beginning of growing season of first year of study (April)
-  #'  Ending date is end of growing season of last year of study (Sept) because
-  #'  only interested in NDVI values from growing seasons, not winter
+  #'  Define parameters of interest
+  #'  Starting date is beginning of growing season of first year of study (April 2018)
+  #'  Ending date is end of growing season of last year of study (Sept 2020) because
+  #'  only interested in NDVI values from growing seasons, not winter 2021
   start.date <- "2018-04-01"
   end.date <- "2020-10-01"
-  #'  Define EE imageCollection and details of interest
+  #'  EE imageCollection and relevant details
   eeimage <- "MODIS/006/MOD13Q1"
   band.name <- "NDVI_"
   band <- "NDVI"
   ee.scale <- 250
   
-  #'  find max NDVI for each species and season
-  ee_NDVImax <- lapply(crwOut_ALL, find_maxNDVI, eeimage = eeimage, 
+  #'  Function to drop crwFits lists for each species from crwOut_ALL list of lists 
+  drop_list <- function(full.list) {
+    short.list <- as.data.frame(full.list[-1]) %>%
+      #'  Rename all columns by removing first 11 characters 
+      #'  (annoyingly happens when covert each list to a data frame)
+      rename_with(~ gsub("^...........", "", .x))
+    return(short.list)
+  }
+  short.list <- lapply(crwOut_ALL, drop_list)
+  
+  #'  find max NDVI for each species and season in the short list
+  ee_NDVImax <- lapply(short.list, find_maxNDVI, eeimage = eeimage, 
                        start.date = start.date, end.date = end.date, 
                        band.name = band.name, band = band, ee.scale = ee.scale)
 
-  # coy_tst <- lapply(tst_list, find_maxNDVI, eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  
+  # load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_covs_list_2021-12-28.RData")
 
   ####  Join datasets  ####
   join_data <- function(crwOut_data, ndvi, maxndvi, snow_cov, snow_dep) { 
