@@ -186,24 +186,21 @@
   end <- "2021-03-01" 
   #'  EE image collections (https://developers.google.com/earth-engine/datasets)
   imageNDVI <- ee$ImageCollection('MODIS/006/MOD13Q1')$filterDate(start,end) # MODIS Terra NDVI/EVI 16day, 250m resolution
-  imageSNOWCOVER <- ee$ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global (Normalized Difference Snow Index (NDSI)) daily, 500m resolution, values represent % coverage per pixel?
-  imageSNOWDEPTH <- ee$ImageCollection("NASA/GLDAS/V021/NOAH/G025/T3H")$filterDate(start,end) # NASA Global Land Data Assimilation System (GLDAS) daily, 27830m (or 0.25 degree) resolution, depth measured in meters
-  imageNDSI <- ee$ImageCollection("MODIS/MOD09GA_006_NDSI")$filterDate(start,end) # MODIS Terra Daily Normalized Difference Snow Index (NDSI) daily, 463.313 m resolution, missing data from Jan. 2019
-  imageSWE <- ee$ImageCollection("NASA/ORNL/DAYMET_V4")$filterDate(start,end) # Daymet V4: Daily Surface Weather and Climatological Summaries, Snow-Water Equivalent, daily, 1000m resolution, data up to Dec. 31, 2020
+  # imageSNOWCOVER <- ee$ImageCollection("MODIS/006/MOD10A1")$filterDate(start,end) # MODIS Terra Snow Cover Daily Global (Normalized Difference Snow Index (NDSI)) daily, 500m resolution, values represent % coverage per pixel?
+  # imageSNOWDEPTH <- ee$ImageCollection("NASA/GLDAS/V021/NOAH/G025/T3H")$filterDate(start,end) # NASA Global Land Data Assimilation System (GLDAS) daily, 27830m (or 0.25 degree) resolution, depth measured in meters
+  # imageNDSI <- ee$ImageCollection("MODIS/MOD09GA_006_NDSI")$filterDate(start,end) # MODIS Terra Daily Normalized Difference Snow Index (NDSI) daily, 463.313 m resolution, missing data from Jan. 2019
+  # imageSWE <- ee$ImageCollection("NASA/ORNL/DAYMET_V4")$filterDate(start,end) # Daymet V4: Daily Surface Weather and Climatological Summaries, Snow-Water Equivalent, daily, 1000m resolution, data up to Dec. 31, 2020
   
+  #' #'  Run reformated animal location data through this monster function to
+  #' #'  match & extract EE images 
+  #' ee_NDVI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  #' ee_SNOWCOVER <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWCOVER, tempwin = 1, band = "NDSI_Snow_Cover", sp.res = 500, tmp.res = 1)
+  #' ee_SNOWDEPTH <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWDEPTH, tempwin = 1, band = "SnowDepth_inst", sp.res = 27830, tmp.res = 1)
+  #' ee_NDSI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDSI, tempwin = 1, band = "NDSI", sp.res = 463.313, tmp.res = 1)
+  #' ee_SWE <- lapply(data_ee_list, match_ee_data, imagecoll = imageSWE, tempwin = 1, band = "swe", sp.res = 1000, tmp.res = 1)
   
-  
-  #'  Run reformated animal location data through this monster function to
-  #'  match & extract EE images 
-  # tst <- list(data_ee_list[[9]], data_ee_list[[10]])
-  # tst3 <- list(data_ee_list[[9]][1:100,])
-  ee_NDVI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
-  # ee_SNOWCOVER <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWCOVER, tempwin = 1, band = "NDSI_Snow_Cover", sp.res = 500, tmp.res = 1)
-  # ee_SNOWDEPTH <- lapply(data_ee_list, match_ee_data, imagecoll = imageSNOWDEPTH, tempwin = 1, band = "SnowDepth_inst", sp.res = 27830, tmp.res = 1)
-  # ee_NDSI <- lapply(data_ee_list, match_ee_data, imagecoll = imageNDSI, tempwin = 1, band = "NDSI", sp.res = 463.313, tmp.res = 1)
-  # ee_SWE <- lapply(data_ee_list, match_ee_data, imagecoll = imageSWE, tempwin = 1, band = "swe", sp.res = 1000, tmp.res = 1)
-  
-  
+  #'  Run re-formated summer location data through this monster function to
+  #'  match & extract EE image data
   ee_NDVI_md_smr <- match_ee_data(data_ee_list[[1]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
   ee_NDVI_elk_smr <- match_ee_data(data_ee_list[[3]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
   ee_NDVI_wtd_smr <- match_ee_data(data_ee_list[[5]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
@@ -212,9 +209,12 @@
   ee_NDVI_bob_smr <- match_ee_data(data_ee_list[[11]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
   ee_NDVI_coy_smr <- match_ee_data(data_ee_list[[13]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
   
-  ee_NDVImax_list <- list(ee_NDVI_md_smr, ee_NDVI_elk_smr, ee_NDVI_wtd_smr,
-                          ee_NDVI_coug_smr, ee_NDVI_wolf_smr, ee_NDVI_bob_smr,
-                          ee_NDVI_coy_smr)
+  #'  List together for safe keeping
+  ee_smr_NDVI_list <- list(ee_NDVI_md_smr, ee_NDVI_elk_smr, ee_NDVI_wtd_smr, 
+                           ee_NDVI_coug_smr, ee_NDVI_wolf_smr, ee_NDVI_bob_smr, 
+                           ee_NDVI_coy_smr)
+  
+  save(ee_smr_NDVI_list, file = paste0("./Outputs/Telemetry_covs/ee_smr_NDVI_list_", Sys.Date(), ".RData"))
   
   
   ####  Re-scale NDVI values  ####
@@ -231,7 +231,7 @@
     
     return(dataoutput)
   }
-  ee_NDVI <- lapply(ee_NDVI, ndvi_rescale, T)
+  ee_NDVI <- lapply(ee_smr_NDVI_list, ndvi_rescale, T)
   
   #' ####  Clean Snow Cover values  ####
   #' #'  ONLY RUN IF EXTRACTING SNOW COVER DATA!
@@ -251,14 +251,14 @@
   find_maxNDVI <- function(crwOut_data, eeimage, start.date, end.date, band.name, band, ee.scale) {
     
     #'  Define EE ImageCollection
-    eendvi <- ee$ImageCollection(eeimage) %>% # "MODIS/006/MOD13Q1" 
+    eendvi <- ee$ImageCollection(eeimage) %>%  
       #'  Define date range of interest
-      ee$ImageCollection$filterDate(start.date, end.date) %>% # "2018-04-01", "2020-10-01" 
+      ee$ImageCollection$filterDate(start.date, end.date) %>% 
       ee$ImageCollection$map(
         function(x) {
           date <- ee$Date(x$get("system:time_start"))$format('YYYY_MM_dd')
-          name <- ee$String$cat(band.name, date) # "NDVI_" 
-          x$select(band)$rename(name) #"NDVI"  
+          name <- ee$String$cat(band.name, date)  
+          x$select(band)$rename(name)   
         }
       )
     
@@ -379,16 +379,16 @@
     return(maxNDVI_df)
   }
   #'  Define parameters of interest
-  #'  Starting date is beginning of growing season of first year of study (April 2018)
-  #'  Ending date is end of growing season of last year of study (Sept 2020) because
-  #'  only interested in NDVI values from growing seasons, not winter 2021
-  start.date <- "2018-04-01"
-  end.date <- "2020-10-01"
   #'  EE imageCollection and relevant details
   eeimage <- "MODIS/006/MOD13Q1"
   band.name <- "NDVI_"
   band <- "NDVI"
   ee.scale <- 250
+  
+  #' #'  Starting date: beginning of growing season of first year of study (April 2018)
+  #' #'  Ending date: end of growing season of last year of study (Sept 2020) 
+  #' start.date <- "2018-04-01"
+  #' end.date <- "2020-10-01"
   
   #'  Function to drop crwFits lists for each species from crwOut_ALL list of lists 
   drop_list <- function(full.list) {
@@ -400,28 +400,56 @@
   }
   short.list <- lapply(crwOut_ALL, drop_list)
   
+  #'  Re-ogranize short list by year, not species
+  filter_wtr1819 <- function(mylist){
+    df <- as.data.frame(mylist) %>%
+      filter(Season == "Winter1819")
+    return(df)
+  }
+  wtr1819 <- lapply(short.list, filter_wtr1819)
+  filter_wtr1920 <- function(mylist){
+    df <- as.data.frame(mylist) %>%
+      filter(Season == "Winter1920")
+    return(df)
+  }
+  wtr1920 <- lapply(short.list, filter_wtr1920)
+  filter_wtr2021 <- function(mylist){
+    df <- as.data.frame(mylist) %>%
+      filter(Season == "Winter2021")
+    return(df)
+  }
+  wtr2021 <- lapply(short.list, filter_wtr2021)
+  
+  #'  List data for each species per season (winter observations only)
+  wtr_list1819 <- list(wtr1819[[2]], wtr1819[[4]], wtr1819[[6]], wtr1819[[8]], wtr1819[[10]], wtr1819[[12]], wtr1819[[14]])
+  wtr_list1920 <- list(wtr1920[[2]], wtr1920[[4]], wtr1920[[6]], wtr1920[[8]], wtr1920[[10]], wtr1920[[12]], wtr1920[[14]])
+  wtr_list2021 <- list(wtr2021[[2]], wtr2021[[4]], wtr2021[[6]], wtr2021[[8]], wtr2021[[10]], wtr2021[[12]], wtr2021[[14]])
+  
+  #'  Find max NDVI for each species in each winter season
+  ee_NDVImax_wtr1819 <- lapply(wtr_list1819, find_maxNDVI, eeimage = eeimage, start.date = "2018-04-01", end.date = "2018-10-01", band.name = band.name, band = band, ee.scale = ee.scale)
+  ee_NDVImax_wtr1920 <- lapply(wtr_list1920, find_maxNDVI, eeimage = eeimage, start.date = "2019-04-01", end.date = "2019-10-01", band.name = band.name, band = band, ee.scale = ee.scale)
+  ee_NDVImax_wtr2021 <- lapply(wtr_list2021, find_maxNDVI, eeimage = eeimage, start.date = "2020-04-01", end.date = "2020-10-01", band.name = band.name, band = band, ee.scale = ee.scale)
+
+  ee_NDVImax_list <- list(ee_NDVImax_wtr1819, ee_NDVImax_wtr1920, ee_NDVImax_wtr2021)
+  
+  save(ee_NDVImax_list, file = paste0("./Outputs/Telemetry_covs/ee_NDVImax_list_", Sys.Date(), ".RData"))
+  
+  
   #'  find max NDVI for each species and season in the short list
   # ee_NDVImax <- lapply(short.list, find_maxNDVI, eeimage = eeimage, 
   #                      start.date = start.date, end.date = end.date, 
   #                      band.name = band.name, band = band, ee.scale = ee.scale)
-  # ee_NDVImax_md_smr <- find_maxNDVI(short.list[[1]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  ee_NDVImax_md_wtr <- find_maxNDVI(short.list[[2]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  # ee_NDVImax_elk_smr <- find_maxNDVI(short.list[[3]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  ee_NDVImax_elk_wtr <- find_maxNDVI(short.list[[4]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  # ee_NDVImax_wtd_smr <- find_maxNDVI(short.list[[5]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  ee_NDVImax_wtd_wtr <- find_maxNDVI(short.list[[6]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  # ee_NDVImax_coug_smr <- find_maxNDVI(short.list[[7]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  ee_NDVImax_coug_wtr <- find_maxNDVI(short.list[[8]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  # ee_NDVImax_wolf_smr <- find_maxNDVI(short.list[[9]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  ee_NDVImax_wolf_wtr <- find_maxNDVI(short.list[[10]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  # ee_NDVImax_bob_smr <- find_maxNDVI(short.list[[11]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  ee_NDVImax_bob_wtr <- find_maxNDVI(short.list[[12]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  # ee_NDVImax_coy_smr <- find_maxNDVI(short.list[[13]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  ee_NDVImax_coy_wtr <- find_maxNDVI(short.list[[14]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
-  
-  ee_NDVImax_list <- list(ee_NDVImax_md_wtr, ee_NDVImax_elk_wtr, ee_NDVImax_wtd_wtr,
-                          ee_NDVImax_coug_wtr, ee_NDVImax_wolf_wtr, ee_NDVImax_bob_wtr,
-                          ee_NDVImax_coy_wtr)
+  # ee_NDVImax_md_wtr <- find_maxNDVI(short.list[[2]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_elk_wtr <- find_maxNDVI(short.list[[4]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_wtd_wtr <- find_maxNDVI(short.list[[6]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_coug_wtr <- find_maxNDVI(short.list[[8]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_wolf_wtr <- find_maxNDVI(short.list[[10]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_bob_wtr <- find_maxNDVI(short.list[[12]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_coy_wtr <- find_maxNDVI(short.list[[14]], eeimage = eeimage, start.date = start.date, end.date = end.date, band.name = band.name, band = band, ee.scale = ee.scale)
+  # 
+  # ee_NDVImax_list <- list(ee_NDVImax_md_wtr, ee_NDVImax_elk_wtr, ee_NDVImax_wtd_wtr,
+  #                         ee_NDVImax_coug_wtr, ee_NDVImax_wolf_wtr, ee_NDVImax_bob_wtr,
+  #                         ee_NDVImax_coy_wtr)
   
   # load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_covs_list_2021-12-28.RData")
 
@@ -433,18 +461,18 @@
       separate(ID, sep = "_", into = "AnimalID",  extra = "drop")
     ee_covs <- as.data.frame(cbind(crwOut$AnimalID, crwOut$Season, crwOut$StudyArea, crwOut$mu.x, crwOut$mu.y))
     #'  Add a unique ID for each observation for easier joining
-    ee_covs$ID <- as.integer(1:nrow(ee_covs))
+    # ee_covs$ID <- as.integer(1:nrow(ee_covs))
     ee_covs <- ee_covs %>%
-      full_join(ndvi, by = "ID") %>%
+      full_join(ndvi, by = c("AnimalID", "Season")) %>%
         dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDVI)) %>%
-      full_join(maxndvi, by = c("ID", "Season", "StudyArea", "mu.x", "mu.y")) %>%
+      full_join(maxndvi, by = c("ID", "AnimalID", "Season", "StudyArea", "mu.x", "mu.y")) %>%
         dplyr::select(-c(AnimalID2, Dates)) %>%
-      full_join(snow_cov, by = "ID") %>%
-        dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDSI_Snow_Cover)) %>%
-      full_join(snow_dep, by = "ID") %>%
-        dplyr::select(-c(Date.y, Date, DateTimeImage, date_millis, uniq, geometry)) %>%
+      # full_join(snow_cov, by = "ID") %>%
+      #   dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDSI_Snow_Cover)) %>%
+      # full_join(snow_dep, by = "ID") %>%
+      #   dplyr::select(-c(Date.y, Date, DateTimeImage, date_millis, uniq, geometry)) %>%
      relocate(ID, .after = (SnowDepth_inst))
-    colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "Date", "NDVI", "maxNDVI", "Snow.Cover", "Snow.Depth", "ID")
+    colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "Date", "NDVI", "maxNDVI", "ID") #, "Snow.Cover", "Snow.Depth",
 
     return(ee_covs)
   }
