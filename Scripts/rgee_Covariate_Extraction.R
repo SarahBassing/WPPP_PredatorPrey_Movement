@@ -269,126 +269,167 @@
                           crs = "+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs ")
     #'  Transform projection to WGS84 for Google Earth Engine
     datasf <- st_transform(crwOut_sf, crs = 4326)
-    
-    #'  Chunk location data into groups to loop through 
-    datasf$uniq <- rep(1:1000, each = 1000)[1:nrow(datasf)] 
-    
+    #'  Make a unique ID for every observation (necessary for ee_extract!)
+    datasf$uid <- as.integer(1:nrow(datasf))
+    datasf$NAME <- paste0(datasf$AnimalID, "_", datasf$uid)
+
+    #' #'  Chunk location data into groups to loop through with getInfo
+    #' datasf$uniq <- rep(1:1000, each = 1000)[1:nrow(datasf)]
+
     #'  Track amount of time it takes to extract data
     start_time <- Sys.time()
     
-    #'  Create empty dataframe to hold extracted pixel values
-    EE_allNDVI <- data.frame()
+    EE_allndvi <- ee_extract(
+      x = eendvi,
+      y = datasf["NAME"],
+      scale = ee.scale,
+      fun = ee$Reducer$max(),
+      via = "drive",
+      lazy = TRUE,
+      sf = TRUE
+    )
+    EE_allndvi <- EE_allndvi %>% ee_utils_future_value()
     
-    #'  Loop through location data in chunks to extract pixel values from EE images 
-    for(i in unique(datasf$uniq)) {
-      #'  Use getInfo method to extract values from GEE
-      dataoutput <- ee_extract(
-        x = eendvi,
-        y = datasf[i]["geometry"],
-        scale = ee.scale,
-        fun = ee$Reducer$max(),
-        via = "getInfo",
-        sf = FALSE
-      )
-      #'  Append each loop
-      EE_allNDVI <- rbind(EE_allNDVI, dataoutput) 
-    }
     end_time <- Sys.time()
     #'  How long did that take?
     print(end_time - start_time)
     #'  Quick peak
-    print(EE_allNDVI[1:6,1:4])
+    print(EE_allndvi[1:6,1:4])
     
     #'  Find maximum NDVI values during annual growing season (April - Sept)
-    #'  2018 growing season
-    ee_allNDVI18 <- as.data.frame(EE_allNDVI) %>%
-      #'  Rename all columns by removing first 12 characters for easier reading
-      rename_with(~ gsub("^............", "", .x)) %>%
-      #'  Save only the NDVI values from the growing season (April - Sept)
-      dplyr::select(contains(c("2018_04", "2018_05", "2018_06", "2018_07", "2018_08", "2018_09")))
-    #'  Find max value row-wise and re-scale
-    ee_allNDVI18$maxNDVI18 <- apply(ee_allNDVI18, 1, max)
-    ee_allNDVI18 <- ee_allNDVI18 %>%
+    ee_allNDVI <- as.data.frame(EE_allndvi) %>% 
+      relocate(geometry, .after = NAME) 
+    #'  apply max function row-wise (1 = across each row), excluding 1st 2 columns of df
+    ee_allNDVI$maxNDVI <- apply(ee_allNDVI[-c(1:2)], 1, max)
+    ee_allNDVI <- ee_allNDVI %>%
       mutate(
-        maxNDVI18_scale = maxNDVI18*0.0001,
-        ID = seq(1:nrow(ee_allNDVI18))
-      )
-    
-    #'  2019 growing season
-    ee_allNDVI19 <- as.data.frame(EE_allNDVI) %>%
-      #'  Rename all columns by removing first 12 characters
-      rename_with(~ gsub("^............", "", .x)) %>%
-      #'  Save only the NDVI values from the growing season (April - Sept)
-      dplyr::select(contains(c("2019_04", "2019_05", "2019_06", "2019_07", "2019_09", "2019_09"))) %>%
-      mutate(ID = seq(1:nrow(EE_allNDVI)))
-    #'  Find max value row-wise and re-scale
-    ee_allNDVI19$maxNDVI19 <- apply(ee_allNDVI19, 1, max)
-    ee_allNDVI19 <- ee_allNDVI19 %>%
-      mutate(
-        maxNDVI19_scale = maxNDVI19*0.0001,
-        ID = seq(1:nrow(ee_allNDVI19))
-      )
-    
-    #'  2020 growing season
-    ee_allNDVI20 <- as.data.frame(EE_allNDVI) %>%
-      #'  Rename all columns by removing first 12 characters
-      rename_with(~ gsub("^............", "", .x)) %>%
-      #'  Save only the NDVI values from the growing season (April - Sept)
-      dplyr::select(contains(c("2020_04", "2020_05", "2020_06", "2020_07", "2020_08", "2020_09"))) %>%
-      mutate(ID = seq(1:nrow(EE_allNDVI)))
-    #'  Find max value row-wise and re-scale
-    ee_allNDVI20$maxNDVI20 <- apply(ee_allNDVI20, 1, max)
-    ee_allNDVI20 <- ee_allNDVI20 %>%
-      mutate(
-        maxNDVI20_scale = maxNDVI20*0.0001,
-        ID = seq(1:nrow(ee_allNDVI20))
-      )
-    
-    #'  Join max NDVI values across years
-    maxNDVI <- ee_allNDVI18 %>%
-      full_join(ee_allNDVI19, by = "ID") %>%
-      full_join(ee_allNDVI20, by = "ID") %>%
-      dplyr::select(c(ID, maxNDVI18_scale, maxNDVI19_scale, maxNDVI20_scale))
-    colnames(maxNDVI) <- c("ID", "max_NDVI18", "max_NDVI19", "max_NDVI20")
+        maxNDVI_scale = maxNDVI*0.0001,
+        ID = seq(1:nrow(ee_allNDVI))
+      ) %>%
+      dplyr::select(c(ID, NAME, maxNDVI_scale, geometry))
     
     #'  Pull out location dates (including interpolated ones)
-    times <- as.Date(full_crwOut$time, "%Y-%m-%d", tz = "Etc/GMT+8")
+    times <- as.Date(crwOut_sf$time, "%Y-%m-%d", tz = "Etc/GMT+8")
     date.only <- as.data.frame(times)
     
     #'  Save only relevant location info
-    full_crwOut$ID2 <- as.integer(1:nrow(full_crwOut))
-    crwOut_df <- as.data.frame(cbind(full_crwOut$ID, full_crwOut$Season, full_crwOut$StudyArea, full_crwOut$mu.x, full_crwOut$mu.y, date.only, full_crwOut$ID2))
-    colnames(crwOut_df) <- c("AnimalID2", "Season", "StudyArea", "mu.x", "mu.y", "Dates", "ID")
+    crwOut_sf$ID2 <- as.integer(1:nrow(crwOut_sf))
+    crwOut_sf <- cbind(crwOut_sf, date.only)
+    crwOut_df <- dplyr::select(crwOut_sf, c(AnimalID, Season, StudyArea, times, x, y, ID2, geometry))
+    colnames(crwOut_df) <- c("AnimalID", "Season", "StudyArea", "Dates", "x", "y", "ID", "geometry")
     
     #'  Join animal location data with maxNDVI values
     maxNDVI_df <- as.data.frame(crwOut_df) %>%
-      full_join(maxNDVI, by = "ID") %>%
-      #'  Retain only the previous growing season's max NDVI value for each location
-      #'  Make all other NDVI values "NA"
-      mutate(
-        newNDVI18 = as.numeric(ifelse(Dates > "2019-03-01", NA, max_NDVI18)),
-        newNDVI19 = as.numeric(ifelse(Dates < "2019-12-01" | Dates > "2020-03-01", NA, max_NDVI19)),
-        newNDVI20 = as.numeric(ifelse(Dates < "2020-12-01", NA, max_NDVI20))
-      ) %>%
-      #'  Create a single column of max NDVI values for each location
-      rowwise() %>%
-      mutate(maxNDVI = max(c(newNDVI18, newNDVI19, newNDVI20), na.rm = TRUE)) %>%
-      #'  Drop extra NDVI columns from df
-      dplyr::select(-c(max_NDVI18, max_NDVI19, max_NDVI20, newNDVI18, newNDVI19, newNDVI20))
+      full_join(ee_allNDVI, by = "ID") %>%
+      dplyr::select(-geometry.x)
+    colnames(maxNDVI_df) <- c("AnimalID", "Season", "StudyArea", "Dates", "x", "y", "ID", "NAME", "NDVImax", "geometry")
+    
+    print(maxNDVI_df[1:6,])
     
     return(maxNDVI_df)
+    
   }
-  #'  Define parameters of interest
-  #'  EE imageCollection and relevant details
-  eeimage <- "MODIS/006/MOD13Q1"
-  band.name <- "NDVI_"
-  band <- "NDVI"
-  ee.scale <- 250
   
-  #' #'  Starting date: beginning of growing season of first year of study (April 2018)
-  #' #'  Ending date: end of growing season of last year of study (Sept 2020) 
-  #' start.date <- "2018-04-01"
-  #' end.date <- "2020-10-01"
+  
+  #' #'  Create empty dataframe to hold extracted pixel values
+  #' EE_allNDVI <- data.frame()
+  #' 
+  #' #'  Loop through location data in chunks to extract pixel values from EE images
+  #' for(x in unique(datasf$uniq)) {
+  #'   #'  Chunk location data
+  #'   data1 <- datasf %>% filter(uniq == x)
+  #'   #'  Use getInfo method to extract values from GEE
+  #'   dataoutput <- ee_extract(
+  #'     x = eendvi,
+  #'     y = data1["geometry"],
+  #'     scale = ee.scale,
+  #'     fun = ee$Reducer$max(),
+  #'     via = "getInfo",
+  #'     sf = FALSE
+  #'   )
+  #'   #'  Append each loop
+  #'   EE_allNDVI <- rbind(EE_allNDVI, dataoutput)
+  #' }
+  #' #'  Find maximum NDVI values during annual growing season (April - Sept)
+  #' #'  2018 growing season
+  #' ee_allNDVI18 <- as.data.frame(EE_allNDVI) %>%
+  #'   #'  Rename all columns by removing first 12 characters for easier reading
+  #'   rename_with(~ gsub("^............", "", .x)) %>%
+  #'   #'  Save only the NDVI values from the growing season (April - Sept)
+  #'   dplyr::select(contains(c("2018_04", "2018_05", "2018_06", "2018_07", "2018_08", "2018_09")))
+  #' #'  Find max value row-wise and re-scale
+  #' ee_allNDVI18$maxNDVI18 <- apply(ee_allNDVI18, 1, max)
+  #' ee_allNDVI18 <- ee_allNDVI18 %>%
+  #'   mutate(
+  #'     maxNDVI18_scale = maxNDVI18*0.0001,
+  #'     ID = seq(1:nrow(ee_allNDVI18))
+  #'   )
+  #' 
+  #' #'  2019 growing season
+  #' ee_allNDVI19 <- as.data.frame(EE_allNDVI) %>%
+  #'   #'  Rename all columns by removing first 12 characters
+  #'   rename_with(~ gsub("^............", "", .x)) %>%
+  #'   #'  Save only the NDVI values from the growing season (April - Sept)
+  #'   dplyr::select(contains(c("2019_04", "2019_05", "2019_06", "2019_07", "2019_09", "2019_09"))) %>%
+  #'   mutate(ID = seq(1:nrow(EE_allNDVI)))
+  #' #'  Find max value row-wise and re-scale
+  #' ee_allNDVI19$maxNDVI19 <- apply(ee_allNDVI19, 1, max)
+  #' ee_allNDVI19 <- ee_allNDVI19 %>%
+  #'   mutate(
+  #'     maxNDVI19_scale = maxNDVI19*0.0001,
+  #'     ID = seq(1:nrow(ee_allNDVI19))
+  #'   )
+  #' 
+  #' #'  2020 growing season
+  #' ee_allNDVI20 <- as.data.frame(EE_allNDVI) %>%
+  #'   #'  Rename all columns by removing first 12 characters
+  #'   rename_with(~ gsub("^............", "", .x)) %>%
+  #'   #'  Save only the NDVI values from the growing season (April - Sept)
+  #'   dplyr::select(contains(c("2020_04", "2020_05", "2020_06", "2020_07", "2020_08", "2020_09"))) %>%
+  #'   mutate(ID = seq(1:nrow(EE_allNDVI)))
+  #' #'  Find max value row-wise and re-scale
+  #' ee_allNDVI20$maxNDVI20 <- apply(ee_allNDVI20, 1, max)
+  #' ee_allNDVI20 <- ee_allNDVI20 %>%
+  #'   mutate(
+  #'     maxNDVI20_scale = maxNDVI20*0.0001,
+  #'     ID = seq(1:nrow(ee_allNDVI20))
+  #'   )
+  #' 
+  #' #'  Join max NDVI values across years
+  #' maxNDVI <- ee_allNDVI18 %>%
+  #'   full_join(ee_allNDVI19, by = "ID") %>%
+  #'   full_join(ee_allNDVI20, by = "ID") %>%
+  #'   dplyr::select(c(ID, maxNDVI18_scale, maxNDVI19_scale, maxNDVI20_scale))
+  #' colnames(maxNDVI) <- c("ID", "max_NDVI18", "max_NDVI19", "max_NDVI20")
+  #' 
+  #' #'  Pull out location dates (including interpolated ones)
+  #' times <- as.Date(crwOut_sf$time, "%Y-%m-%d", tz = "Etc/GMT+8")
+  #' date.only <- as.data.frame(times)
+  #' 
+  #' #'  Save only relevant location info
+  #' crwOut_sf$ID2 <- as.integer(1:nrow(crwOut_sf))
+  #' crwOut_sf <- cbind(crwOut_sf, date.only)
+  #' crwOut_df <- dplyr::select(crwOut_sf, c(AnimalID, Season, StudyArea, times, x, y, ID2, geometry))
+  #' #crwOut_df <- as.data.frame(cbind(crwOut_sf$ID, crwOut_sf$Season, crwOut_sf$StudyArea, crwOut_sf$mu.x, crwOut_sf$mu.y, date.only, crwOut_sf$ID2))
+  #' colnames(crwOut_df) <- c("AnimalID", "Season", "StudyArea", "Dates", "mu.x", "mu.y", "ID", "geometry") #"mu.x", "mu.y",
+  #' 
+  #' #'  Join animal location data with maxNDVI values
+  #' maxNDVI_df <- as.data.frame(crwOut_df) %>%
+  #'   full_join(maxNDVI, by = "ID") %>%
+  #'   #'  Retain only the previous growing season's max NDVI value for each location
+  #'   #'  Make all other NDVI values "NA"
+  #'   mutate(
+  #'     newNDVI18 = as.numeric(ifelse(Dates > "2019-03-01", NA, max_NDVI18)),
+  #'     newNDVI19 = as.numeric(ifelse(Dates < "2019-12-01" | Dates > "2020-03-01", NA, max_NDVI19)),
+  #'     newNDVI20 = as.numeric(ifelse(Dates < "2020-12-01", NA, max_NDVI20))
+  #'   ) %>%
+  #'   #'  Create a single column of max NDVI values for each location
+  #'   rowwise() %>%
+  #'   mutate(maxNDVI = max(c(newNDVI18, newNDVI19, newNDVI20), na.rm = TRUE)) %>%
+  #'   #'  Drop extra NDVI columns from df
+  #'   dplyr::select(-c(max_NDVI18, max_NDVI19, max_NDVI20, newNDVI18, newNDVI19, newNDVI20))
+  #' 
+  #' return(maxNDVI_df)
   
   #'  Function to drop crwFits lists for each species from crwOut_ALL list of lists 
   drop_list <- function(full.list) {
@@ -421,16 +462,71 @@
   wtr2021 <- lapply(short.list, filter_wtr2021)
   
   #'  List data for each species per season (winter observations only)
+  #'  Order: mule deer, elk, white-tailed deer, cougar, wolf, bobcat, coyote
   wtr_list1819 <- list(wtr1819[[2]], wtr1819[[4]], wtr1819[[6]], wtr1819[[8]], wtr1819[[10]], wtr1819[[12]], wtr1819[[14]])
   wtr_list1920 <- list(wtr1920[[2]], wtr1920[[4]], wtr1920[[6]], wtr1920[[8]], wtr1920[[10]], wtr1920[[12]], wtr1920[[14]])
   wtr_list2021 <- list(wtr2021[[2]], wtr2021[[4]], wtr2021[[6]], wtr2021[[8]], wtr2021[[10]], wtr2021[[12]], wtr2021[[14]])
   
+  #'  Starting date: beginning of growing season of first year of study (April)
+  #'  Ending date: end of growing season of last year of study (Sept)
+  start18 <- "2018-04-01"
+  end18 <- "2018-10-01"
+  start19 <- "2019-04-01"
+  end19 <- "2019-10-01"
+  start20 <- "2020-04-01"
+  end20 <- "2020-10-01"
+  
+  #'  Define parameters of interest
+  #'  EE imageCollection and relevant details
+  eeimage <- "MODIS/006/MOD13Q1"
+  band.name <- "NDVI_"
+  band <- "NDVI"
+  ee.scale <- 250
+  
   #'  Find max NDVI for each species in each winter season
-  ee_NDVImax_wtr1819 <- lapply(wtr_list1819, find_maxNDVI, eeimage = eeimage, start.date = "2018-04-01", end.date = "2018-10-01", band.name = band.name, band = band, ee.scale = ee.scale)
-  ee_NDVImax_wtr1920 <- lapply(wtr_list1920, find_maxNDVI, eeimage = eeimage, start.date = "2019-04-01", end.date = "2019-10-01", band.name = band.name, band = band, ee.scale = ee.scale)
-  ee_NDVImax_wtr2021 <- lapply(wtr_list2021, find_maxNDVI, eeimage = eeimage, start.date = "2020-04-01", end.date = "2020-10-01", band.name = band.name, band = band, ee.scale = ee.scale)
-
-  ee_NDVImax_list <- list(ee_NDVImax_wtr1819, ee_NDVImax_wtr1920, ee_NDVImax_wtr2021)
+  md_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[1]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  md_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[1]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  md_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[1]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  
+  elk_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[2]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  elk_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[2]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  elk_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[2]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  
+  wtd_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[3]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  wtd_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[3]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  wtd_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[3]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  
+  coug_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[4]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  coug_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[4]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  coug_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[4]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  
+  wolf_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[5]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  wolf_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[5]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  wolf_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[5]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  
+  bob_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[6]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  bob_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[6]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  bob_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[6]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  
+  coy_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[7]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  coy_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[7]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  coy_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[7]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  
+  md_NDVImax_list <- list(md_wtr1819_NDVImax, md_wtr1920_NDVImax, md_wtr2021_NDVImax)
+  elk_NDVImax_list <- list(elk_wtr1819_NDVImax, elk_wtr1920_NDVImax, elk_wtr2021_NDVImax)
+  wtd_NDVImax_list <- list(wtd_wtr1819_NDVImax, wtd_wtr1920_NDVImax, wtd_wtr2021_NDVImax)
+  coug_NDVImax_list <- list(coug_wtr1819_NDVImax, coug_wtr1920_NDVImax, coug_wtr2021_NDVImax)
+  wolf_NDVImax_list <- list(wolf_wtr1819_NDVImax, wolf_wtr1920_NDVImax, wolf_wtr2021_NDVImax)
+  bob_NDVImax_list <- list(bob_wtr1819_NDVImax, bob_wtr1920_NDVImax, bob_wtr2021_NDVImax)
+  coy_NDVImax_list <- list(coy_wtr1819_NDVImax, coy_wtr1920_NDVImax, coy_wtr2021_NDVImax)
+  
+  ee_NDVImax_list <- list(md_NDVImax_list, elk_NDVImax_list, wtd_NDVImax_list, coug_NDVImax_list, wolf_NDVImax_list, bob_NDVImax_list, coy_NDVImax_list)
+  
+  # ee_NDVImax_wtr1819 <- lapply(wtr_list1819, find_maxNDVI, eeimage = eeimage, start.date = "2018-04-01", end.date = "2018-10-01", band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_wtr1920 <- lapply(wtr_list1920, find_maxNDVI, eeimage = eeimage, start.date = "2019-04-01", end.date = "2019-10-01", band.name = band.name, band = band, ee.scale = ee.scale)
+  # ee_NDVImax_wtr2021 <- lapply(wtr_list2021, find_maxNDVI, eeimage = eeimage, start.date = "2020-04-01", end.date = "2020-10-01", band.name = band.name, band = band, ee.scale = ee.scale)
+  # 
+  # ee_NDVImax_list <- list(ee_NDVImax_wtr1819, ee_NDVImax_wtr1920, ee_NDVImax_wtr2021)
   
   save(ee_NDVImax_list, file = paste0("./Outputs/Telemetry_covs/ee_NDVImax_list_", Sys.Date(), ".RData"))
   
