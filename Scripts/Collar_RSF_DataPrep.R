@@ -80,49 +80,54 @@
   NE_split <- lapply(NE_tracks, split_animal)
   OK_split <- lapply(OK_tracks, split_animal)
   
-  #'  Function to calculate mean number of observations per species
-  #'  Used to decide how many "available" points to draw for each individual
-  #'  Using average across all individuals & species to be consistent across models
-  #'  Create empty dataframe to hold mean locations
-  avg_locs <- c()
-  mean_obs <- function(locs) {
-    mean_locs <- (nrow(locs))/(length(unique(locs$FullID))) #FullID? #AnimalID
-    avg_locs <- c(avg_locs, mean_locs)
-    return(avg_locs)
-  }
-  mean_locs <- lapply(spp_all_tracks, mean_obs)
-  # NE_mean_locs <- lapply(NE_tracks, mean_obs)
-  # OK_mean_locs <- lapply(OK_tracks, mean_obs)
-
-  #'  Calculate mean number of used locations for all species
-  mean_used <- mean(unlist(mean_locs)); sd_used <- sd(unlist(mean_locs))
-  # NE_mean_used <- mean(unlist(NE_mean_locs)); NE_sd_used <- sd(unlist(NE_mean_locs))
-  # OK_mean_used <- mean(unlist(OK_mean_locs)); OK_sd_used <- sd(unlist(OK_mean_locs))
-  #'  RSF literature suggests 1:20 ratio used:available
-  navailable <- mean_used*20
-  # NE_navailable <- NE_mean_used*20
-  # OK_navailable <- OK_mean_used*20
-
-  #'  Function to identify the number of used observations per individual
-  #'  Used to describe how many "available" points to draw for each animal
-  #'  following a 1:1, 1:10, and 1:20 ratio per individual instead of the 1:20
-  #'  ratio for the average number of observations per individual as above
-  nobs <- function(locs) {
-    indlocs <- locs %>%
-      group_by(AnimalID, Season) %>%
-      tally() %>%
-      ungroup()
-    nlocs <- as.data.frame(indlocs) %>%
-      mutate(n10 = n*10, n20 = n*20)
-    return(nlocs)
-  }
-  #'  Run each species through function
-  ind_nlocs <- lapply(spp_all_tracks, nobs)
-  #'  Create giant dataframe instead of species-specific lists
-  IDlocs <- ind_nlocs %>%
-    map(rownames_to_column) %>%
-    bind_rows() %>%
-    dplyr::select(c(AnimalID, Season, n, n10, n20))
+  #' #'  Function to calculate mean number of observations per species
+  #' #'  Used to decide how many "available" points to draw for each individual
+  #' #'  Using average across all individuals & species to be consistent across models
+  #' #'  Create empty dataframe to hold mean locations
+  #' avg_locs <- c()
+  #' mean_obs <- function(locs) {
+  #'   #'  Using FullID instead of AnimalID b/c this captures the number of 
+  #'   mean_locs <- (nrow(locs))/(length(unique(locs$FullID))) 
+  #'   avg_locs <- c(avg_locs, mean_locs)
+  #'   return(avg_locs)
+  #' }
+  #' mean_locs <- lapply(spp_all_tracks, mean_obs)
+  #' # NE_mean_locs <- lapply(NE_tracks, mean_obs)
+  #' # OK_mean_locs <- lapply(OK_tracks, mean_obs)
+  #' 
+  #' #'  Calculate mean number of used locations for all species
+  #' mean_used <- mean(unlist(mean_locs)); sd_used <- sd(unlist(mean_locs))
+  #' # NE_mean_used <- mean(unlist(NE_mean_locs)); NE_sd_used <- sd(unlist(NE_mean_locs))
+  #' # OK_mean_used <- mean(unlist(OK_mean_locs)); OK_sd_used <- sd(unlist(OK_mean_locs))
+  #' #'  RSF literature suggests 1:20 ratio used:available
+  #' navailable <- mean_used*20
+  #' # NE_navailable <- NE_mean_used*20
+  #' # OK_navailable <- OK_mean_used*20
+  #' 
+  #' #'  Function to identify the number of used observations per individual
+  #' #'  Used to describe how many "available" points to draw for each animal
+  #' #'  following a 1:1, 1:10, and 1:20 ratio per individual instead of the 1:20
+  #' #'  ratio for the average number of observations per individual as above
+  #' nobs <- function(locs) {
+  #'   indlocs <- locs %>%
+  #'     group_by(AnimalID, Season) %>%
+  #'     tally() %>%
+  #'     ungroup() %>%
+  #'     group_by(Season) %>%
+  #'     summarise_at(vars(n), list(mu.locs = mean)) %>%
+  #'     ungroup()
+  #'   # nlocs <- as.data.frame(indlocs) %>%
+  #'   #   mutate(n10 = n*10, n20 = n*20)
+  #'   # return(nlocs)
+  #'   return(indlocs)
+  #' }
+  #' #'  Run each species through function
+  #' ind_nlocs <- lapply(spp_all_tracks, nobs)
+  #' #'  Create giant dataframe instead of species-specific lists
+  #' IDlocs <- ind_nlocs %>%
+  #'   map(rownames_to_column) %>%
+  #'   bind_rows() %>%
+  #'   dplyr::select(c(AnimalID, Season, n, n10, n20))
 
   
   #'  Generate random "Available" locations for each individual
@@ -146,7 +151,7 @@
   avail_pts_3rd <- function(locs, ex, plotit = F) {
     #'  1. Make each animal's locations spatial
     #'  ---------------------------------------------------------
-    locs_sp <- SpatialPoints(locs[,c("x", "y")], proj4string = sa_proj)
+    locs_sp <- SpatialPoints(locs[,c("x", "y")], proj4string = sa_proj) 
     #'  Plot to make sure step 1 worked
     if(plotit) {
       plot(locs_sp, col = "blue", pch = 19, main = locs$FullID)
@@ -170,6 +175,10 @@
     #'  3. Randomly select points within each home range
     #'  ------------------------------------------------
     #'  Sampling 20 available points to every 1 used point, on average.
+    #'  Identify number of used points per individual
+    nused <- nrow(locs) 
+    #'  Multiply by 20 
+    navailable <- nused*20
     # set.seed(2021)
     rndpts <- spsample(UD95_clip, navailable, type = "random")
     #'  Turn them into spatial points
@@ -459,9 +468,8 @@
       filter(Season == "Summer19" | Season == "Winter1920" | Season == "Summer20" | Season == "Winter2021")
     Dist2Edge <- rbind(Dist2Edge18, Dist2Edge19)
     
-    #'  4. Extract landcover data from within 250m of each location & calculate
-    #'     percent habitat type within that buffer. Only 2018 & 2019 landcover 
-    #'     rasters available so applying 2019 landcov to 2020 observations.
+    #'  4. Extract percent landcover type within 250m per pixel. Only 2018 & 2019  
+    #'     landcover rasters available so applying 2019 landcov to 2020 observations.
     #'  ------------------------------------------------------------------------
     animal$obs <- as.numeric(seq(1:nrow(animal)))
     #'  Extract percent landcover type using 250m moving window at each location
