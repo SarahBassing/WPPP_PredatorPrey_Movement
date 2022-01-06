@@ -315,7 +315,10 @@
     #'  Save only relevant location info
     crwOut_sf$ID2 <- as.integer(1:nrow(crwOut_sf))
     crwOut_sf <- cbind(crwOut_sf, date.only)
-    crwOut_df <- dplyr::select(crwOut_sf, c(AnimalID, Season, StudyArea, times, x, y, ID2, geometry))
+    crwOut_df <- crwOut_sf %>%
+      mutate(mu.x = sf::st_coordinates(.)[,1],
+             mu.y = sf::st_coordinates(.)[,2]) %>%
+      dplyr::select(c(AnimalID, Season, StudyArea, times, mu.x, mu.y, ID2, geometry))
     colnames(crwOut_df) <- c("AnimalID", "Season", "StudyArea", "Dates", "x", "y", "ID", "geometry")
     
     #'  Join animal location data with maxNDVI values
@@ -329,108 +332,8 @@
     return(maxNDVI_df)
     
   }
-  
-  
-  #' #'  Create empty dataframe to hold extracted pixel values
-  #' EE_allNDVI <- data.frame()
-  #' 
-  #' #'  Loop through location data in chunks to extract pixel values from EE images
-  #' for(x in unique(datasf$uniq)) {
-  #'   #'  Chunk location data
-  #'   data1 <- datasf %>% filter(uniq == x)
-  #'   #'  Use getInfo method to extract values from GEE
-  #'   dataoutput <- ee_extract(
-  #'     x = eendvi,
-  #'     y = data1["geometry"],
-  #'     scale = ee.scale,
-  #'     fun = ee$Reducer$max(),
-  #'     via = "getInfo",
-  #'     sf = FALSE
-  #'   )
-  #'   #'  Append each loop
-  #'   EE_allNDVI <- rbind(EE_allNDVI, dataoutput)
-  #' }
-  #' #'  Find maximum NDVI values during annual growing season (April - Sept)
-  #' #'  2018 growing season
-  #' ee_allNDVI18 <- as.data.frame(EE_allNDVI) %>%
-  #'   #'  Rename all columns by removing first 12 characters for easier reading
-  #'   rename_with(~ gsub("^............", "", .x)) %>%
-  #'   #'  Save only the NDVI values from the growing season (April - Sept)
-  #'   dplyr::select(contains(c("2018_04", "2018_05", "2018_06", "2018_07", "2018_08", "2018_09")))
-  #' #'  Find max value row-wise and re-scale
-  #' ee_allNDVI18$maxNDVI18 <- apply(ee_allNDVI18, 1, max)
-  #' ee_allNDVI18 <- ee_allNDVI18 %>%
-  #'   mutate(
-  #'     maxNDVI18_scale = maxNDVI18*0.0001,
-  #'     ID = seq(1:nrow(ee_allNDVI18))
-  #'   )
-  #' 
-  #' #'  2019 growing season
-  #' ee_allNDVI19 <- as.data.frame(EE_allNDVI) %>%
-  #'   #'  Rename all columns by removing first 12 characters
-  #'   rename_with(~ gsub("^............", "", .x)) %>%
-  #'   #'  Save only the NDVI values from the growing season (April - Sept)
-  #'   dplyr::select(contains(c("2019_04", "2019_05", "2019_06", "2019_07", "2019_09", "2019_09"))) %>%
-  #'   mutate(ID = seq(1:nrow(EE_allNDVI)))
-  #' #'  Find max value row-wise and re-scale
-  #' ee_allNDVI19$maxNDVI19 <- apply(ee_allNDVI19, 1, max)
-  #' ee_allNDVI19 <- ee_allNDVI19 %>%
-  #'   mutate(
-  #'     maxNDVI19_scale = maxNDVI19*0.0001,
-  #'     ID = seq(1:nrow(ee_allNDVI19))
-  #'   )
-  #' 
-  #' #'  2020 growing season
-  #' ee_allNDVI20 <- as.data.frame(EE_allNDVI) %>%
-  #'   #'  Rename all columns by removing first 12 characters
-  #'   rename_with(~ gsub("^............", "", .x)) %>%
-  #'   #'  Save only the NDVI values from the growing season (April - Sept)
-  #'   dplyr::select(contains(c("2020_04", "2020_05", "2020_06", "2020_07", "2020_08", "2020_09"))) %>%
-  #'   mutate(ID = seq(1:nrow(EE_allNDVI)))
-  #' #'  Find max value row-wise and re-scale
-  #' ee_allNDVI20$maxNDVI20 <- apply(ee_allNDVI20, 1, max)
-  #' ee_allNDVI20 <- ee_allNDVI20 %>%
-  #'   mutate(
-  #'     maxNDVI20_scale = maxNDVI20*0.0001,
-  #'     ID = seq(1:nrow(ee_allNDVI20))
-  #'   )
-  #' 
-  #' #'  Join max NDVI values across years
-  #' maxNDVI <- ee_allNDVI18 %>%
-  #'   full_join(ee_allNDVI19, by = "ID") %>%
-  #'   full_join(ee_allNDVI20, by = "ID") %>%
-  #'   dplyr::select(c(ID, maxNDVI18_scale, maxNDVI19_scale, maxNDVI20_scale))
-  #' colnames(maxNDVI) <- c("ID", "max_NDVI18", "max_NDVI19", "max_NDVI20")
-  #' 
-  #' #'  Pull out location dates (including interpolated ones)
-  #' times <- as.Date(crwOut_sf$time, "%Y-%m-%d", tz = "Etc/GMT+8")
-  #' date.only <- as.data.frame(times)
-  #' 
-  #' #'  Save only relevant location info
-  #' crwOut_sf$ID2 <- as.integer(1:nrow(crwOut_sf))
-  #' crwOut_sf <- cbind(crwOut_sf, date.only)
-  #' crwOut_df <- dplyr::select(crwOut_sf, c(AnimalID, Season, StudyArea, times, x, y, ID2, geometry))
-  #' #crwOut_df <- as.data.frame(cbind(crwOut_sf$ID, crwOut_sf$Season, crwOut_sf$StudyArea, crwOut_sf$mu.x, crwOut_sf$mu.y, date.only, crwOut_sf$ID2))
-  #' colnames(crwOut_df) <- c("AnimalID", "Season", "StudyArea", "Dates", "mu.x", "mu.y", "ID", "geometry") #"mu.x", "mu.y",
-  #' 
-  #' #'  Join animal location data with maxNDVI values
-  #' maxNDVI_df <- as.data.frame(crwOut_df) %>%
-  #'   full_join(maxNDVI, by = "ID") %>%
-  #'   #'  Retain only the previous growing season's max NDVI value for each location
-  #'   #'  Make all other NDVI values "NA"
-  #'   mutate(
-  #'     newNDVI18 = as.numeric(ifelse(Dates > "2019-03-01", NA, max_NDVI18)),
-  #'     newNDVI19 = as.numeric(ifelse(Dates < "2019-12-01" | Dates > "2020-03-01", NA, max_NDVI19)),
-  #'     newNDVI20 = as.numeric(ifelse(Dates < "2020-12-01", NA, max_NDVI20))
-  #'   ) %>%
-  #'   #'  Create a single column of max NDVI values for each location
-  #'   rowwise() %>%
-  #'   mutate(maxNDVI = max(c(newNDVI18, newNDVI19, newNDVI20), na.rm = TRUE)) %>%
-  #'   #'  Drop extra NDVI columns from df
-  #'   dplyr::select(-c(max_NDVI18, max_NDVI19, max_NDVI20, newNDVI18, newNDVI19, newNDVI20))
-  #' 
-  #' return(maxNDVI_df)
-  
+
+  #'  Organize input data a bit more before running through max NDVI function
   #'  Function to drop crwFits lists for each species from crwOut_ALL list of lists 
   drop_list <- function(full.list) {
     short.list <- as.data.frame(full.list[-1]) %>%
@@ -535,8 +438,8 @@
   # wolf_NDVImax_list <- list(wolf_wtr1819_NDVImax, wolf_wtr1920_NDVImax, wolf_wtr2021_NDVImax)
   # bob_NDVImax_list <- list(bob_wtr1819_NDVImax, bob_wtr1920_NDVImax, bob_wtr2021_NDVImax)
   # coy_NDVImax_list <- list(coy_wtr1819_NDVImax, coy_wtr1920_NDVImax, coy_wtr2021_NDVImax)
-  
-  ee_NDVImax_list <- list(md_NDVImax_list, elk_NDVImax_list, wtd_NDVImax_list, coug_NDVImax_list, wolf_NDVImax_list, bob_NDVImax_list, coy_NDVImax_list)
+  # 
+  # ee_NDVImax_list <- list(md_NDVImax_list, elk_NDVImax_list, wtd_NDVImax_list, coug_NDVImax_list, wolf_NDVImax_list, bob_NDVImax_list, coy_NDVImax_list)
   
   md_NDVImax <- rbind(md_wtr1819_NDVImax, md_wtr1920_NDVImax, md_wtr2021_NDVImax)
   elk_NDVImax <- rbind(elk_wtr1819_NDVImax, elk_wtr1920_NDVImax, elk_wtr2021_NDVImax)
