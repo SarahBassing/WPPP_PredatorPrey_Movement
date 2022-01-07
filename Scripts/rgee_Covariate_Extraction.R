@@ -224,7 +224,15 @@
   #'  NDVI values need to be rescaled by 0.0001 to be in the correct range.
   ndvi_rescale <- function(ee_data, plotit = F) {
     #'  Create new column with re-scaled NDVI values
-    dataoutput <- mutate(ee_data, NDVI_scale = NDVI*0.0001)
+    dataoutput <- mutate(ee_data, NDVI_scale = NDVI*0.0001,
+                         #'  For some reason NAs aren't recognized as NAs here so need to fix that
+                         AnimalID = ifelse(AnimalID == "NA", "jerk", AnimalID),
+                         AnimalID = ifelse(AnimalID == "jerk", NA, AnimalID),
+                         Season = ifelse(Season == "NA", "jerk", Season),
+                         Season = ifelse(Season == "jerk", NA, Season)) %>%
+                  #'  Fill in missing values with the AnimalID/Season above it
+                  fill(AnimalID, .direction = "down") %>%
+                  fill(Season, .direction = "down")
     #'  Visualize
     plot(dataoutput$NDVI_scale)
     hist(dataoutput$NDVI_scale)
@@ -233,19 +241,12 @@
   }
   ee_NDVI <- lapply(ee_smr_NDVI_list, ndvi_rescale, T)
   
-  #' ####  Clean Snow Cover values  ####
-  #' #'  ONLY RUN IF EXTRACTING SNOW COVER DATA!
-  #' #'  Any snow cover values >100 indicate a problem in the original ee data so 
-  #' #'  need to change these values to NA
-  #' snow_cover_na <- function(ee_data) {
-  #'   dataoutput <- mutate(ee_data, Snow_Cover = ifelse(NDSI_Snow_Cover >100, NA, NDSI_Snow_Cover))
-  #'   return(dataoutput)
-  #' }
-  #' ee_SNOWCOVER <- lapply(ee_SNOWCOVER, snow_cover_na)
+  dat <- ee_NDVI[[1]]
   
   
   
   ####  Maximum NDVI  ####
+  #'  ======================================================================
   #'  Function to extract MAXIMUM annual NDVI, representing potential forage  
   #'  quality available post-growing season at winter locations.
   find_maxNDVI <- function(crwOut_data, eeimage, start.date, end.date, band.name, band, ee.scale) {
@@ -264,17 +265,21 @@
     
     #'  Make telemetry locations spatial using sf (note: use coordinates labeled 
     #'  mu.x & mu.y so that interpolated locations are included)
-    # full_crwOut <- crwOut_data
     crwOut_sf <- st_as_sf(crwOut_data, coords = c('mu.x','mu.y'),  
-                          crs = "+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs ")
+                          crs = "+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs ") %>%
+      #'  Fill in missing values with the AnimalID/Season/StudyArea above it
+      fill(AnimalID, .direction = "down") %>%
+      fill(Season, .direction = "down") %>%
+      fill(StudyArea, .direction = "down")
     #'  Transform projection to WGS84 for Google Earth Engine
     datasf <- st_transform(crwOut_sf, crs = 4326)
     #'  Make a unique ID for every observation (necessary for ee_extract!)
     datasf$uid <- as.integer(1:nrow(datasf))
-    datasf$NAME <- paste0(datasf$AnimalID, "_", datasf$uid)
-
-    #' #'  Chunk location data into groups to loop through with getInfo
-    #' datasf$uniq <- rep(1:1000, each = 1000)[1:nrow(datasf)]
+    #'  Reformat date/time to a character string
+    datasf <- mutate(datasf, times = as.character(time))
+    #'  Create a unique ID for each observation based on AnimalID and location time
+    datasf$NAME <- paste0(datasf$AnimalID, "_", datasf$times)
+    # datasf$NAME <- paste0(datasf$AnimalID, "_", datasf$uid)
 
     #'  Track amount of time it takes to extract data
     start_time <- Sys.time()
@@ -311,21 +316,23 @@
     #'  Pull out location dates (including interpolated ones)
     times <- as.Date(crwOut_sf$time, "%Y-%m-%d", tz = "Etc/GMT+8")
     date.only <- as.data.frame(times)
+    TIMES <- as.POSIXct(crwOut_sf$time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8")
+    TIMES.only <- as.data.frame(TIMES)
     
     #'  Save only relevant location info
     crwOut_sf$ID2 <- as.integer(1:nrow(crwOut_sf))
-    crwOut_sf <- cbind(crwOut_sf, date.only)
+    crwOut_sf <- cbind(crwOut_sf, TIMES.only) #date.only
     crwOut_df <- crwOut_sf %>%
       mutate(mu.x = sf::st_coordinates(.)[,1],
              mu.y = sf::st_coordinates(.)[,2]) %>%
-      dplyr::select(c(AnimalID, Season, StudyArea, times, mu.x, mu.y, ID2, geometry))
-    colnames(crwOut_df) <- c("AnimalID", "Season", "StudyArea", "Dates", "x", "y", "ID", "geometry")
+      dplyr::select(c(AnimalID, Season, StudyArea, TIMES, mu.x, mu.y, ID2, geometry)) #times
+    colnames(crwOut_df) <- c("AnimalID", "Season", "StudyArea", "times", "x", "y", "ID", "geometry") #"Dates"
     
     #'  Join animal location data with maxNDVI values
     maxNDVI_df <- as.data.frame(crwOut_df) %>%
       full_join(ee_allNDVI, by = "ID") %>%
       dplyr::select(-geometry.y)
-    colnames(maxNDVI_df) <- c("AnimalID", "Season", "StudyArea", "Dates", "x", "y", "ID", "geometry", "NAME", "NDVImax")
+    colnames(maxNDVI_df) <- c("AnimalID", "Season", "StudyArea", "times", "x", "y", "ID", "geometry", "NAME", "NDVImax") #"Dates"
     
     print(maxNDVI_df[1:6,])
     
@@ -457,6 +464,15 @@
   # 
   # ee_NDVImax_list <- list(ee_NDVImax_wtr1819, ee_NDVImax_wtr1920, ee_NDVImax_wtr2021)
   
+  save(md_NDVImax, file = paste0("./Outputs/Telemetry_covs/md_NDVImax_", Sys.Date(), ".RData"))
+  save(elk_NDVImax, file = paste0("./Outputs/Telemetry_covs/elk_NDVImax_", Sys.Date(), ".RData"))
+  save(wtd_NDVImax, file = paste0("./Outputs/Telemetry_covs/wtd_NDVImax_", Sys.Date(), ".RData"))
+  save(coug_NDVImax, file = paste0("./Outputs/Telemetry_covs/coug_NDVImax_", Sys.Date(), ".RData"))
+  save(wolf_NDVImax, file = paste0("./Outputs/Telemetry_covs/wolf_NDVImax_", Sys.Date(), ".RData"))
+  save(bob_NDVImax, file = paste0("./Outputs/Telemetry_covs/bob_NDVImax_", Sys.Date(), ".RData"))
+  save(coy_NDVImax, file = paste0("./Outputs/Telemetry_covs/coy_NDVImax_", Sys.Date(), ".RData"))
+  
+  
   save(ee_NDVImax_list, file = paste0("./Outputs/Telemetry_covs/ee_NDVImax_list_", Sys.Date(), ".RData"))
   
   
@@ -477,45 +493,139 @@
   #                         ee_NDVImax_coy_wtr)
   
   # load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_covs_list_2021-12-28.RData")
-
+  load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_smr_NDVI_list_2021-12-30.RData")
+  load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_NDVImax_list_2022-01-07.RData")
+  
   ####  Join datasets  ####
-  join_data <- function(crwOut_data, ndvi, maxndvi, snow_cov, snow_dep) { 
-    #'  Make sure each observation has the unique Animal ID
+  join_NDVI <- function(crwOut_data, ndvi) { 
     full_crwOut <- crwOut_data[[2]]
-    crwOut <- full_crwOut %>%
-      separate(ID, sep = "_", into = "AnimalID",  extra = "drop")
+    #'  Make sure each observation has the unique Animal ID
+    crwOut <- as.data.frame(full_crwOut) %>%
+      separate(ID, sep = "_", into = "AnimalID",  extra = "drop") 
+    #'  Create a new dataframe (drops the crwPredict structure)
     ee_covs <- as.data.frame(cbind(crwOut$AnimalID, crwOut$Season, crwOut$StudyArea, crwOut$mu.x, crwOut$mu.y))
-    #'  Add a unique ID for each observation for easier joining
-    # ee_covs$ID <- as.integer(1:nrow(ee_covs))
+    #'  Add date/times as a character 
+    ee_covs$times <- as.character(crwOut$time)
+    colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "times")
+    #'  Reformat NAs so they are recognized as NAs
+    ee_covs <- mutate(ee_covs,
+        AnimalID = ifelse(AnimalID == "NA", "jerk", AnimalID),
+        AnimalID = ifelse(AnimalID == "jerk", NA, AnimalID),
+        Season = ifelse(Season == "NA", "jerk", Season),
+        Season = ifelse(Season == "jerk", NA, Season),
+        StudyArea = ifelse(StudyArea == "NA", "jerk", StudyArea),
+        StudyArea = ifelse(StudyArea == "jerk", NA, StudyArea)) %>%
+      #'  Fill in missing values with the AnimalID/Season/StudyArea above it
+      fill(AnimalID, .direction = "down") %>%
+      fill(Season, .direction = "down") %>%
+      fill(StudyArea, .direction = "down")
+    #'  Reformat times in NDVI data so they can be matched to original location data
+    ndvi$times <- as.character(ndvi$Date)
+    #'  Join crwOut location data with NDVI data
     ee_covs <- ee_covs %>%
-      full_join(ndvi, by = c("AnimalID", "Season")) %>%
-        dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDVI)) %>%
-      full_join(maxndvi, by = c("ID", "AnimalID", "Season", "StudyArea", "mu.x", "mu.y")) %>%
-        dplyr::select(-c(AnimalID2, Dates)) %>%
-      # full_join(snow_cov, by = "ID") %>%
-      #   dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDSI_Snow_Cover)) %>%
-      # full_join(snow_dep, by = "ID") %>%
-      #   dplyr::select(-c(Date.y, Date, DateTimeImage, date_millis, uniq, geometry)) %>%
-     relocate(ID, .after = (SnowDepth_inst))
-    colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "Date", "NDVI", "maxNDVI", "ID") #, "Snow.Cover", "Snow.Depth",
-
+      full_join(ndvi, by = c("AnimalID", "times")) %>%
+      dplyr::select(c(ID, AnimalID, Season.x, StudyArea, mu.x, mu.y, times, NDVI_scale))
+    colnames(ee_covs) <- c("ID", "AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "times", "NDVI")
+    
     return(ee_covs)
   }
-  #'  Combine EE values with species- and season-specific data
-  md_ee_smr <- join_data(crwOut_ALL[[1]], ee_NDVI[[1]]) #, ee_NDVImax[[1]], ee_SNOWCOVER[[1]], ee_SNOWDEPTH[[1]])
-  md_ee_wtr <- join_data(crwOut_ALL[[2]], ee_NDVImax[[1]]) #, ee_NDVImax[[2]], ee_SNOWCOVER[[2]], ee_SNOWDEPTH[[2]])
-  elk_ee_smr <- join_data(crwOut_ALL[[3]], ee_NDVI[[3]]) #, ee_NDVImax[[3]], ee_SNOWCOVER[[3]], ee_SNOWDEPTH[[3]])
-  elk_ee_wtr <- join_data(crwOut_ALL[[4]], ee_NDVImax[[2]]) #, ee_NDVImax[[4]], ee_SNOWCOVER[[4]], ee_SNOWDEPTH[[4]])
-  wtd_ee_smr <- join_data(crwOut_ALL[[5]], ee_NDVI[[5]]) #, ee_NDVImax[[5]], ee_SNOWCOVER[[5]], ee_SNOWDEPTH[[5]])
-  wtd_ee_wtr <- join_data(crwOut_ALL[[6]], ee_NDVImax[[3]]) #, ee_NDVImax[[6]], ee_SNOWCOVER[[6]], ee_SNOWDEPTH[[6]])
-  coug_ee_smr <- join_data(crwOut_ALL[[7]], ee_NDVI[[7]]) #, ee_NDVImax[[7]], ee_SNOWCOVER[[7]], ee_SNOWDEPTH[[7]])
-  coug_ee_wtr <- join_data(crwOut_ALL[[8]], ee_NDVImax[[4]]) #, ee_NDVImax[[8]], ee_SNOWCOVER[[8]], ee_SNOWDEPTH[[8]])
-  wolf_ee_smr <- join_data(crwOut_ALL[[9]], ee_NDVI[[8]]) #, ee_NDVImax[[9]], ee_SNOWCOVER[[9]], ee_SNOWDEPTH[[9]])
-  wolf_ee_wtr <- join_data(crwOut_ALL[[10]], ee_NDVImax[[5]]) #, ee_NDVImax[[10]], ee_SNOWCOVER[[10]], ee_SNOWDEPTH[[10]])
-  bob_ee_smr <- join_data(crwOut_ALL[[11]], ee_NDVI[[11]]) #, ee_NDVImax[[11]], ee_SNOWCOVER[[11]], ee_SNOWDEPTH[[11]])
-  bob_ee_wtr <- join_data(crwOut_ALL[[12]], ee_NDVImax[[6]]) #, ee_NDVImax[[12]], ee_SNOWCOVER[[12]], ee_SNOWDEPTH[[12]])
-  coy_ee_smr <- join_data(crwOut_ALL[[13]], ee_NDVI[[13]]) #, ee_NDVImax[[13]], ee_SNOWCOVER[[13]], ee_SNOWDEPTH[[13]])
-  coy_ee_wtr <- join_data(crwOut_ALL[[14]], ee_NDVImax[[7]]) #, ee_NDVImax[[14]], ee_SNOWCOVER[[14]], ee_SNOWDEPTH[[14]])
+  #'  Join summer observations with spatially & temporally matched NDVI values
+  #'  Pay attention to which list is being used for each dataset!
+  md_eeNDVI_smr <- join_NDVI(crwOut_ALL[[1]], ee_NDVI[[1]]) 
+  elk_eeNDVI_smr <- join_NDVI(crwOut_ALL[[3]], ee_NDVI[[2]]) 
+  wtd_eeNDVI_smr <- join_NDVI(crwOut_ALL[[5]], ee_NDVI[[3]]) 
+  coug_eeNDVI_smr <- join_NDVI(crwOut_ALL[[7]], ee_NDVI[[4]]) 
+  wolf_eeNDVI_smr <- join_NDVI(crwOut_ALL[[9]], ee_NDVI[[5]]) 
+  bob_eeNDVI_smr <- join_NDVI(crwOut_ALL[[11]], ee_NDVI[[6]]) 
+  coy_eeNDVI_smr <- join_NDVI(crwOut_ALL[[13]], ee_NDVI[[7]]) 
+ 
+  join_NDVImax <- function(crwOut_data, ndvimax) { 
+    full_crwOut <- crwOut_data[[2]]
+    #'  Make sure each observation has the unique Animal ID
+    crwOut <- as.data.frame(full_crwOut) %>%
+      separate(ID, sep = "_", into = "AnimalID",  extra = "drop") 
+    #'  Create a new dataframe (drops the crwPredict structure)
+    ee_covs <- as.data.frame(cbind(crwOut$AnimalID, crwOut$Season, crwOut$StudyArea, crwOut$mu.x, crwOut$mu.y))
+    #'  Add date/times as a character 
+    ee_covs$times <- as.character(crwOut$time)
+    # ee_covs$Dates <- as.Date(crwOut$time, tz = "Etc/GMT+8")
+    # ee_covs$Dates <- as.character(ee_covs$Dates)
+    # ee_covs$ID <- seq(1:nrow(ee_covs))
+    colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "times") #, "Dates", "ID"
+    #'  Reformat NAs so they are recognized as NAs
+    ee_covs <- mutate(ee_covs,
+                      # AnimalID = ifelse(AnimalID == "NA", "jerk", AnimalID),
+                      # AnimalID = ifelse(AnimalID == "jerk", NA, AnimalID),
+                      Season = ifelse(Season == "NA", "jerk", Season),
+                      Season = ifelse(Season == "jerk", NA, Season),
+                      StudyArea = ifelse(StudyArea == "NA", "jerk", StudyArea),
+                      StudyArea = ifelse(StudyArea == "jerk", NA, StudyArea)) %>%
+      #'  Fill in missing values with the AnimalID/Season/StudyArea above it
+      # fill(AnimalID, .direction = "down") %>%
+      fill(Season, .direction = "down") %>%
+      fill(StudyArea, .direction = "down")
+    #'  Reformat times in NDVI data so they can be matched to original location data
+    # ndvimax$Dates <- as.character(ndvimax$Date)
+    ndvimax$times <- as.character(ndvimax$times)
+    #' #'  Fill in missing values with the AnimalID/Season/StudyArea above it
+    #' ndvimax <- fill(ndvimax, AnimalID, .direction = "down") %>%
+    #'   fill(Season, .direction = "down") %>%
+    #'   fill(StudyArea, .direction = "down")
+    #'  Join crwOut location data with NDVI data
+    ee_covs <- ee_covs %>%
+      #'  That ID is necessary since Dates lack the time and aren't unique
+      full_join(ndvimax, by = c("AnimalID", "times")) %>% #"Dates", "ID"
+      dplyr::select(c(ID, AnimalID, Season.x, StudyArea.x, mu.x, mu.y, times, NAME, NDVImax)) #Dates, 
+    colnames(ee_covs) <- c("ID", "AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "times", "NAME", "maxNDVI") #"Dates"
+    
+    return(ee_covs)
+  }
+  #'  Join winter observations with spatially matched max NDVI values from previous growing season
+  #'  Pay attention to which list is being used for each dataset!
+  md_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[2]], ee_NDVImax_list[[1]]) 
+  elk_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[4]], ee_NDVImax_list[[2]]) 
+  wtd_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[6]], ee_NDVImax_list[[3]]) 
+  coug_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[8]], ee_NDVImax_list[[4]]) 
+  wolf_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[10]], ee_NDVImax_list[[5]]) 
+  bob_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[12]], ee_NDVImax_list[[6]]) 
+  coy_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[14]], ee_NDVImax_list[[7]]) 
+  #' join_data <- function(crwOut_data, ndvi, maxndvi, snow_cov, snow_dep) { 
+  #'   #'  Make sure each observation has the unique Animal ID
+  #'   full_crwOut <- crwOut_data[[2]]
+  #'   crwOut <- full_crwOut %>%
+  #'     separate(ID, sep = "_", into = "AnimalID",  extra = "drop")
+  #'   ee_covs <- as.data.frame(cbind(crwOut$AnimalID, crwOut$Season, crwOut$StudyArea, crwOut$mu.x, crwOut$mu.y))
+  #'   #'  Add a unique ID for each observation for easier joining
+  #'   # ee_covs$ID <- as.integer(1:nrow(ee_covs))
+  #'   ee_covs <- ee_covs %>%
+  #'     full_join(ndvi, by = c("AnimalID", "Season")) %>%
+  #'       dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDVI)) %>%
+  #'     full_join(maxndvi, by = c("ID", "AnimalID", "Season", "StudyArea", "mu.x", "mu.y")) %>%
+  #'       dplyr::select(-c(AnimalID2, Dates)) %>%
+  #'     # full_join(snow_cov, by = "ID") %>%
+  #'     #   dplyr::select(-c(DateTimeImage, date_millis, uniq, geometry, NDSI_Snow_Cover)) %>%
+  #'     # full_join(snow_dep, by = "ID") %>%
+  #'     #   dplyr::select(-c(Date.y, Date, DateTimeImage, date_millis, uniq, geometry)) %>%
+  #'    relocate(ID, .after = (SnowDepth_inst))
+  #'   colnames(ee_covs) <- c("AnimalID", "Season", "StudyArea", "mu.x", "mu.y", "Date", "NDVI", "maxNDVI", "ID") #, "Snow.Cover", "Snow.Depth",
+  #' 
+  #'   return(ee_covs)
+  #' }
+  #' #'  Combine EE values with species- and season-specific data
+  #' md_ee_smr <- join_data(crwOut_ALL[[1]], ee_NDVI[[1]]) #, ee_NDVImax[[1]], ee_SNOWCOVER[[1]], ee_SNOWDEPTH[[1]])
+  #' md_ee_wtr <- join_data(crwOut_ALL[[2]], ee_NDVImax[[1]]) #, ee_NDVImax[[2]], ee_SNOWCOVER[[2]], ee_SNOWDEPTH[[2]])
+  #' elk_ee_smr <- join_data(crwOut_ALL[[3]], ee_NDVI[[3]]) #, ee_NDVImax[[3]], ee_SNOWCOVER[[3]], ee_SNOWDEPTH[[3]])
+  #' elk_ee_wtr <- join_data(crwOut_ALL[[4]], ee_NDVImax[[2]]) #, ee_NDVImax[[4]], ee_SNOWCOVER[[4]], ee_SNOWDEPTH[[4]])
+  #' wtd_ee_smr <- join_data(crwOut_ALL[[5]], ee_NDVI[[5]]) #, ee_NDVImax[[5]], ee_SNOWCOVER[[5]], ee_SNOWDEPTH[[5]])
+  #' wtd_ee_wtr <- join_data(crwOut_ALL[[6]], ee_NDVImax[[3]]) #, ee_NDVImax[[6]], ee_SNOWCOVER[[6]], ee_SNOWDEPTH[[6]])
+  #' coug_ee_smr <- join_data(crwOut_ALL[[7]], ee_NDVI[[7]]) #, ee_NDVImax[[7]], ee_SNOWCOVER[[7]], ee_SNOWDEPTH[[7]])
+  #' coug_ee_wtr <- join_data(crwOut_ALL[[8]], ee_NDVImax[[4]]) #, ee_NDVImax[[8]], ee_SNOWCOVER[[8]], ee_SNOWDEPTH[[8]])
+  #' wolf_ee_smr <- join_data(crwOut_ALL[[9]], ee_NDVI[[8]]) #, ee_NDVImax[[9]], ee_SNOWCOVER[[9]], ee_SNOWDEPTH[[9]])
+  #' wolf_ee_wtr <- join_data(crwOut_ALL[[10]], ee_NDVImax[[5]]) #, ee_NDVImax[[10]], ee_SNOWCOVER[[10]], ee_SNOWDEPTH[[10]])
+  #' bob_ee_smr <- join_data(crwOut_ALL[[11]], ee_NDVI[[11]]) #, ee_NDVImax[[11]], ee_SNOWCOVER[[11]], ee_SNOWDEPTH[[11]])
+  #' bob_ee_wtr <- join_data(crwOut_ALL[[12]], ee_NDVImax[[6]]) #, ee_NDVImax[[12]], ee_SNOWCOVER[[12]], ee_SNOWDEPTH[[12]])
+  #' coy_ee_smr <- join_data(crwOut_ALL[[13]], ee_NDVI[[13]]) #, ee_NDVImax[[13]], ee_SNOWCOVER[[13]], ee_SNOWDEPTH[[13]])
+  #' coy_ee_wtr <- join_data(crwOut_ALL[[14]], ee_NDVImax[[7]]) #, ee_NDVImax[[14]], ee_SNOWCOVER[[14]], ee_SNOWDEPTH[[14]])
 
   #'  List all data together
   ee_covs_list <- list(md_ee_smr, md_ee_wtr, elk_ee_smr, elk_ee_wtr, wtd_ee_smr, 
