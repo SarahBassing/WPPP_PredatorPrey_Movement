@@ -15,8 +15,9 @@
   #'    3) partitions K folds into training and testing data sets;
   #'    4) defines species, season, and year-specific GLMM
   #'    5) trains models on training data sets
-  #'    6) 
-  #'   
+  #'  Next it cross-validates k-fold models by:
+  #'    1) tbd!
+  #'    ==============================
 
   #'  Clear memory
   rm(list=ls())
@@ -40,6 +41,36 @@
   load("./Outputs/RSF_pts/wolf_dat_all_2022-01-06.RData")
   load("./Outputs/RSF_pts/bob_dat_all_2022-01-06.RData")
   load("./Outputs/RSF_pts/coy_dat_all_2022-01-06.RData")
+  
+  #'  Read in covariates extracted across each study area (1km resolution)
+  load("./Outputs/Telemetry_covs/NE_covs_1km_2022-01-07.RData") 
+  load("./Outputs/Telemetry_covs/OK_covs_1km_2022-01-07.RData")
+  
+  #'  Format study area-wide covariate data to include annually relevant data only
+  NE.covs.1km <- NE.covs.1km %>%
+    mutate(StudyArea = "NE")
+  OK.covs.1km <- OK.covs.1km %>%
+    mutate(StudyArea = "OK")
+  SA.covs.1km <- rbind(NE.covs.1km, OK.covs.1km)
+  SA.covs.1km.Year1 <- dplyr::select(SA.covs.1km, -c(CanopyCover19, CanopyCover20,
+                                                     Dist2Edge19, Landcover_type19))
+  names(SA.covs.1km.Year1) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
+                                "HumanMod", "CanopyCover", "Dist2Edge", 
+                                "Landcover_type", "StudyArea")
+  SA.covs.1km.Year2 <- dplyr::select(SA.covs.1km, -c(CanopyCover18, CanopyCover20,
+                                                     Dist2Edge18, Landcover_type18))
+  names(SA.covs.1km.Year2) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
+                                "HumanMod", "CanopyCover", "Dist2Edge", 
+                                "Landcover_type", "StudyArea")
+  #'  Note: applying 2019 Dist2Edge and Landcover_type to Year3 data due to lack
+  #'  of 2020 landcover data
+  SA.covs.1km.Year3 <- dplyr::select(SA.covs.1km, -c(CanopyCover18, CanopyCover19,
+                                                     Dist2Edge18, Landcover_type18))
+  names(SA.covs.1km.Year3) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
+                                "HumanMod", "CanopyCover", "Dist2Edge", 
+                                "Landcover_type", "StudyArea")
+  #'  List study area covariates by year to mirror rest of data structure
+  SA.covs_list <- list(SA.covs.1km.Year1, SA.covs.1km.Year2, SA.covs.1km.Year3)
   
   ####  Data formatting  ####
   #'  =======================
@@ -83,6 +114,8 @@
   wolf_dat_all <- class_landcov(wolf_dat_all)
   bob_dat_all <- class_landcov(bob_dat_all)
   coy_dat_all <- class_landcov(coy_dat_all)
+  SA.covs_list <- lapply(SA.covs_list, class_landcov)
+
   
   #'  Landcover_type categories causing convergence issues for some species due to
   #'  too few observations in some categories (e.g., "Other", "Wetland") so
@@ -106,6 +139,7 @@
   wolf_dat_all_reclass <- reclass_landcov(wolf_dat_all)
   bob_dat_all_reclass <- reclass_landcov(bob_dat_all)
   coy_dat_all_reclass <- reclass_landcov(coy_dat_all)
+  SA.covs_list_reclass <- lapply(SA.covs_list, class_landcov)
   
   #'  More reclassification required for all wolf models-
   #'  "Other", "Developed", & "Wetland" landcover types causing issues with model
@@ -122,6 +156,7 @@
     return(locs)
   }
   wolf_dat_all_reclass2 <- reclass_wolf(wolf_dat_all_reclass)
+  SA.covs_list_wolf_reclass <- lapply(SA.covs_list_reclass, class_landcov)
 
   
   #'  List species-specific data by season
@@ -185,6 +220,7 @@
     #'  Use groupdata2 package with cat_col = "Used" to balance folds proportional
     #'  to 0's and 1's in each data set
     set.seed(2022)
+    #set.seed(2023)
     fold_df <- fold(dat, k = K, cat_col = "Used")
     fold_df <- as.data.frame(fold_df)
     
@@ -193,7 +229,7 @@
   #'  Z-transform covariates and fold data for each spp, season, & year
   mdDataz_smr <- lapply(mdData_smr, Ztrans_Kfold, K = K)
   mdDataz_wtr <- lapply(mdData_wtr, Ztrans_Kfold, K = K)
-  elkDataz_smr <- lapply(elkData_smr, Ztrans_Kfold, K = K)
+  elkDataz_smr <- lapply(elkData_smr, Ztrans_Kfold, K = K) #set.seed(2023)
   elkDataz_wtr <- lapply(elkData_wtr, Ztrans_Kfold, K = K)
   wtdDataz_smr <- lapply(wtdData_smr, Ztrans_Kfold, K = K)
   wtdDataz_wtr <- lapply(wtdData_wtr, Ztrans_Kfold, K = K)
@@ -205,7 +241,6 @@
   bobDataz_wtr <- lapply(bobData_wtr, Ztrans_Kfold, K = K)
   coyDataz_smr <- lapply(coyData_smr, Ztrans_Kfold, K = K)
   coyDataz_wtr <- lapply(coyData_wtr, Ztrans_Kfold, K = K)
-
   
   #'  Function to partition standardized TRAINING data based on folds
   #'  First TRAINING data set excludes observations from 1st fold
@@ -279,60 +314,60 @@
   unique(mdData_smr_test[[1]][[2]][".folds"]) # should only be fold 2
   
   #'  Save for later use
-  save(mdData_smr_test, "./Outputs/RSF_output/Kfold_CV/mdData_smr_TestData.RData")
-  save(mdData_wtr_test, "./Outputs/RSF_output/Kfold_CV/mdData_wtr_TestData.RData")
-  save(elkData_smr_test, "./Outputs/RSF_output/Kfold_CV/elkData_smr_TestData.RData")
-  save(elkData_wtr_test, "./Outputs/RSF_output/Kfold_CV/elkData_wtr_TestData.RData")
-  save(wtdData_smr_test, "./Outputs/RSF_output/Kfold_CV/wtdData_smr_TestData.RData")
-  save(wtdData_wtr_test, "./Outputs/RSF_output/Kfold_CV/wtdData_wtr_TestData.RData")
-  save(cougData_smr_test, "./Outputs/RSF_output/Kfold_CV/cougData_smr_TestData.RData")
-  save(cougData_wtr_test, "./Outputs/RSF_output/Kfold_CV/cougData_wtr_TestData.RData")
-  save(wolfData_smr_test, "./Outputs/RSF_output/Kfold_CV/wolfData_smr_TestData.RData")
-  save(wolfData_wtr_test, "./Outputs/RSF_output/Kfold_CV/wolfData_wtr_TestData.RData")
-  save(bobData_smr_test, "./Outputs/RSF_output/Kfold_CV/bobData_smr_TestData.RData")
-  save(bobData_wtr_test, "./Outputs/RSF_output/Kfold_CV/bobData_wtr_TestData.RData")
-  save(coyData_smr_test, "./Outputs/RSF_output/Kfold_CV/coyData_smr_TestData.RData")
-  save(coyData_wtr_test, "./Outputs/RSF_output/Kfold_CV/coyData_wtr_TestData.RData")
+  save(mdData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/mdData_smr_TestData.RData")
+  save(mdData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/mdData_wtr_TestData.RData")
+  save(elkData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/elkData_smr_TestData.RData")
+  save(elkData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/elkData_wtr_TestData.RData")
+  save(wtdData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/wtdData_smr_TestData.RData")
+  save(wtdData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/wtdData_wtr_TestData.RData")
+  save(cougData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/cougData_smr_TestData.RData")
+  save(cougData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/cougData_wtr_TestData.RData")
+  save(wolfData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/wolfData_smr_TestData.RData")
+  save(wolfData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/wolfData_wtr_TestData.RData")
+  save(bobData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/bobData_smr_TestData.RData")
+  save(bobData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/bobData_wtr_TestData.RData")
+  save(coyData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/coyData_smr_TestData.RData")
+  save(coyData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/coyData_wtr_TestData.RData")
   
   
   #'  Define species- and season-specific models for RSFs to cross-validate
   #'  Used backwards step selection to select covariates for each model
-  ####  Mule Deer models  ####
+  #'  Mule Deer models
   md_smr18_mod <- "Used ~ 1 + Elev + I(Elev^2) + RoadDen + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   md_smr19_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)"
   md_smr20_mod <- "Used ~ 1 + Elev + I(Elev^2) + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)"
   md_wtr1819_mod <- "Used ~ 1 + Elev + Slope + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   md_wtr1920_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   md_wtr2021_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  ####  Elk models  ####
+  #'  Elk models
   elk_smr18_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   elk_smr19_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   elk_smr20_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   elk_wtr1819_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   elk_wtr1920_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   elk_wtr2021_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  ####  White-tailed Deer models  ####
+  #'  White-tailed Deer models
   wtd_smr18_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Edge + Landcover_type + (1|ID)"
   wtd_smr19_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   wtd_smr20_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   wtd_wtr1819_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Edge + Landcover_type + (1|ID)"
   wtd_wtr1920_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   wtd_wtr2021_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  ####  Cougar models  ####
+  #'  Cougar models
   coug_smr18_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
   coug_smr19_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   coug_smr20_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   coug_wtr1819_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   coug_wtr1920_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   coug_wtr2021_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  ####  Wolf models  ####
+  #'  Wolf models
   wolf_smr18_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + Dist2Edge + Landcover_type + (1|ID)"
   wolf_smr19_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   wolf_smr20_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   wolf_wtr1819_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
   wolf_wtr1920_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)"
   wolf_wtr2021_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  ####  Bobcat models  ####
+  #'  Bobcat models
   #'  Only data for MVBOB90M in smr18--- not enough data to make inference about bobcat resource selection across 2 study areas
   # bob_smr18_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   bob_smr19_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)"
@@ -341,7 +376,7 @@
   # bob_wtr1819_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   bob_wtr1920_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   bob_wtr2021_mod <- "Used ~ 1 + Elev + Slope + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  ####  Coyote models  ####
+  #'  Coyote models
   #'  Data from only MVCOY68F, NECOY1F, NECOY2M, & NECOY3F in snmr18--- hesitant to extrapolate selection across study areas
   coy_smr18_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"  
   coy_smr19_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)"
@@ -364,7 +399,7 @@
   }
   #'  Apply spp/season/year-specific glmm to list of k-folded data
   #'  Each list contains 5 training data sets per year [[1]], year [[2]], year [[3]]
-  ####  Mule Deer K-fold model training  ####
+  #'  Mule Deer K-fold model training
   md_smr18 <- lapply(mdData_smr_train[[1]], glmm_fn, mod = md_smr18_mod)
   md_smr19 <- lapply(mdData_smr_train[[2]], glmm_fn, mod = md_smr19_mod)
   md_smr20 <- lapply(mdData_smr_train[[3]], glmm_fn, mod = md_smr20_mod)
@@ -377,10 +412,10 @@
   save(md_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/md_kfold_smr_", Sys.Date(), ".RData"))
   save(md_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/md_kfold_wtr_", Sys.Date(), ".RData"))
   
-  ####  Elk K-fold model training  ####
-  elk_smr18 <- lapply(elkData_smr_train[[1]], glmm_fn, mod = elk_smr18_mod)
-  elk_smr19 <- lapply(elkData_smr_train[[2]], glmm_fn, mod = elk_smr19_mod)
-  elk_smr20 <- lapply(elkData_smr_train[[3]], glmm_fn, mod = elk_smr20_mod)
+  #'  Elk K-fold model training
+  elk_smr18 <- lapply(elkData_smr_train[[1]], glmm_fn, mod = elk_smr18_mod) # trouble running all 5 folds?
+  elk_smr19 <- lapply(elkData_smr_train[[2]], glmm_fn, mod = elk_smr19_mod) #set.seed(2023) trouble running all 5 folds?- convergence failed on fold 5... Hessian BS-- may need to rerandomize folds
+  elk_smr20 <- lapply(elkData_smr_train[[3]], glmm_fn, mod = elk_smr20_mod) # trouble running all 5 folds?
   elk_wtr1819 <- lapply(elkData_wtr_train[[1]], glmm_fn, mod = elk_wtr1819_mod)
   elk_wtr1920 <- lapply(elkData_wtr_train[[2]], glmm_fn, mod = elk_wtr1920_mod)
   elk_wtr2021 <- lapply(elkData_wtr_train[[3]], glmm_fn, mod = elk_wtr2021_mod)
@@ -390,7 +425,7 @@
   save(elk_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/elk_kfold_smr_", Sys.Date(), ".RData"))
   save(elk_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_", Sys.Date(), ".RData"))
   
-  ####  White-tailed Deer K-fold model training  ####
+  #'  White-tailed Deer K-fold model training
   wtd_smr18 <- lapply(wtdData_smr_train[[1]], glmm_fn, mod = wtd_smr18_mod)
   wtd_smr19 <- lapply(wtdData_smr_train[[2]], glmm_fn, mod = wtd_smr19_mod)
   wtd_smr20 <- lapply(wtdData_smr_train[[3]], glmm_fn, mod = wtd_smr20_mod)
@@ -403,7 +438,7 @@
   save(wtd_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_", Sys.Date(), ".RData"))
   save(wtd_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_", Sys.Date(), ".RData"))
   
-  ####  Cougar K-fold model training  ####
+  #'  Cougar K-fold model training
   coug_smr18 <- lapply(cougData_smr_train[[1]], glmm_fn, mod = coug_smr18_mod)
   coug_smr19 <- lapply(cougData_smr_train[[2]], glmm_fn, mod = coug_smr19_mod)
   coug_smr20 <- lapply(cougData_smr_train[[3]], glmm_fn, mod = coug_smr20_mod)
@@ -416,7 +451,7 @@
   save(coug_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_", Sys.Date(), ".RData"))
   save(coug_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_", Sys.Date(), ".RData"))
   
-  ####  Wolf K-fold model training  ####
+  #'  Wolf K-fold model training
   wolf_smr18 <- lapply(wolfData_smr_train[[1]], glmm_fn, mod = wolf_smr18_mod)
   wolf_smr19 <- lapply(wolfData_smr_train[[2]], glmm_fn, mod = wolf_smr19_mod)
   wolf_smr20 <- lapply(wolfData_smr_train[[3]], glmm_fn, mod = wolf_smr20_mod)
@@ -429,7 +464,7 @@
   save(wolf_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_", Sys.Date(), ".RData"))
   save(wolf_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_", Sys.Date(), ".RData"))
   
-  ####  Bobcat K-fold model training  ####
+  #'  Bobcat K-fold model training
   #'  Note: smr18 & wtr1819 not run due to too few collars in year 1
   # bob_smr18 <- lapply(bobData_smr_train[[1]], glmm_fn, mod = bob_smr18_mod)
   bob_smr19 <- lapply(bobData_smr_train[[2]], glmm_fn, mod = bob_smr19_mod)
@@ -443,7 +478,7 @@
   save(bob_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/bob_kfold_smr_", Sys.Date(), ".RData"))
   save(bob_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_", Sys.Date(), ".RData"))
   
-  ####  Coyote K-fold model training  ####
+  #'  Coyote K-fold model training
   coy_smr18 <- lapply(coyData_smr_train[[1]], glmm_fn, mod = coy_smr18_mod)
   coy_smr19 <- lapply(coyData_smr_train[[2]], glmm_fn, mod = coy_smr19_mod)
   coy_smr20 <- lapply(coyData_smr_train[[3]], glmm_fn, mod = coy_smr20_mod)
@@ -457,12 +492,206 @@
   save(coy_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_", Sys.Date(), ".RData"))
   
   
+  
   ####  Projecting trained models  ####
   #'  =================================
+  #' #'  Read in covariates extracted across each study area (1km resolution)
+  #' load("./Outputs/Telemetry_covs/NE_covs_1km_2022-01-07.RData") 
+  #' load("./Outputs/Telemetry_covs/OK_covs_1km_2022-01-07.RData")
+  #' 
+  #' #'  Format study area-wide covariate data to include annually relevant data only
+  #' NE.covs.1km <- NE.covs.1km %>%
+  #'   mutate(StudyArea = "NE")
+  #' OK.covs.1km <- OK.covs.1km %>%
+  #'   mutate(StudyArea = "OK")
+  #' SA.covs.1km <- rbind(NE.covs.1km, OK.covs.1km)
+  #' SA.covs.1km.Year1 <- dplyr::select(SA.covs.1km, -c(CanopyCover19, CanopyCover20,
+  #'                                                    Dist2Edge19, Landcover_type19))
+  #' names(SA.covs.1km.Year1) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
+  #'                               "HumanMod", "CanopyCover", "Dist2Edge", 
+  #'                               "Landcover_type", "StudyArea")
+  #' SA.covs.1km.Year2 <- dplyr::select(SA.covs.1km, -c(CanopyCover18, CanopyCover20,
+  #'                                                    Dist2Edge18, Landcover_type18))
+  #' names(SA.covs.1km.Year2) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
+  #'                               "HumanMod", "CanopyCover", "Dist2Edge", 
+  #'                               "Landcover_type", "StudyArea")
+  #' #'  Note: applying 2019 Dist2Edge and Landcover_type to Year3 data due to lack
+  #' #'  of 2020 landcover data
+  #' SA.covs.1km.Year3 <- dplyr::select(SA.covs.1km, -c(CanopyCover18, CanopyCover19,
+  #'                                                    Dist2Edge18, Landcover_type18))
+  #' names(SA.covs.1km.Year3) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
+  #'                               "HumanMod", "CanopyCover", "Dist2Edge", 
+  #'                               "Landcover_type", "StudyArea")
+  #' #'  List study area covariates by year to mirror rest of data structure
+  #' SA.covs_list <- list(SA.covs.1km.Year1, SA.covs.1km.Year2, SA.covs.1km.Year3)
+  
+  #'  Function to find mean & standard deviation for original (raw) covariates
+  #'  Necessary for standardizing study area-wide covs based on original models
+  #'  Note: summarizes data by spp, season & year, same as how the data were
+  #'  separated for k-fold cv 
+  cov_summary <- function(covs) {
+    mu.cov <- covs %>% 
+      summarise(across(where(is.numeric), ~mean(.x, na.rm = TRUE)))
+    sd.cov <- covs %>% 
+      summarise(across(where(is.numeric), ~sd(.x, na.rm = TRUE)))
+    mu.sd.cov <- rbind(mu.cov, sd.cov)
+    parameter <- as.data.frame(c("Mean", "SD"))
+    colnames(parameter) <- "Parameter"
+    cov_summary <- cbind(parameter, mu.sd.cov)
+    return(cov_summary)
+  }
+  #'  Summarize raw spp, season, & year-specific covariate values 
+  #'  Requires the untransformed covariates for each species & year, grouped by 
+  #'  season from beginning of script!
+  #'  FYI, this excludes the categorical landcover_type variables
+  mdCov_smr_summary <- lapply(mdData_smr, cov_summary)
+  mdCov_wtr_summary <- lapply(mdData_wtr, cov_summary)
+  elkCov_smr_summary <- lapply(elkData_smr, cov_summary)
+  elkCov_wtr_summary <- lapply(elkData_wtr, cov_summary)
+  wtdCov_smr_summary <- lapply(wtdData_smr, cov_summary)
+  wtdCov_wtr_summary <- lapply(wtdData_wtr, cov_summary)
+  cougCov_smr_summary <- lapply(cougData_smr, cov_summary)
+  cougCov_wtr_summary <- lapply(cougData_wtr, cov_summary)
+  wolfCov_smr_summary <- lapply(wolfData_smr, cov_summary)
+  wolfCov_wtr_summary <- lapply(wolfData_wtr, cov_summary)
+  bobCov_smr_summary <- lapply(bobData_smr, cov_summary)
+  bobCov_wtr_summary <- lapply(bobData_wtr, cov_summary)
+  coyCov_smr_summary <- lapply(coyData_smr, cov_summary)
+  coyCov_wtr_summary <- lapply(coyData_wtr, cov_summary)
+  
+  #'  Standardize study area-wide covariates based on the mean [1] and SD [2] of 
+  #'  the original covariate values that went into the training models
+  scaling_covs <- function(mu.sd, covs) {
+    scaling_covs <- covs %>% 
+      transmute(
+        ID = ID,
+        Elev = (Elev - mu.sd$Elev[1]) / mu.sd$Elev[2],
+        Slope = (Slope - mu.sd$Slope[1]) / mu.sd$Slope[2],
+        RoadDen = (RoadDen - mu.sd$RoadDen[1]) / mu.sd$RoadDen[2],
+        Dist2Water = (Dist2Water - mu.sd$Dist2Water[1]) / mu.sd$Dist2Water[2],
+        HumanMod = (HumanMod - mu.sd$HumanMod[1]) / mu.sd$HumanMod[2],
+        CanopyCover = (CanopyCover - mu.sd$CanopyCover[1]) / mu.sd$CanopyCover[2],
+        Dist2Edge = (Dist2Edge - mu.sd$Dist2Edge[1]) / mu.sd$Dist2Edge[2],
+        Landcover_Grass = as.factor(ifelse(Landcover_type == "Open Grass", 1, 0)),
+        Landcover_Other = as.factor(ifelse(Landcover_type == "Other", 1, 0)),
+        Landcover_Shrub = as.factor(ifelse(Landcover_type == "Shrub Mix", 1, 0)),
+        Landcover_Wetland = as.factor(ifelse(Landcover_type == "Wetland", 1, 0)),
+        StudyArea = as.factor(StudyArea))
+    return(scaling_covs)
+  }
+  #'  Standardize study area-wide covariates based on model covariate means & SDs 
+  #'  for specific species & seasons
+  #'  NOTE: mapply allows each call of the scaling_covs function to get the 1st,
+  #'  2nd, 3rd, etc. element of BOTH lists, SIMPLIFY keeps output in list format
+  coy_smr_zcovs <- mapply(scaling_covs, mu.sd = coyCov_smr_summary, covs = SA.covs_list, SIMPLIFY = FALSE)
+  coy_wtr_zcovs <- mapply(scaling_covs, mu.sd = coyCov_wtr_summary, covs = SA.covs_list, SIMPLIFY = FALSE)
+  
+  
   #'  Read in saved k-fold trained model results
-  #'  Extract betas for each trained model
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-01-10.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-01-10.RData")
+  
+  #'  Function to save parameter estimates & p-values from each trained model
+  #'  Use coef(mod) to look at random effects estimates
+  rounddig <- 2
+  
+  rsf_out <- function(mod, spp, season){
+    betas <- mod@beta
+    se <- sqrt(diag(vcov(mod)))
+    z <- summary(mod)$coef[,3]
+    pval <- summary(mod)$coef[,4]
+    out <- as.data.frame(cbind(betas, se, pval)) %>%
+      transmute(
+        Species = rep(spp, nrow(.)),
+        Season = rep(season, nrow(.)),
+        Parameter = row.names(.),
+        Estimate = round(betas, rounddig),
+        SE = round(se, rounddig),
+        Z = round(z, rounddig),
+        Pval = round(pval, rounddig)) %>%
+      # mutate(
+      #   l95 = (Estimate - (1.96 * SE)),  
+      #   u95 = (Estimate + (1.96 * SE))
+      # ) %>%
+      dplyr::select(c(Species, Season, Parameter, Estimate)) %>%
+      mutate(Parameter = ifelse(Parameter == "(Intercept)", "alpha", Parameter),
+             Parameter = ifelse(Parameter == "Elev", "b.elev", Parameter),
+             Parameter = ifelse(Parameter == "I(Elev^2)", "b.elev2", Parameter),
+             Parameter = ifelse(Parameter == "Slope", "b.slope", Parameter),
+             Parameter = ifelse(Parameter == "RoadDen", "b.road", Parameter),
+             Parameter = ifelse(Parameter == "Dist2Water", "b.water", Parameter),
+             Parameter = ifelse(Parameter == "HumanMod", "b.hm", Parameter),
+             Parameter = ifelse(Parameter == "CanopyCover", "b.canopy", Parameter),
+             Parameter = ifelse(Parameter == "Dist2Edge", "b.edge", Parameter),
+             Parameter = ifelse(Parameter == "Landcover_typeOpen Grass", "b.grass", Parameter),
+             Parameter = ifelse(Parameter == "Landcover_typeOther", "b.other", Parameter),
+             Parameter = ifelse(Parameter == "Landcover_typeShrub Mix", "b.shrub", Parameter),
+             Parameter = ifelse(Parameter == "Landcover_typeWetland", "b.wetland", Parameter)) %>%
+      #'  Spread data so each row represents model coefficients for a single season, single species model
+      pivot_wider(names_from = Parameter, values_from = Estimate) #%>%
+      #' #'  Change NAs to 0 (no effect) for coefficients not included in species-specific models
+      #' mutate(
+      #'   b.elev = ifelse(is.na(b.elev), 0, b.elev),
+      #'   b.elev2 = ifelse(is.na(b.elev2), 0, b.elev2),
+      #'   b.slope = ifelse(is.na(b.slope), 0, b.slope),
+      #'   b.road = ifelse(is.na(b.road), 0, b.road),
+      #'   b.hm = ifelse(is.na(b.hm), 0, b.hm),
+      #'   b.grass = ifelse(is.na(b.grass), 0, b.grass),
+      #'   b.shrub = ifelse(is.na(b.shrub), 0, b.shrub),
+      #'   b.wetland = ifelse(is.na(b.wetland), 0, b.wetland)
+      #' )
+    # rownames(out) <- NULL
+    return(out)
+  }
+  #'  Extract coefficient estimates for each trained model
+  #'  Generates list of RSF outputs for each of 5 folds per year [[1]], year [[2]], 
+  #'  and year [[3]] for each season
+  coy_smr_trainout <- lapply(coy_kfold_smr, lapply, rsf_out, spp = "Coyote", season = "Summer")
+  tst <- coy_smr_trainout[[1]][[1]]
+  coy_wtr_trainout <- lapply(coy_kfold_wtr, lapply, rsf_out, spp = "Coyote", season = "Winter")
+  
+  
+  
+  #### NEED TO DUMMY CODE LANDCOVER_TYPE VARIABLES
+  #### NEED TO FIGURE OUT HOW TO DEAL WITH MISSING COEFFICIENTS IN SPECIES-SPECIFIC MODELS
+  
+  
+  #'  Function to predict across all grid cells based on RSF results
+  #'  Should end up with 1 predicted value per grid cell
+  #'  NOTE: I want the predict relative probability of selection from RSF so not 
+  #'  using a logit transformation like I normally would with logistic regression.
+  #'  Instead, dropping the intercept from the model and just exponentiating the 
+  #'  coeffs*covs (Fieberg et al. 2020)
+  predict_rsf <- function(cov, coef) {
+    predict_rsf <- c()
+    #'  Predict across each grid cell
+    for(i in 1:nrow(cov)) {
+      predict_rsf[i] <- exp(coef$b.elev*cov$Elev[i] + coef$b.elev2*cov$Elev2[i] + 
+                            coef$b.slope*cov$Slope[i] + coef$b.road*cov$RoadDen[i] +
+                            coef$b.grass*cov$Landcover_Grass[i] + coef$b.shrub*cov$Landcover_Shrub[i] + 
+                            coef$b.hm*cov$HumanMod[i])
+    }
+    predict_rsf <- as.data.frame(predict_select)
+    
+    return(predict_rsf)
+  }
+  #'  Run estimated coefficients from RSFs through function to predict relative probability of selection
+  #'  BE SURE TO USE THE RIGHT COVARIATE DATA! 
+  #'  e.g., sp_zcovs[[2]] = covs standardized based on summer mule deer mean & SDs (includes both study areas)
+  #'  e.g., sp_zcovs[[15]] = covs standardized based on winter coyote mean & SDs (inclused both study areas)
+  #'  Includes ONLY significant coefficients per species and season
+  md_smr_predict_rsf_sgnf <- predict_rsf(sp_zcovs[[2]][sp_zcovs[[2]]$Area == 1,], rsf_coefs_signif[rsf_coefs_signif$Species == "Mule Deer" & rsf_coefs_signif$Season == "Summer",])
+  
+  
+
   #'  Fit study area-wide covs to GLMM with estimated betas
+  
+  #'  Read in study area grids (1km^2)
+  NE_1km <- raster("./Shapefiles/NE_1km_grid.tif")
+  OK_1km <- raster("./Shapefiles/OK_1km_grid.tif")
+  
   #'  Plot predicted results across study areas (using 1km grid)
+  
   #'  Bin RSF predictions (area-weighted or quantiles)
   #'  Save binned predictions as rasters
   
@@ -470,6 +699,21 @@
   ####  Cross-validate RSFs  ####
   #'  ===========================
   #'  Read in saved testing data
+  load("./Outputs/RSF_output/Kfold_CV/mdData_smr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/mdData_wtr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/elkData_smr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/elkData_wtr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wtdData_smr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wtdData_wtr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/cougData_smr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/cougData_wtr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolfData_smr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolfData_wtr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/bobData_smr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/bobData_wtr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coyData_smr_TestData.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coyData_wtr_TestData.RData")
+  
   #'  Plot used testing observations across binned RSF predictions for respective
   #'  trained models (e.g., test1 against train1, test2 against train2, etc.)
   #'  Count frequency of used locations in each bin
