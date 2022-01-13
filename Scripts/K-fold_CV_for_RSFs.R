@@ -63,32 +63,29 @@
   load("./Outputs/Telemetry_covs/OK_covs_1km_2022-01-07.RData")
   
   #'  Format study area-wide covariate data to include annually relevant data only
-  NE.covs.1km <- NE.covs.1km %>%
+  NE.covs <- NE.covs.1km %>%      # NE.covs.30m
     mutate(StudyArea = "NE") %>%
     full_join(NE_pts, by = "ID")
-  OK.covs.1km <- OK.covs.1km %>%
+  OK.covs <- OK.covs.1km %>%      # OK.covs.30m
     mutate(StudyArea = "OK") %>%
     full_join(OK_pts, by = "ID")
-  SA.covs.1km <- rbind(NE.covs.1km, OK.covs.1km)
-  SA.covs.1km.Year1 <- dplyr::select(SA.covs.1km, -c(CanopyCover19, CanopyCover20,
-                                                     Dist2Edge19, Landcover_type19))
-  names(SA.covs.1km.Year1) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
-                                "HumanMod", "CanopyCover", "Dist2Edge", 
-                                "Landcover_type", "StudyArea", "x", "y")
-  SA.covs.1km.Year2 <- dplyr::select(SA.covs.1km, -c(CanopyCover18, CanopyCover20,
-                                                     Dist2Edge18, Landcover_type18))
-  names(SA.covs.1km.Year2) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
-                                "HumanMod", "CanopyCover", "Dist2Edge", 
-                                "Landcover_type", "StudyArea", "x", "y")
+  SA.covs <- rbind(NE.covs, OK.covs)
+  SA.covs.Year1 <- dplyr::select(SA.covs, -c(CanopyCover19, CanopyCover20, Dist2Edge19, Landcover_type19))
+  names(SA.covs.Year1) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
+                            "HumanMod", "CanopyCover", "Dist2Edge", 
+                            "Landcover_type", "StudyArea", "x", "y")
+  SA.covs.Year2 <- dplyr::select(SA.covs, -c(CanopyCover18, CanopyCover20, Dist2Edge18, Landcover_type18))
+  names(SA.covs.Year2) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
+                            "HumanMod", "CanopyCover", "Dist2Edge", 
+                            "Landcover_type", "StudyArea", "x", "y")
   #'  Note: applying 2019 Dist2Edge and Landcover_type to Year3 data due to lack
   #'  of 2020 landcover data
-  SA.covs.1km.Year3 <- dplyr::select(SA.covs.1km, -c(CanopyCover18, CanopyCover19,
-                                                     Dist2Edge18, Landcover_type18))
-  names(SA.covs.1km.Year3) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
-                                "HumanMod", "CanopyCover", "Dist2Edge", 
-                                "Landcover_type", "StudyArea", "x", "y")
+  SA.covs.Year3 <- dplyr::select(SA.covs, -c(CanopyCover18, CanopyCover19, Dist2Edge18, Landcover_type18))
+  names(SA.covs.Year3) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
+                            "HumanMod", "CanopyCover", "Dist2Edge", 
+                            "Landcover_type", "StudyArea", "x", "y")
   #'  List study area covariates by year to mirror rest of data structure
-  SA.covs_list <- list(SA.covs.1km.Year1, SA.covs.1km.Year2, SA.covs.1km.Year3)
+  SA.covs_list <- list(SA.covs.Year1, SA.covs.Year2, SA.covs.Year3)
   NE.covs_list <- list(SA.covs.Year1[SA.covs.Year1$StudyArea == "NE",], SA.covs.Year2[SA.covs.Year2$StudyArea == "NE",], SA.covs.Year3[SA.covs.Year3$StudyArea == "NE",])
   OK.covs_list <- list(SA.covs.Year1[SA.covs.Year1$StudyArea == "OK",], SA.covs.Year2[SA.covs.Year2$StudyArea == "OK",], SA.covs.Year3[SA.covs.Year3$StudyArea == "OK",])
   
@@ -138,6 +135,7 @@
   SA.covs_list <- lapply(SA.covs_list, class_landcov)
   NE.covs_list <- lapply(NE.covs_list, class_landcov)
   OK.covs_list <- lapply(OK.covs_list, class_landcov)
+
   
   #'  Landcover_type categories causing convergence issues for some species due to
   #'  too few observations in some categories (e.g., "Other", "Wetland") so
@@ -695,8 +693,8 @@
   #### MAKE SURE SA.COVS_LIST IS RIGHT FOR EACH SPECIES/SEASON COMBO!
   
   #'  Read in saved k-fold trained model results
-  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-01-10.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-01-10.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-01-13.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-01-13.RData")
   
   #'  Function to save parameter estimates & p-values from each trained model
   #'  Use coef(mod) to look at random effects estimates
@@ -786,41 +784,77 @@
   #'  Run estimated coefficients from trained models through function to predict 
   #'  relative probability of selection for each species, season, and year.
   #'  BE SURE TO USE COVARIATE DATA STANDARDIZED TO THE SPECIFIC SPECIES, SEASON, YEAR
-  #'  REMEMBER: 
-  #'     1) *trainout contains a list (1 per year = 3) of lists (1 per k-fold  
-  #'     trained model = 5) of estimated coefficients from each trained model 
-  #'     ([[1]][[1:5]], [[2]][[1:5]], [[3]][[1:5]]). 
-  #'     2) *zcovs contains a list of 3 study area-wide covariate data frames, 
-  #'     which have been standardized specific to that spp, season, and year.
-  coy_smr18_Kpredict <- lapply(coy_smr_trainout[[1]], predict_rsf, cov = coy_smr_zcovs[[1]])
-  coy_smr19_Kpredict <- lapply(coy_smr_trainout[[2]], predict_rsf, cov = coy_smr_zcovs[[2]])
-  coy_smr20_Kpredict <- lapply(coy_smr_trainout[[3]], predict_rsf, cov = coy_smr_zcovs[[3]])
+  coy_smr18_Kpredict <- lapply(coy_smr_trainout, predict_rsf, cov = coy_smr_zcovs[[1]])
+  coy_smr19_Kpredict <- lapply(coy_smr_trainout, predict_rsf, cov = coy_smr_zcovs[[2]])
+  coy_smr20_Kpredict <- lapply(coy_smr_trainout, predict_rsf, cov = coy_smr_zcovs[[3]])
   coy_smr_Kpredict <- list(coy_smr18_Kpredict, coy_smr19_Kpredict, coy_smr20_Kpredict)
-  save(coy_smr_Kpredict, file = "./Outputs/RSF_output/Kfold_CV/coy_smr_Kpredict_", Sys.Date(), ".RData")
-  coy_wtr1819_Kpredict <- lapply(coy_wtr_trainout[[1]], predict_rsf, cov = coy_wtr_zcovs[[1]])
-  coy_wtr1920_Kpredict <- lapply(coy_wtr_trainout[[2]], predict_rsf, cov = coy_wtr_zcovs[[2]])
-  coy_wtr2021_Kpredict <- lapply(coy_wtr_trainout[[3]], predict_rsf, cov = coy_wtr_zcovs[[3]])
+  save(coy_smr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/coy_smr_Kpredict_", Sys.Date(), ".RData"))
+  coy_wtr1819_Kpredict <- lapply(coy_wtr_trainout, predict_rsf, cov = coy_wtr_zcovs[[1]])
+  coy_wtr1920_Kpredict <- lapply(coy_wtr_trainout, predict_rsf, cov = coy_wtr_zcovs[[2]])
+  coy_wtr2021_Kpredict <- lapply(coy_wtr_trainout, predict_rsf, cov = coy_wtr_zcovs[[3]])
   coy_wtr_Kpredict <- list(coy_wtr1819_Kpredict, coy_wtr1920_Kpredict, coy_wtr2021_Kpredict)
-  save(coy_wtr_Kpredict, file = "./Outputs/RSF_output/Kfold_CV/coy_wtr_Kpredict_", Sys.Date(), ".RData")
+  save(coy_wtr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/coy_wtr_Kpredict_", Sys.Date(), ".RData"))
+  #' #'  REMEMBER: 
+  #' #'     1) *trainout contains a list (1 per year = 3) of lists (1 per k-fold  
+  #' #'     trained model = 5) of estimated coefficients from each trained model 
+  #' #'     ([[1]][[1:5]], [[2]][[1:5]], [[3]][[1:5]]). 
+  #' #'     2) *zcovs contains a list of 3 study area-wide covariate data frames, 
+  #' #'     which have been standardized specific to that spp, season, and year.
+  #' coy_smr18_Kpredict <- lapply(coy_smr_trainout[[1]], predict_rsf, cov = coy_smr_zcovs[[1]])
+  #' coy_smr19_Kpredict <- lapply(coy_smr_trainout[[2]], predict_rsf, cov = coy_smr_zcovs[[2]])
+  #' coy_smr20_Kpredict <- lapply(coy_smr_trainout[[3]], predict_rsf, cov = coy_smr_zcovs[[3]])
+  #' coy_smr_Kpredict <- list(coy_smr18_Kpredict, coy_smr19_Kpredict, coy_smr20_Kpredict)
+  #' save(coy_smr_Kpredict, file = "./Outputs/RSF_output/Kfold_CV/coy_smr_Kpredict_", Sys.Date(), ".RData")
+  #' coy_wtr1819_Kpredict <- lapply(coy_wtr_trainout[[1]], predict_rsf, cov = coy_wtr_zcovs[[1]])
+  #' coy_wtr1920_Kpredict <- lapply(coy_wtr_trainout[[2]], predict_rsf, cov = coy_wtr_zcovs[[2]])
+  #' coy_wtr2021_Kpredict <- lapply(coy_wtr_trainout[[3]], predict_rsf, cov = coy_wtr_zcovs[[3]])
+  #' coy_wtr_Kpredict <- list(coy_wtr1819_Kpredict, coy_wtr1920_Kpredict, coy_wtr2021_Kpredict)
+  #' save(coy_wtr_Kpredict, file = "./Outputs/RSF_output/Kfold_CV/coy_wtr_Kpredict_", Sys.Date(), ".RData")
 
   #'  Re-scale predicted RSF values between 0 & 1 for plotting
   RSF_rescale <- function(out) {
     rescale_val <- out %>%
       mutate(
         rescale_rsf = round(predict_rsf/(max(predict_rsf, na.rm = T)), digits = 4)
-      )
+      ) #%>%
+      # dplyr::select(-c(ID, StudyArea, predict_rsf))
     return(rescale_val)
   }
   #'  Rescale predicted RSF values within each list of lists
-  coy_smr_Krsf <- lapply(coy_smr_Kpredict, lapply, RSF_rescale)
+  coy_smr_Krsf <- lapply(coy_smr_Kpredict, lapply, RSF_rescale) # definitely some extreme outliers
+  c1.1 <- coy_smr_Krsf[[1]][[1]]
+  c2.1 <- coy_smr_Krsf[[1]][[1]]
+  c3.1 <- coy_smr_Krsf[[1]][[1]]
   coy_wtr_Krsf <- lapply(coy_wtr_Kpredict, lapply, RSF_rescale)
   
+  
+  ####  NEED TO DEAL WITH THESE OUTLIERS BEFORE RESCALING!!!
+  ####  NEED TO DEAL WITH MASKING WATERBODIES OUT OF GRID BEFORE RESCALING TOO
+  
+  #'  Define desired projections
+  sa_proj <- projection("EPSG:2855")  # NAD83(HARN) / Washington North
+  wgs84 <- projection("+proj=longlat +datum=WGS84 +no_defs")
+  
   #'  Rasterize predicted RSF values
+  rasterize_rsf <- function(rsf_list) {
+    df <- rsf_list
+    #'  Identify coordinates of rsf predictions
+    coordinates(df) <- ~ x + y
+    #'  Coerce predictions to SpatialPixelsDataFrame
+    gridded(df) <- TRUE
+    #'  Coerce to raster
+    rasterRSF <- raster(df)
+    #'  Define projection
+    crs(rasterRSF) <- sa_proj
+    plot(rasterRSF)
+    
+    return(rasterRSF)
+  }
+  coy_smr_Kfoldraster <- lapply(coy_smr_Krsf, lapply, rasterize_rsf)
+  coy_wtr_Kfoldraster <- lapply(coy_wtr_Krsf, lapply, rasterize_rsf)
   
   
-  #'  Plot predicted results across study areas (using 1km grid)
-  #'  Mule deer results: OK only  /  Elk & White-tailed deer results: NE only
-  
+ 
   #'  Bin RSF predictions (area-weighted or quantiles)
   #'  Save binned predictions as rasters
   
