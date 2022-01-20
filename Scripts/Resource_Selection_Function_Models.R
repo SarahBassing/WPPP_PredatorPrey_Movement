@@ -150,7 +150,8 @@
     
     return(locs)
   }
-  #'  List datasets by season & standardize covariates
+  #'  Subset datasets by season & standardize covariates
+  #'  This is where the reclassified version of the landcover type are used!
   mdData_smr <- md_dat_all[md_dat_all$Season == "Summer18" | md_dat_all$Season == "Summer19" | md_dat_all$Season == "Summer20",]
   mdData_wtr <- md_dat_all[md_dat_all$Season == "Winter1819" | md_dat_all$Season == "Winter1920" | md_dat_all$Season == "Winter2021",]
   mdDataz_smr <- standardize_covs(mdData_smr)
@@ -189,6 +190,7 @@
   #'  Correlation Matrix
   #'  ==================
   #'  Function to create correlation matrix for all continuous covariates at once
+  #'  Ignore PercForMix, PercXGrass, PercXShrub- they aren't being used in RSFs
   cov_correlation <- function(dat) {
     used <- dat[dat$Used == 1,]
     covs <- used[,c("Elev", "Slope", "TPI", "RoadDen",
@@ -213,8 +215,10 @@
   (coy_smr_corr <- cov_correlation(coyData_smr))
   (coy_wtr_corr <- cov_correlation(coyData_wtr))
 
-  #'  Elevation & TPI are highly correlated (almost 100%) for all datasets so nixing TPI entirely
-  #'  Elevation & Human Modified correlated in MD smr/wtr, ELK smr, COUG smr, & COY smr/wtr- nixing HumanMod for those models
+  #'  Elevation & TPI are highly correlated (almost 100%) for all datasets so 
+  #'    nixing TPI entirely
+  #'  Elevation & Human Modified correlated in MD smr/wtr, ELK smr, COUG smr,  
+  #'    and COY smr/wtr- nixing HumanMod for those models
   #'  Using Landcover_type instead of % Forest, % Grass, & % Shrub because...
   #'  % Shrub correlated with Elevation, TPI and Human Modified in MD smr
   #'  Dist2Edg correlated with % Forest & % Grass in ELK wtr
@@ -231,11 +235,11 @@
   #'  above) and convergence issues. Seasonal models run separately so RSFs are 
   #'  specific to the species & season but with all years combined. Some covariates
   #'  vary annually however so each species & season-specific RSF is predicted 
-  #'  across an annual study area map (under prediction section below). 
+  #'  across an annual study area map (see prediction section below). 
   #'  
   #'  Using backwards step selection to identify top model with all significant
   #'  covariates. Covariates excluded through this process are commented out next
-  #'  to model in order that the variable was removed.
+  #'  to model in the order each variable was removed.
   #'  ==================================
   
   glmm_fn <- function(mod, dat) {
@@ -454,6 +458,7 @@
         CanopyCover = (CanopyCover - mu.sd$CanopyCover[1]) / mu.sd$CanopyCover[2],
         Dist2Edge = (Dist2Edge - mu.sd$Dist2Edge[1]) / mu.sd$Dist2Edge[2],
         Landcover = as.factor(Landcover_type),
+        #'  Dummy variables for Landcover_type, Forest represents the intercept
         Landcover_Developed = as.numeric(ifelse(Landcover_type == "Developed", 1, 0)),
         Landcover_Grass = as.numeric(ifelse(Landcover_type == "Open Grass", 1, 0)),
         Landcover_Other = as.numeric(ifelse(Landcover_type == "Other", 1, 0)),
@@ -512,6 +517,7 @@
              Parameter = ifelse(Parameter == "HumanMod", "b.hm", Parameter),
              Parameter = ifelse(Parameter == "CanopyCover", "b.canopy", Parameter),
              Parameter = ifelse(Parameter == "Dist2Edge", "b.edge", Parameter),
+             Parameter = ifelse(Parameter == "Landcover_typeDeveloped", "b.developed", Parameter),
              Parameter = ifelse(Parameter == "Landcover_typeOpen Grass", "b.grass", Parameter),
              Parameter = ifelse(Parameter == "Landcover_typeOther", "b.other", Parameter),
              Parameter = ifelse(Parameter == "Landcover_typeShrub Mix", "b.shrub", Parameter),
@@ -522,7 +528,7 @@
     #'  Covariates excluded from species-specific models not included in the data
     #'  frame but necessary for predicting function to work below
     #'  Vector of columns names that need to be included in this data frame
-    nms <- c("Species", "Season", "alpha", "b.elev", "b.elev2", "b.slope", "b.road", "b.water", "b.hm", "b.canopy", "b.edge", "b.grass", "b.other", "b.shrub", "b.wetland")
+    nms <- c("Species", "Season", "alpha", "b.elev", "b.elev2", "b.slope", "b.road", "b.water", "b.hm", "b.canopy", "b.edge", "b.developed", "b.grass", "b.other", "b.shrub", "b.wetland")
     #'  Identify if there are any missing column names in the data frame
     Missing <- setdiff(nms, names(out))
     #'  Add missing columns and fill with 0's
@@ -561,6 +567,7 @@
                               coef$b.slope*cov$Slope[i] + coef$b.road*cov$RoadDen[i] +
                               coef$b.water*cov$Dist2Water[i] + coef$b.hm*cov$HumanMod[i] +
                               coef$b.canopy*cov$CanopyCover[i] + coef$b.edge*cov$Dist2Edge[i] +
+                              coef$b.developed*cov$Landcover_Developed[i] + 
                               coef$b.grass*cov$Landcover_Grass[i] + coef$b.other*cov$Landcover_Other[i] +
                               coef$b.shrub*cov$Landcover_Shrub[i] + coef$b.wetland*cov$Landcover_Wetland[i])
     }
@@ -603,7 +610,7 @@
   coy_rsf_predicted <- list(coy_smr_rsf_sa, coy_wtr_rsf_sa)
 
   
-  #'  Identify any outliers
+  #'  Function to identify any outliers
   outliers <- function(predicted, title, covs_list) {
     #'  Summarize predicted values
     hist(predicted$predict_rsf, breaks = 100, main = title)
@@ -639,27 +646,6 @@
     hist(bigvalues$Dist2Edge, breaks = 25, main = "Frequency of Distance to Edge values", xlab = "Standardize Dist. to Edge")
     hist(bigvalues$Dist2Edge[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Edge values", xlab = "Standardize Dist. to Edge")
     
-    #' plot(bigvalues$RoadDen, bigvalues$predict_rsf, main = "Correlation between Predicted RSF and Road Density", xlab = "Road Density", ylab = "Predicted RSF Values")
-    #' #'  Simple regression between covaraites
-    #' abline(lm(bigvalues$predict_rsf ~ bigvalues$RoadDen), col = "red")
-    #' #'  Mark the 99th percentil value
-    #' abline(h = quant, col = "blue")
-    #' #'  Frequency of covariates associated with non-extreme & extreme RSF values
-    #' hist(bigvalues$RoadDen, breaks = 10, main = "Frequency of Road Density values", xlab = "Road Density")
-    #' hist(bigvalues$RoadDen[bigvalues$outlier == "not_outlier"], breaks = 10, main = "Frequency of Road Density values with NO RSF outliers", xlab = "Road Density")
-    #' hist(bigvalues$RoadDen[bigvalues$outlier == "outlier"], breaks = 10, main = "Frequency of Road Density values for RSF outliers", xlab = "Road Density")
-    #' 
-    #' bigvalues <- cbind(predicted, covs_list)
-    #' plot(bigvalues$Dist2Water, bigvalues$predict_rsf, main = "Correlation between Predicted RSF and Distance to Water", xlab = "Distance to Water", ylab = "Predicted RSF Values")
-    #' #'  Simple regression between covaraites
-    #' abline(lm(bigvalues$predict_rsf ~ bigvalues$Dist2Water), col = "red")
-    #' #'  Mark the 99th percentil value
-    #' abline(h = quant, col = "blue")
-    #' #'  Frequency of covariates associated with non-extreme & extreme RSF values
-    #' hist(bigvalues$Dist2Water, breaks = 10, main = "Frequency of Distance to Water values", xlab = "Distance to Water")
-    #' hist(bigvalues$Dist2Water[bigvalues$outlier == "not_outlier"], breaks = 10, main = "Frequency of Distance to Water values with NO RSF outliers", xlab = "Distance to Water")
-    #' hist(bigvalues$Dist2Water[bigvalues$outlier == "outlier"], breaks = 10, main = "Frequency of Distance to Water values for RSF outliers", xlab = "Distance to Water")
-
     return(bigvalues)
   }
   #'  Identify outlier predictions and possible covariates associated with those
@@ -827,8 +813,7 @@
   plot(coy_wtr_RSFstack[[1]], main = "Winter Coyote Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
   dev.off()
   
-  
-  
+
   #'  SAVE!
   writeRaster(md_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/md_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
   writeRaster(md_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/md_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
@@ -846,9 +831,7 @@
   writeRaster(coy_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coy_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
   
 
-  
-  
-    #' ####  Summary tables  ####
+  #' ####  Summary tables  ####
   #'  Save model outputs in table format
   #'  Function to save parameter estimates & p-values
   #'  use coef(mod) to look at random effects estimates
