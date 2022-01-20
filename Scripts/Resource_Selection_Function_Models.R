@@ -849,142 +849,87 @@
   
   
     #' ####  Summary tables  ####
-  #' #'  Save model outputs in table format 
-  #' #'  Functions extract outputs for each sub-model and appends species/season info
-  #' 
-  #' #'  Pull out RSF results
-  #' load("./Outputs/RSF_output/RSF_MD_list_2022-01-02.RData")  
-  #' load("./Outputs/RSF_output/RSF_ELK_list_2022-01-02.RData")
-  #' load("./Outputs/RSF_output/RSF_WTD_list_2022-01-02.RData")
-  #' load("./Outputs/RSF_output/RSF_COUG_list_2022-01-02.RData") 
-  #' load("./Outputs/RSF_output/RSF_WOLF_list_2022-01-02.RData")
-  #' load("./Outputs/RSF_output/RSF_BOB_list_2022-01-02.RData")
-  #' load("./Outputs/RSF_output/RSF_COY_list_2022-01-02.RData")
-  #' 
-  #' 
-  #' #'  Function to save parameter estimates & p-values
-  #' #'  use coef(mod) to look at random effects estimates
-  #' rounddig <- 2
-  #' 
-  #' rsf_out <- function(mod, spp, season){
-  #'   betas <- mod@beta
-  #'   se <- sqrt(diag(vcov(mod)))
-  #'   z <- summary(mod)$coef[,3]
-  #'   pval <- summary(mod)$coef[,4]
-  #'   out <- as.data.frame(cbind(betas, se, pval)) %>%
-  #'     transmute(
-  #'       Species = rep(spp, nrow(.)),
-  #'       Season = rep(season, nrow(.)),
-  #'       Parameter = row.names(.),
-  #'       Estimate = round(betas, rounddig),
-  #'       SE = round(se, rounddig),
-  #'       Z = round(z, rounddig),
-  #'       Pval = round(pval, rounddig)) 
-  #'   rownames(out) <- NULL
-  #'   return(out)
-  #' }
-  #' md_s1819_rsf <- rsf_out(md_global_smr, "Mule Deer", "Summer")
-  #' md_w1820_rsf <- rsf_out(md_global_wtr, "Mule Deer", "Winter")
-  #' elk_s1819_rsf <- rsf_out(elk_global_smr, "Elk", "Summer")
-  #' elk_w1820_rsf <- rsf_out(elk_global_wtr, "Elk", "Winter")
-  #' wtd_s1819_rsf <- rsf_out(wtd_global_smr, "White-tailed Deer", "Summer")
-  #' wtd_w1820_rsf <- rsf_out(wtd_global_wtr, "White-tailed Deer", "Winter")
-  #' coug_s1819_rsf <- rsf_out(coug_global_smr, "Cougar", "Summer")
-  #' coug_w1820_rsf <- rsf_out(coug_global_wtr, "Cougar", "Winter")
-  #' wolf_s1819_rsf <- rsf_out(wolf_global_smr, "Wolf", "Summer")
-  #' wolf_w1820_rsf <- rsf_out(wolf_global_wtr, "Wolf", "Winter")
-  #' bob_s1819_rsf <- rsf_out(bob_global_smr, "Bobcat", "Summer")
-  #' bob_w1820_rsf <- rsf_out(bob_global_wtr, "Bobcat", "Winter")
-  #' coy_s1819_rsf <- rsf_out(coy_global_smr, "Coyote", "Summer")
-  #' coy_w1820_rsf <- rsf_out(coy_global_wtr, "Coyote", "Winter")
-  #' 
-  #' md_sSAonly_rsf <- rsf_out(md_SA_only_smr, "Mule Deer", "Summer")
-  #' # write.csv(md_sSAonly_rsf, paste0("./Outputs/Tables/RSF_Results_MuleDeer_SAonly_", Sys.Date(), ".csv"))  
-  #' 
-  #' 
-  #' 
-  #' #'  Merge into larger data frames for easy comparison
-  #' summer_rsf <- rbind(bob_s1819_rsf, coug_s1819_rsf, coy_s1819_rsf, wolf_s1819_rsf,
-  #'                     elk_s1819_rsf, md_s1819_rsf, wtd_s1819_rsf) 
-  #' winter_rsf <- rbind(bob_w1820_rsf, coug_w1820_rsf, coy_w1820_rsf, wolf_w1820_rsf,
-  #'                     elk_w1820_rsf, md_w1820_rsf, wtd_w1820_rsf) 
-  #' rsf_results <- rbind(summer_rsf, winter_rsf) %>%
-  #'   arrange(Species)
-  #' colnames(rsf_results) <- c("Species", "Season", "Parameter", "Estimate", "SE", "z", "Pval")
-  #' 
-  #' 
-  #' #'  Spread this out so the coefficient effects are easier to compare across species
-  #' rsf_results_wide <- rsf_results %>% 
-  #'   dplyr::select(-z) %>%
-  #'   mutate(
-  #'     SE = round(SE, 2),
-  #'     SE = paste0("(", SE, ")")
-  #'   ) %>%
-  #'   #'  Bold significant variables- doesn't work if continue manipulating data frame
-  #'   # condformat(.) %>%
-  #'   # rule_text_bold(c(Estimate, SE, Pval), expression = Pval <= 0.05) %>%
-  #'   unite(Est_SE, Estimate, SE, sep = " ") %>%
-  #'   unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
-  #'   spread(Parameter, Est_SE_Pval) %>%
-  #'   separate("(Intercept)", c("Intercept (SE)", "Intercept Pval"), sep = "_") %>%
-  #'   # separate("AreaOK", c("AreaOK (SE)", "AreaOK Pval"), sep = "_") %>%
-  #'   separate("Elev", c("Elev (SE)", "Elev Pval"), sep = "_") %>%
-  #'   separate("Slope", c("Slope (SE)", "Slope Pval"), sep = "_") %>%
-  #'   separate("PercForMix", c("PercForMix (SE)", "PercForMix Pval"), sep = "_") %>%
-  #'   separate("PercXGrass", c("PercXGrass (SE)", "PercXGrass Pval"), sep = "_") %>%
-  #'   separate("PercXShrub", c("PercXShrub (SE)", "PercXShrub Pval"), sep = "_") %>%
-  #'   separate("RoadDen", c("Road Density (SE)", "Road Density Pval"), sep = "_") %>%
-  #'   # separate("HumanMod", c("HumanMod (SE)", "HumanMod Pval"), sep = "_") %>%
-  #'   arrange(match(Species, c("Bobcat", "Cougar", "Coyote", "Wolf", "Mule Deer", "Elk", "White-tailed Deer"))) %>%
-  #'   arrange(match(Season, c("Summer", "Winter")))
-  #' 
-  #' 
-  #' #'  Save!
-  #' write.csv(rsf_results, paste0("./Outputs/Tables/RSF_Results_NoHM_", Sys.Date(), ".csv"))  #'  KEEP TRACK of whether Human Modified was excluded from models!
-  #' write.csv(rsf_results_wide, paste0("./Outputs/Tables/RSF_Results_wide_NoHM_", Sys.Date(), ".csv"))
-  #' 
-  #' save.image("./Outputs/RSF_script_results.RData")
-  #' # save(md_smr18, file = paste0("./Outputs/RSF_output/md_RSF_smr18_", Sys.Date(), ".RData"))
-  #' # save(md_smr19, file = paste0("./Outputs/RSF_output/md_RSF_smr19_", Sys.Date(), ".RData"))
-  #' # save(md_smr20, file = paste0("./Outputs/RSF_output/md_RSF_smr20_", Sys.Date(), ".RData"))
-  #' # save(md_wtr1819, file = paste0("./Outputs/RSF_output/md_RSF_wtr1819_", Sys.Date(), ".RData"))
-  #' # save(md_wtr1920, file = paste0("./Outputs/RSF_output/md_RSF_wtr1920_", Sys.Date(), ".RData"))
-  #' # save(md_wtr2021, file = paste0("./Outputs/RSF_output/md_RSF_wtr2021_", Sys.Date(), ".RData"))
-  #' # save(elk_smr18, file = paste0("./Outputs/RSF_output/elk_RSF_smr18_", Sys.Date(), ".RData"))
-  #' # save(elk_smr19, file = paste0("./Outputs/RSF_output/elk_RSF_smr19_", Sys.Date(), ".RData"))
-  #' # save(elk_smr20, file = paste0("./Outputs/RSF_output/elk_RSF_smr20_", Sys.Date(), ".RData"))
-  #' # save(elk_wtr1819, file = paste0("./Outputs/RSF_output/elk_RSF_wtr1819_", Sys.Date(), ".RData"))
-  #' # save(elk_wtr1920, file = paste0("./Outputs/RSF_output/elk_RSF_wtr1920_", Sys.Date(), ".RData"))
-  #' # save(elk_wtr2021, file = paste0("./Outputs/RSF_output/elk_RSF_wtr2021_", Sys.Date(), ".RData"))
-  #' # save(wtd_smr18, file = paste0("./Outputs/RSF_output/wtd_RSF_smr18_", Sys.Date(), ".RData"))
-  #' # save(wtd_smr19, file = paste0("./Outputs/RSF_output/wtd_RSF_smr19_", Sys.Date(), ".RData"))
-  #' # save(wtd_smr20, file = paste0("./Outputs/RSF_output/wtd_RSF_smr20_", Sys.Date(), ".RData"))
-  #' # save(wtd_wtr1819, file = paste0("./Outputs/RSF_output/wtd_RSF_wtr1819_", Sys.Date(), ".RData"))
-  #' # save(wtd_wtr1920, file = paste0("./Outputs/RSF_output/wtd_RSF_wtr1920_", Sys.Date(), ".RData"))
-  #' # save(wtd_wtr2021, file = paste0("./Outputs/RSF_output/wtd_RSF_wtr2021_", Sys.Date(), ".RData"))
-  #' # save(coug_smr18, file = paste0("./Outputs/RSF_output/coug_RSF_smr18_", Sys.Date(), ".RData"))
-  #' # save(coug_smr19, file = paste0("./Outputs/RSF_output/coug_RSF_smr19_", Sys.Date(), ".RData"))
-  #' # save(coug_smr20, file = paste0("./Outputs/RSF_output/coug_RSF_smr20_", Sys.Date(), ".RData"))
-  #' # save(coug_wtr1819, file = paste0("./Outputs/RSF_output/coug_RSF_wtr1819_", Sys.Date(), ".RData"))
-  #' # save(coug_wtr1920, file = paste0("./Outputs/RSF_output/coug_RSF_wtr1920_", Sys.Date(), ".RData"))
-  #' # save(coug_wtr2021, file = paste0("./Outputs/RSF_output/coug_RSF_wtr2021_", Sys.Date(), ".RData"))
-  #' # save(wolf_smr18, file = paste0("./Outputs/RSF_output/wolf_RSF_smr18_", Sys.Date(), ".RData"))
-  #' # save(wolf_smr19, file = paste0("./Outputs/RSF_output/wolf_RSF_smr19_", Sys.Date(), ".RData"))
-  #' # save(wolf_smr20, file = paste0("./Outputs/RSF_output/wolf_RSF_smr20_", Sys.Date(), ".RData"))
-  #' # save(wolf_wtr1819, file = paste0("./Outputs/RSF_output/wolf_RSF_wtr1819_", Sys.Date(), ".RData"))
-  #' # save(wolf_wtr1920, file = paste0("./Outputs/RSF_output/wolf_RSF_wtr1920_", Sys.Date(), ".RData"))
-  #' # save(wolf_wtr2021, file = paste0("./Outputs/RSF_output/wolf_RSF_wtr2021_", Sys.Date(), ".RData"))
-  #' # save(coy_smr18, file = paste0("./Outputs/RSF_output/coy_RSF_smr18_", Sys.Date(), ".RData"))
-  #' # save(coy_smr19, file = paste0("./Outputs/RSF_output/coy_RSF_smr19_", Sys.Date(), ".RData"))
-  #' # save(coy_smr20, file = paste0("./Outputs/RSF_output/coy_RSF_smr20_", Sys.Date(), ".RData"))
-  #' # save(coy_wtr1819, file = paste0("./Outputs/RSF_output/coy_RSF_wtr1819_", Sys.Date(), ".RData"))
-  #' # save(coy_wtr1920, file = paste0("./Outputs/RSF_output/coy_RSF_wtr1920_", Sys.Date(), ".RData"))
-  #' # save(coy_wtr2021, file = paste0("./Outputs/RSF_output/coy_RSF_wtr2021_", Sys.Date(), ".RData"))
-  #' # save(bob_smr18, file = paste0("./Outputs/RSF_output/bob_RSF_smr18_", Sys.Date(), ".RData"))
-  #' # save(bob_smr19, file = paste0("./Outputs/RSF_output/bob_RSF_smr19_", Sys.Date(), ".RData"))
-  #' # save(bob_smr20, file = paste0("./Outputs/RSF_output/bob_RSF_smr20_", Sys.Date(), ".RData"))
-  #' # save(bob_wtr1819, file = paste0("./Outputs/RSF_output/bob_RSF_wtr1819_", Sys.Date(), ".RData"))
-  #' # save(bob_wtr1920, file = paste0("./Outputs/RSF_output/bob_RSF_wtr1920_", Sys.Date(), ".RData"))
-  #' # save(bob_wtr2021, file = paste0("./Outputs/RSF_output/bob_RSF_wtr2021_", Sys.Date(), ".RData"))
+  #'  Save model outputs in table format
+  #'  Function to save parameter estimates & p-values
+  #'  use coef(mod) to look at random effects estimates
+  rounddig <- 2
+
+  rsf_out <- function(mod, spp, season){
+    betas <- mod@beta
+    se <- sqrt(diag(vcov(mod)))
+    z <- summary(mod)$coef[,3]
+    pval <- summary(mod)$coef[,4]
+    out <- as.data.frame(cbind(betas, se, pval)) %>%
+      transmute(
+        Species = rep(spp, nrow(.)),
+        Season = rep(season, nrow(.)),
+        Parameter = row.names(.),
+        Estimate = round(betas, rounddig),
+        SE = round(se, rounddig),
+        Z = round(z, rounddig),
+        Pval = round(pval, rounddig))
+    rownames(out) <- NULL
+    return(out)
+  }
+  md_smr_rsf_out <- rsf_out(RSF_MD_list[[1]], "Mule Deer", "Summer")
+  md_wtr_rsf_out <- rsf_out(RSF_MD_list[[2]], "Mule Deer", "Winter")
+  elk_smr_rsf_out <- rsf_out(RSF_ELK_list[[1]], "Elk", "Summer")
+  elk_wtr_rsf_out <- rsf_out(RSF_ELK_list[[2]], "Elk", "Winter")
+  wtd_smr_rsf_out <- rsf_out(RSF_WTD_list[[1]], "White-tailed Deer", "Summer")
+  wtd_wtr_rsf_out <- rsf_out(RSF_WTD_list[[2]], "White-tailed Deer", "Winter")
+  coug_smr_rsf_out <- rsf_out(RSF_COUG_list[[1]], "Cougar", "Summer")
+  coug_wtr_rsf_out <- rsf_out(RSF_COUG_list[[2]], "Cougar", "Winter")
+  wolf_smr_rsf_out <- rsf_out(RSF_WOLF_list[[1]], "Wolf", "Summer")
+  wolf_wtr_rsf_out <- rsf_out(RSF_WOLF_list[[2]], "Wolf", "Winter")
+  bob_smr_rsf_out <- rsf_out(RSF_BOB_list[[1]], "Bobcat", "Summer")
+  bob_wtr_rsf_out <- rsf_out(RSF_BOB_list[[2]], "Bobcat", "Winter")
+  coy_smr_rsf_out <- rsf_out(RSF_COY_list[[1]], "Coyote", "Summer")
+  coy_wtr_rsf_out <- rsf_out(RSF_COY_list[[2]], "Coyote", "Winter")
+
+  #'  Merge into larger data frames for easy comparison
+  summer_rsf <- rbind(md_smr_rsf_out, elk_smr_rsf_out, wtd_smr_rsf_out, coug_smr_rsf_out, 
+                      wolf_smr_rsf_out, bob_smr_rsf_out, coy_smr_rsf_out)
+  winter_rsf <- rbind(md_wtr_rsf_out, elk_wtr_rsf_out, wtd_wtr_rsf_out, coug_wtr_rsf_out, 
+                      wolf_wtr_rsf_out, bob_wtr_rsf_out, coy_wtr_rsf_out)
+  rsf_results <- rbind(summer_rsf, winter_rsf) %>%
+    arrange(Species)
+  colnames(rsf_results) <- c("Species", "Season", "Parameter", "Estimate", "SE", "z", "Pval")
+
+
+  #'  Spread this out so the coefficient effects are easier to compare across species
+  rsf_results_wide <- rsf_results %>%
+    dplyr::select(-z) %>%
+    mutate(
+      SE = round(SE, 2),
+      SE = paste0("(", SE, ")")
+    ) %>%
+    #'  Bold significant variables- doesn't work if continue manipulating data frame
+    # condformat(.) %>%
+    # rule_text_bold(c(Estimate, SE, Pval), expression = Pval <= 0.05) %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
+    spread(Parameter, Est_SE_Pval) %>%
+    separate("(Intercept)", c("Intercept (SE)", "Intercept Pval"), sep = "_") %>%
+    # separate("AreaOK", c("AreaOK (SE)", "AreaOK Pval"), sep = "_") %>%
+    separate("Elev", c("Elev (SE)", "Elev Pval"), sep = "_") %>%
+    separate("I(Elev^2)", c("I(Elev^2) (SE)", "I(Elev^2) Pval"), sep = "_") %>%
+    separate("Slope", c("Slope (SE)", "Slope Pval"), sep = "_") %>%
+    separate("RoadDen", c("RoadDen (SE)", "RoadDen Pval"), sep = "_") %>%
+    separate("Dist2Water", c("Dist2Water (SE)", "Dist2Water Pval"), sep = "_") %>%
+    separate("CanopyCover", c("CanopyCover (SE)", "CanopyCover Pval"), sep = "_") %>%
+    separate("Dist2Edge", c("Dist2Edge (SE)", "Dist2Edge Pval"), sep = "_") %>%
+    separate("Landcover_typeDeveloped", c("Landcover_typeDeveloped (SE)", "Landcover_typeDeveloped Pval"), sep = "_") %>%
+    separate("Landcover_typeOpen Grass", c("Landcover_typeOpen Grass (SE)", "Landcover_typeOpen Grass Pval"), sep = "_") %>%
+    separate("Landcover_typeOther", c("Landcover_typeOther (SE)", "Landcover_typeOther Pval"), sep = "_") %>%
+    separate("Landcover_typeShrub Mix", c("Landcover_typeShrub Mix (SE)", "Landcover_typeShrub Mix Pval"), sep = "_") %>%
+    separate("Landcover_typeWetland", c("Landcover_typeWetland (SE)", "Landcover_typeWetland Pval"), sep = "_") %>%
+    arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer", "Cougar", "Wolf", "Bobcat", "Coyote"))) %>%
+    arrange(match(Season, c("Summer", "Winter")))
+
+
+  #'  Save!
+  write.csv(rsf_results, paste0("./Outputs/RSF_output/RSF_Results_", Sys.Date(), ".csv"))  
+  write.csv(rsf_results_wide, paste0("./Outputs/RSF_output/RSF_Results_wide_", Sys.Date(), ".csv"))
+  
 
   
