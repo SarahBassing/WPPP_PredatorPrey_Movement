@@ -43,13 +43,13 @@
   
   
   #'  Function to re-classify landcover into fewer categories
-  #'  Based on Taylor's feedback
+  #'  Based on T. Ganz's input:
   #'  Open grass: mesic grass, xeric grass, wetland woody
   #'  Shrubby mix: mesic shrub, xeric shrub
-  #'  Forest
-  #'  Wetland
   #'  Other: water, barren, glacier
   #'  Developed: agriculture, commercial, developed
+  #'  Forest
+  #'  Wetland
   class_landcov <- function(locs) {
     locs <- locs %>%
       mutate(
@@ -122,7 +122,7 @@
   
   
   #'  Center & scale covariates 
-  #'  Note: standardizing across all IDs but separately by species, season, & year
+  #'  Note: standardizing across all IDs but separately by species & season
   standardize_covs <- function(locs){
     #'  Make categorical variables factors
     locs$ID <- as.factor(locs$ID)
@@ -155,65 +155,37 @@
   mdData_wtr <- md_dat_all[md_dat_all$Season == "Winter1819" | md_dat_all$Season == "Winter1920" | md_dat_all$Season == "Winter2021",]
   mdDataz_smr <- standardize_covs(mdData_smr)
   mdDataz_wtr <- standardize_covs(mdData_wtr)
-  # mdData_smr <- list(md_dat_all[md_dat_all$Season == "Summer18",], md_dat_all[md_dat_all$Season == "Summer19",], md_dat_all[md_dat_all$Season == "Summer20",])
-  # mdData_wtr <- list(md_dat_all[md_dat_all$Season == "Winter1819",], md_dat_all[md_dat_all$Season == "Winter1920",], md_dat_all[md_dat_all$Season == "Winter2021",])
-  # mdData_smr <- lapply(mdData_smr, standardize_covs)
-  # mdData_wtr <- lapply(mdData_wtr, standardize_covs)
   #'  Note the reclassified landcover_type data for elkData_winter
   elkData_smr <- elk_dat_all[elk_dat_all$Season == "Summer18" | elk_dat_all$Season == "Summer19" | elk_dat_all$Season == "Summer20",]
   elkData_wtr <- elk_dat_all_reclass[elk_dat_all_reclass$Season == "Winter1819" | elk_dat_all_reclass$Season == "Winter1920" | elk_dat_all_reclass$Season == "Winter2021",]
   elkDataz_smr <- standardize_covs(elkData_smr)
   elkDataz_wtr <- standardize_covs(elkData_wtr)
-  # elkData_smr <- list(elk_dat_all[elk_dat_all$Season == "Summer18",], elk_dat_all[elk_dat_all$Season == "Summer19",], elk_dat_all[elk_dat_all$Season == "Summer20",])
-  # elkData_wtr <- list(elk_dat_all_reclass[elk_dat_all_reclass$Season == "Winter1819",], elk_dat_all_reclass[elk_dat_all_reclass$Season == "Winter1920",], elk_dat_all_reclass[elk_dat_all_reclass$Season == "Winter2021",])
-  # elkData_smr <- lapply(elkData_smr, standardize_covs)
-  # elkData_wtr <- lapply(elkData_wtr, standardize_covs)
   #'  Note the reclassified landcover_type data for wtdData_winter 
   wtdData_smr <- wtd_dat_all[wtd_dat_all$Season == "Summer18" | wtd_dat_all$Season == "Summer19" | wtd_dat_all$Season == "Summer20",]
   wtdData_wtr <- wtd_dat_all_reclass[wtd_dat_all_reclass$Season == "Winter1819" | wtd_dat_all_reclass$Season == "Winter1920" | wtd_dat_all_reclass$Season == "Winter2021",]
   wtdDataz_smr <- standardize_covs(wtdData_smr)
   wtdDataz_wtr <- standardize_covs(wtdData_wtr)
-  # wtdData_smr <- list(wtd_dat_all[wtd_dat_all$Season == "Summer18",], wtd_dat_all[wtd_dat_all$Season == "Summer19",], wtd_dat_all[wtd_dat_all$Season == "Summer20",])
-  # wtdData_wtr <- list(wtd_dat_all_reclass[wtd_dat_all_reclass$Season == "Winter1819",], wtd_dat_all_reclass[wtd_dat_all_reclass$Season == "Winter1920",], wtd_dat_all_reclass[wtd_dat_all_reclass$Season == "Winter2021",])
-  # wtdData_smr <- lapply(wtdData_smr, standardize_covs)
-  # wtdData_wtr <- lapply(wtdData_wtr, standardize_covs)
   #'  Note the reclassified landcover_type data for cougData_winter
   cougData_smr <- coug_dat_all[coug_dat_all$Season == "Summer18" | coug_dat_all$Season == "Summer19" | coug_dat_all$Season == "Summer20",]
   cougData_wtr <- coug_dat_all_reclass[coug_dat_all_reclass$Season == "Winter1819" | coug_dat_all_reclass$Season == "Winter1920" | coug_dat_all_reclass$Season == "Winter2021",]
   cougDataz_smr <- standardize_covs(cougData_smr)
   cougDataz_wtr <- standardize_covs(cougData_wtr)
-  # cougData_smr <- list(coug_dat_all[coug_dat_all$Season == "Summer18",], coug_dat_all[coug_dat_all$Season == "Summer19",], coug_dat_all[coug_dat_all$Season == "Summer20",])
-  # cougData_wtr <- list(coug_dat_all_reclass[coug_dat_all_reclass$Season == "Winter1819",], coug_dat_all_reclass[coug_dat_all_reclass$Season == "Winter1920",], coug_dat_all_reclass[coug_dat_all_reclass$Season == "Winter2021",])
-  # cougData_smr <- lapply(cougData_smr, standardize_covs)
-  # cougData_wtr <- lapply(cougData_wtr, standardize_covs)
   #'  Note the double reclassified landcover_type data for wolfData
   wolfData_smr <- wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Summer18" | wolf_dat_all_reclass2$Season == "Summer19" | wolf_dat_all_reclass2$Season == "Summer20",]
   wolfData_wtr <- wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Winter1819" | wolf_dat_all_reclass2$Season == "Winter1920" | wolf_dat_all_reclass2$Season == "Winter2021",]
   wolfDataz_smr <- standardize_covs(wolfData_smr)
   wolfDataz_wtr <- standardize_covs(wolfData_wtr)
-  # wolfData_smr <- list(wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Summer18",], wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Summer19",], wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Summer20",])
-  # wolfData_wtr <- list(wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Winter1819",], wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Winter1920",], wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Winter2021",])
-  # wolfData_smr <- lapply(wolfData_smr, standardize_covs)
-  # wolfData_wtr <- lapply(wolfData_wtr, standardize_covs)
   #'  Note the reclassified landcover_type data for bobData
   bobData_smr <- bob_dat_all_reclass[bob_dat_all_reclass$Season == "Summer18" | bob_dat_all_reclass$Season == "Summer19" | bob_dat_all_reclass$Season == "Summer20",]
   bobData_wtr <- bob_dat_all_reclass[bob_dat_all_reclass$Season == "Winter1819" | bob_dat_all_reclass$Season == "Winter1920" | bob_dat_all_reclass$Season == "Winter2021",]
   bobDataz_smr <- standardize_covs(bobData_smr)
   bobDataz_wtr <- standardize_covs(bobData_wtr)
-  # bobData_smr <- list(bob_dat_all_reclass[bob_dat_all_reclass$Season == "Summer18",], bob_dat_all_reclass[bob_dat_all_reclass$Season == "Summer19",], bob_dat_all_reclass[bob_dat_all_reclass$Season == "Summer20",])
-  # bobData_wtr <- list(bob_dat_all_reclass[bob_dat_all_reclass$Season == "Winter1819",], bob_dat_all_reclass[bob_dat_all_reclass$Season == "Winter1920",], bob_dat_all_reclass[bob_dat_all_reclass$Season == "Winter2021",])
-  # bobData_smr <- lapply(bobData_smr, standardize_covs)
-  # bobData_wtr <- lapply(bobData_wtr, standardize_covs)
   #'  Note the reclassified landcover_type data for coyData
   coyData_smr <- coy_dat_all_reclass[coy_dat_all_reclass$Season == "Summer18" | coy_dat_all_reclass$Season == "Summer19" | coy_dat_all_reclass$Season == "Summer20",]
   coyData_wtr <- coy_dat_all_reclass[coy_dat_all_reclass$Season == "Winter1819" | coy_dat_all_reclass$Season == "Winter1920" | coy_dat_all_reclass$Season == "Winter2021",]
   coyDataz_smr <- standardize_covs(coyData_smr)
   coyDataz_wtr <- standardize_covs(coyData_wtr)
-  # coyData_smr <- list(coy_dat_all_reclass[coy_dat_all_reclass$Season == "Summer18",], coy_dat_all_reclass[coy_dat_all_reclass$Season == "Summer19",], coy_dat_all_reclass[coy_dat_all_reclass$Season == "Summer20",])
-  # coyData_wtr <- list(coy_dat_all_reclass[coy_dat_all_reclass$Season == "Winter1819",], coy_dat_all_reclass[coy_dat_all_reclass$Season == "Winter1920",], coy_dat_all_reclass[coy_dat_all_reclass$Season == "Winter2021",])
-  # coyData_smr <- lapply(coyData_smr, standardize_covs)
-  # coyData_wtr <- lapply(coyData_wtr, standardize_covs)
-  
+
   #'  Correlation Matrix
   #'  ==================
   #'  Function to create correlation matrix for all continuous covariates at once
@@ -226,20 +198,6 @@
     return(cor_matrix)
   }
   #'  Generate correlation matrix for each species and season
-  # (md_smr_corr <- lapply(mdData_smr, cov_correlation))
-  # (md_wtr_corr <- lapply(mdData_wtr, cov_correlation))
-  # (elk_smr_corr <- lapply(elkData_smr, cov_correlation))
-  # (elk_wtr_corr <- lapply(elkData_wtr, cov_correlation))
-  # (wtd_smr_corr <- lapply(wtdData_smr, cov_correlation))
-  # (wtd_wtr_corr <- lapply(wtdData_wtr, cov_correlation))
-  # (coug_smr_corr <- lapply(cougData_smr, cov_correlation))
-  # (coug_wtr_corr <- lapply(cougData_wtr, cov_correlation))
-  # (wolf_smr_corr <- lapply(wolfData_smr, cov_correlation))
-  # (wolf_wtr_corr <- lapply(wolfData_wtr, cov_correlation))
-  # (bob_smr_corr <- lapply(bobData_smr, cov_correlation))
-  # (bob_wtr_corr <- lapply(bobData_wtr, cov_correlation))
-  # (coy_smr_corr <- lapply(coyData_smr, cov_correlation))
-  # (coy_wtr_corr <- lapply(coyData_wtr, cov_correlation))
   (md_smr_corr <- cov_correlation(mdData_smr))
   (md_wtr_corr <- cov_correlation(mdData_wtr))
   (elk_smr_corr <- cov_correlation(elkData_smr))
@@ -270,11 +228,15 @@
   #'  ==================================
   #'  Functions to run logistic mixed effects models that include random effect 
   #'  for individual. Habitat covariates excluded based on species (see notes 
-  #'  above) and convergence issues. Annual models run separately so predicted 
-  #'  distributions are specific to the species, season, and year. Landcover_type
-  #'  reclassified for some species where too few observations occurred in "Other"
-  #'  category- "Other" and "Developed" combined in these cases (input data labeled
-  #'  with _reclass to distinguish the differences in landcover classifications).
+  #'  above) and convergence issues. Seasonal models run separately so RSFs are 
+  #'  specific to the species & season but with all years combined. Some covariates
+  #'  vary annually however so each species & season-specific RSF is predicted 
+  #'  across an annual study area map (under prediction section below). 
+  #'  
+  #'  Using backwards step selection to identify top model with all significant
+  #'  covariates. Covariates excluded through this process are commented out next
+  #'  to model in order that the variable was removed.
+  #'  ==================================
   
   glmm_fn <- function(mod, dat) {
     glmm_mod <- glmer(formula = mod, data = dat, family = binomial(link = "logit"))
@@ -288,93 +250,41 @@
   ####  Mule Deer RSFs  ####
   #'  Dropping HumanMod in mulie models due to high correlation with other covariates
   md_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)", dat = mdDataz_smr) # + CanopyCover
-  md_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = mdDataz_wtr) # + I(Elev^2)
-  #' #'  Dropping HumanMod in mulie models due to high correlation with other covariates
-  #' md_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + RoadDen + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = mdData_smr[[1]]) # + Slope  + Dist2Water
-  #' md_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = mdData_smr[[2]]) # + Dist2Edge
-  #' md_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = mdData_smr[[3]]) # + Dist2Edge + Slope
-  #' md_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = mdData_wtr[[1]]) # + I(Elev^2) + RoadDen
-  #' md_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = mdData_wtr[[2]])
-  #' md_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = mdData_wtr[[3]])
-  
+  md_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = mdDataz_wtr) # + I(Elev^2) + Dist2Edge
+
   ####  Elk RSFs  ####
   #'  Dropping HumanMod in elk summer models due to high correlation with other covariates
   elk_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkDataz_smr)
   #'  Note: using reclassified version of landcover for winter elk models
   elk_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkDataz_wtr)
-  #' #'  Dropping HumanMod in elk summer models due to high correlation with other covariates
-  #' elk_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_smr[[1]])
-  #' elk_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_smr[[2]]) 
-  #' elk_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_smr[[3]])
-  #' #'  Note: using reclassified version of landcover for winter elk models
-  #' elk_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr[[1]])
-  #' elk_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr[[2]]) # + HumanMod
-  #' elk_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkData_wtr[[3]])
-  
+
   ####  White-tailed Deer RSFs  ####
   wtd_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdDataz_smr) # + CanopyCover
   #'  Note: using reclassified version of landcover for winter WTD models
   wtd_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdDataz_wtr)
-  #' #'  Dropping HumanMod in wtd summer models due to high correlation with other covariates
-  #' wtd_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[[1]]) # + Dist2Water
-  #' wtd_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[[2]])
-  #' wtd_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_smr[[3]])
-  #' #'  Note: using reclassified version of landcover for winter WTD models
-  #' wtd_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr[[1]]) # + Dist2Water  + CanopyCover + RoadDen + HumanMod
-  #' wtd_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr[[2]])
-  #' wtd_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdData_wtr[[3]])
-  
+
   ####  Cougar RSFs  ####
   #'  Dropping HumanMod in cougar summer models due to high correlation with other covariates
   coug_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_smr) 
   #'  Note: using reclassified version of landcover for winter cougar models
   coug_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Landcover_type + (1|ID)",  dat = cougDataz_wtr) # + I(Elev^2) + Dist2Edge
-  #' coug_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_smr[[1]])  
-  #' coug_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_smr[[2]])
-  #' coug_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_smr[[3]]) 
-  #' #'  Note: using reclassified version of landcover for winter cougar models
-  #' coug_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_wtr[[1]]) # + RoadDen
-  #' coug_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_wtr[[2]]) # + RoadDen
-  #' coug_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougData_wtr[[3]]) # + RoadDen  + Dist2Water
-  
+
   ####  Wolf RSFs  ####
   #'  NOTE: using 2nd reclassified version of landcover categories for wolf models
   wolf_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfDataz_smr) # + RoadDen + CanopyCover
   wolf_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfDataz_wtr)
-  # wolf_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_smr[[1]]) #+ HumanMod  + RoadDen  + CanopyCover
-  # wolf_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_smr[[2]])
-  # wolf_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_smr[[3]])
-  # wolf_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_wtr[[1]])  # + Dist2Water 
-  # wolf_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_wtr[[2]])  # + Dist2Water  + CanopyCover
-  # wolf_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfData_wtr[[3]])
-  
+
   ####  Bobcat RSFs  ####
   #'  Note: using reclassified version of landcover for summer bobcat models
   bob_smr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = bobDataz_smr) # + I(Elev^2) + CanopyCover
   bob_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Landcover_type + (1|ID)",  dat = bobDataz_wtr) # + Dist2Water + Dist2Edge
-  #' #'  Only data for MVBOB90M in smr18--- not enough data to make inference about bobcat resource selection across 2 study areas
-  #' # bob_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_smr[[1]])
-  #' bob_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_smr[[2]]) # + CanopyCover + Dist2Water
-  #' bob_smr20 <- glmm_fn(mod = "Used ~ 1 + RoadDen + Dist2Water + HumanMod + Landcover_type + (1|ID)",  dat = bobData_smr[[3]])  # + Slope + CanopyCover + I(Elev^2) + Dist2Edge + Elev
-  #' #'  Only data for MVBOB88M & MVBOB90M wtr1819--- not enough data to make inference about bobcat resource selection across 2 study areas
-  #' # bob_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_wtr[[1]])
-  #' bob_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_wtr[[2]]) #  + Dist2Water
-  #' bob_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobData_wtr[[3]]) # + Dist2Water + RoadDen + I(Elev^2)
-  
+
   ####  Coyote RSFs  ####
   #'  Note: using reclassified version of landcover for all coyote models
   #'  Dropping HumanMod from all coyote models due to high correlation with other covariates
   coy_smr <- glmm_fn(mod = "Used ~ 1 + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = coyDataz_smr)  # + I(Elev^2) + Dist2Edge + Elev
   coy_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_wtr) # + CanopyCover
-  #' #'  Data from only MVCOY68F, NECOY1F, NECOY2M, & NECOY3F in snmr18--- hesitant to extrapolate selection across study areas
-  #' coy_smr18 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_smr[[1]])  
-  #' coy_smr19 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = coyData_smr[[2]])  #  + Dist2Edge
-  #' coy_smr20 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_smr[[3]])
-  #' #'  Data from only MVCOY68F, NECOY1F, NECOY2M, NECOY3F & NECOY4M in wtr1819--- hesitant to extrapolate selection across study areas
-  #' coy_wtr1819 <- glmm_fn(mod = "Used ~ 1 + Elev + Dist2Water + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_wtr[[1]]) # + CanopyCover  + RoadDen + I(Elev^2)  + Slope
-  #' coy_wtr1920 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Landcover_type + (1|ID)", dat = coyData_wtr[[2]])  # + CanopyCover  + Dist2Edge
-  #' coy_wtr2021 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyData_wtr[[3]])
-  
+
   #'  Group species-specific models
   RSF_MD_list <- list(md_smr, md_wtr)
   RSF_ELK_list <- list(elk_smr, elk_wtr)
@@ -393,8 +303,19 @@
   save(RSF_BOB_list, file = paste0("./Outputs/RSF_output/RSF_BOB_list_", Sys.Date(), ".RData"))
   save(RSF_COY_list, file = paste0("./Outputs/RSF_output/RSF_COY_list_", Sys.Date(), ".RData"))
   
+  
 
   ####  Project RSF results across study areas  ####
+  #'  ==============================================
+  
+  #'  Load RSFs
+  load("./Outputs/RSF_output/RSF_MD_list_2022-01-13.RData")
+  load("./Outputs/RSF_output/RSF_ELK_list_2022-01-13.RData")
+  load("./Outputs/RSF_output/RSF_WTD_list_2022-01-13.RData")
+  load("./Outputs/RSF_output/RSF_COUG_list_2022-01-13.RData")
+  load("./Outputs/RSF_output/RSF_WOLF_list_2022-01-13.RData")
+  load("./Outputs/RSF_output/RSF_BOB_list_2022-01-13.RData")
+  load("./Outputs/RSF_output/RSF_COY_list_2022-01-13.RData")
   
   #'  Load spatial libraries
   library(sf)
@@ -402,13 +323,12 @@
   
   #'  Define desired projections
   sa_proj <- projection("EPSG:2855")  # NAD83(HARN) / Washington North
-  wgs84 <- projection("+proj=longlat +datum=WGS84 +no_defs")
   
-  #'  Read in study area grids (1km^2)
-  NE_1km <- raster("./Shapefiles/NE_1km_grid.tif")
-  OK_1km <- raster("./Shapefiles/OK_1km_grid.tif")
-  # NE_30m <- raster("./Shapefiles/NE_30m_grid.tif")
-  # OK_30m <- raster("./Shapefiles/OK_30m_grid.tif")
+  #'  Read in study area grids
+  NE_1km <- raster("./Shapefiles/NE_1km_grid_mask.tif")
+  OK_1km <- raster("./Shapefiles/OK_1km_grid_mask.tif")
+  # NE_30m <- raster("./Shapefiles/NE_30m_grid_mask.tif")
+  # OK_30m <- raster("./Shapefiles/OK_30m_grid_mask.tif")
   
   #'  Load study area shapefiles
   OK.SA <- st_read("./Shapefiles/fwdstudyareamaps", layer = "METHOW_SA") %>%
@@ -419,29 +339,43 @@
   NE.SA <- as(NE.SA, "Spatial")
   
   #'  Convert rasters to pixels and extract coordinates (centroid of each cell)
+  #'  FYI: grid.index is the original cell number but b/c some cells were masked 
+  #'  out for large water bodies, the gridID does not match the extracted study 
+  #'  area-wide covariate df so need to create a new ID specific to masked grid
   raster_dat <- function(r) {
     dots <- as(r, "SpatialPixelsDataFrame")
-    ID <- dots@grid.index
+    gridID <- dots@grid.index
     coords <- coordinates(dots)
-    pts <- as.data.frame(cbind(ID, coords))
+    pts <- as.data.frame(cbind(gridID, coords))
+    pts$ID <- seq(1:nrow(pts))
     return(pts)
   }
   NE_pts <- raster_dat(NE_1km)
   OK_pts <- raster_dat(OK_1km)
+  # NE_pts <- raster_dat(NE_30m)
+  # OK_pts <- raster_dat(OK_30m)
   
-  #'  Read in covariates extracted across each study area (1km resolution)
-  load("./Outputs/Telemetry_covs/NE_covs_1km_2022-01-07.RData") 
-  load("./Outputs/Telemetry_covs/OK_covs_1km_2022-01-07.RData")
-  # load("./Outputs/Telemetry_covs/NE_covs_30m_2022-01-07.RData") 
+  #'  Read in covariates extracted across each study area 
+  load("./Outputs/Telemetry_covs/NE_covs_1km_2022-01-13.RData") 
+  load("./Outputs/Telemetry_covs/OK_covs_1km_2022-01-13.RData")
+  # load("./Outputs/Telemetry_covs/NE_covs_30m_2022-01-13.RData") 
   # load("./Outputs/Telemetry_covs/OK_covs_30m_2022-01-13.RData")
   
   #'  Format study area-wide covariate data to include annually relevant data only
   NE.covs <- NE.covs.1km %>%      # NE.covs.30m
     mutate(StudyArea = "NE") %>%
-    full_join(NE_pts, by = "ID")
+    full_join(NE_pts, by = "ID") %>%
+    dplyr::select(-gridID) %>%
+    #'  Covariate values were extracted at masked locations for some reason 
+    #'  need to exclude these because missing coordinate data when joined
+    filter(!is.na(x))
   OK.covs <- OK.covs.1km %>%      # OK.covs.30m
     mutate(StudyArea = "OK") %>%
-    full_join(OK_pts, by = "ID")
+    full_join(OK_pts, by = "ID") %>%
+    dplyr::select(-gridID) %>%
+    #'  Covariate values were extracted at masked locations for some reason 
+    #'  need to exclude these because missing coordinate data when joined
+    filter(!is.na(x))
   SA.covs <- rbind(NE.covs, OK.covs)
   SA.covs.Year1 <- dplyr::select(SA.covs, -c(CanopyCover19, CanopyCover20, Dist2Edge19, Landcover_type19))
   names(SA.covs.Year1) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
@@ -463,11 +397,11 @@
   OK.covs_list <- list(SA.covs.Year1[SA.covs.Year1$StudyArea == "OK",], SA.covs.Year2[SA.covs.Year2$StudyArea == "OK",], SA.covs.Year3[SA.covs.Year3$StudyArea == "OK",])
   
   
-  #'  Call landcover and scaling functions from above to format covariates
+  #'  Call landcover and scaling functions from above to re-format covariates
   SA.covs_list <- lapply(SA.covs_list, class_landcov)
   SA.covs_list_reclass <- lapply(SA.covs_list, reclass_landcov)
   SA.covs_list_wolf_reclass <- lapply(SA.covs_list_reclass, reclass_wolf)
-  
+  #'  Reformat study area specific covariate dfs for ungulate models
   NE.covs_list <- lapply(NE.covs_list, class_landcov)
   OK.covs_list <- lapply(OK.covs_list, class_landcov)
   NE.covs_list_reclass <- lapply(NE.covs_list, reclass_landcov)
@@ -504,20 +438,7 @@
   bobCov_wtr_summary <- cov_summary(bobData_wtr)
   coyCov_smr_summary <- cov_summary(coyData_smr)
   coyCov_wtr_summary <- cov_summary(coyData_wtr)
-  # mdCov_smr_summary <- lapply(mdData_smr, cov_summary)
-  # mdCov_wtr_summary <- lapply(mdData_wtr, cov_summary)
-  # elkCov_smr_summary <- lapply(elkData_smr, cov_summary)
-  # elkCov_wtr_summary <- lapply(elkData_wtr, cov_summary)
-  # wtdCov_smr_summary <- lapply(wtdData_smr, cov_summary)
-  # wtdCov_wtr_summary <- lapply(wtdData_wtr, cov_summary)
-  # cougCov_smr_summary <- lapply(cougData_smr, cov_summary)
-  # cougCov_wtr_summary <- lapply(cougData_wtr, cov_summary)
-  # wolfCov_smr_summary <- lapply(wolfData_smr, cov_summary)
-  # wolfCov_wtr_summary <- lapply(wolfData_wtr, cov_summary)
-  # bobCov_smr_summary <- lapply(bobData_smr, cov_summary)
-  # bobCov_wtr_summary <- lapply(bobData_wtr, cov_summary)
-  # coyCov_smr_summary <- lapply(coyData_smr, cov_summary)
-  # coyCov_wtr_summary <- lapply(coyData_wtr, cov_summary)
+
   
   #'  Standardize study area-wide covariates based on the mean [1] and SD [2] of 
   #'  the original covariate values that went into the RSFs
@@ -562,7 +483,8 @@
   coy_smr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = coyCov_smr_summary)
   coy_wtr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = coyCov_wtr_summary)
 
-  #'  Function to save parameter estimates & p-values from each RSF
+  
+  #'  Function to save parameter estimates from each RSF
   #'  Use coef(mod) to look at random effects estimates
   rounddig <- 2
   
@@ -610,21 +532,21 @@
     
     return(out)
   }
-  #'  Extract coefficient estimates for each trained model
-  md_smr_rsfout <- rsf_out(md_smr, spp = "Mule Deer", season = "Summer")
-  md_wtr_rsfout <- rsf_out(md_wtr, spp = "Mule Deer", season = "Winter")
-  elk_smr_rsfout <- rsf_out(elk_smr, spp = "Elk", season = "Summer")
-  elk_wtr_rsfout <- rsf_out(elk_wtr, spp = "Elk", season = "Winter")
-  wtd_smr_rsfout <- rsf_out(wtd_smr, spp = "White-tailed Deer", season = "Summer")
-  wtd_wtr_rsfout <- rsf_out(wtd_wtr, spp = "White-tailed Deer", season = "Winter")
-  coug_smr_rsfout <- rsf_out(coug_smr, spp = "Cougar", season = "Summer")
-  coug_wtr_rsfout <- rsf_out(coug_wtr, spp = "Cougar", season = "Winter")
-  wolf_smr_rsfout <- rsf_out(wolf_smr, spp = "Wolf", season = "Summer")
-  wolf_wtr_rsfout <- rsf_out(wolf_wtr, spp = "Wolf", season = "Winter")
-  bob_smr_rsfout <- rsf_out(bob_smr, spp = "Bobcat", season = "Summer")
-  bob_wtr_rsfout <- rsf_out(bob_wtr, spp = "Bobcat", season = "Winter")
-  coy_smr_rsfout <- rsf_out(coy_smr, spp = "Coyote", season = "Summer")
-  coy_wtr_rsfout <- rsf_out(coy_wtr, spp = "Coyote", season = "Winter")
+  #'  Extract coefficient estimates for each model (list: summer rsf [[1]], winter rsf [[2]])
+  md_smr_rsfout <- rsf_out(RSF_MD_list[[1]], spp = "Mule Deer", season = "Summer")
+  md_wtr_rsfout <- rsf_out(RSF_MD_list[[2]], spp = "Mule Deer", season = "Winter")
+  elk_smr_rsfout <- rsf_out(RSF_ELK_list[[1]], spp = "Elk", season = "Summer")
+  elk_wtr_rsfout <- rsf_out(RSF_ELK_list[[2]], spp = "Elk", season = "Winter")
+  wtd_smr_rsfout <- rsf_out(RSF_WTD_list[[1]], spp = "White-tailed Deer", season = "Summer")
+  wtd_wtr_rsfout <- rsf_out(RSF_WTD_list[[2]], spp = "White-tailed Deer", season = "Winter")
+  coug_smr_rsfout <- rsf_out(RSF_COUG_list[[1]], spp = "Cougar", season = "Summer")
+  coug_wtr_rsfout <- rsf_out(RSF_COUG_list[[2]], spp = "Cougar", season = "Winter")
+  wolf_smr_rsfout <- rsf_out(RSF_WOLF_list[[1]], spp = "Wolf", season = "Summer")
+  wolf_wtr_rsfout <- rsf_out(RSF_WOLF_list[[2]], spp = "Wolf", season = "Winter")
+  bob_smr_rsfout <- rsf_out(RSF_BOB_list[[1]], spp = "Bobcat", season = "Summer")
+  bob_wtr_rsfout <- rsf_out(RSF_BOB_list[[2]], spp = "Bobcat", season = "Winter")
+  coy_smr_rsfout <- rsf_out(RSF_COY_list[[1]], spp = "Coyote", season = "Summer")
+  coy_wtr_rsfout <- rsf_out(RSF_COY_list[[2]], spp = "Coyote", season = "Winter")
   
   
   #'  Function to predict across all grid cells based on RSF results
@@ -669,40 +591,169 @@
   coy_smr_rsf_sa <- lapply(coy_smr_zcovs, predict_rsf, coef = coy_smr_rsfout)
   coy_wtr_rsf_sa <- lapply(coy_wtr_zcovs, predict_rsf, coef = coy_wtr_rsfout)
   
-  #'  List and save
-  # all_spp_RSF_predicted <- list(md_smr_rsf_sa, md_wtr_rsf_sa, elk_smr_rsf_sa, elk_wtr_rsf_sa, wtd_smr_rsf_sa, wtd_wtr_rsf_sa, coug_smr_rsf_sa, coug_wtr_rsf_sa, wolf_smr_rsf_sa, wolf_wtr_rsf_sa, bob_smr_rsf_sa, bob_wtr_rsf_sa, coy_smr_rsf_sa, coy_wtr_rsf_sa)
-  # save(all_spp_RSF_predicted, file = "./Outputs/RSF_output/all_spp_RSF_predicted_", Sys.Date(), ".RData")
-  coy_rsf_predicted <- list(coy_smr_rsf_sa, coy_wtr_rsf_sa)
-  save(coy_rsf_predicted, file = "./Outputs/RSF_output/coy_rsf_predicted_", Sys.Date(), ".RData")
+  chk <- coy_smr_rsf_sa[[1]]
   
+  #'  List and save
+  all_spp_RSF_predicted <- list(md_smr_rsf_sa, md_wtr_rsf_sa, elk_smr_rsf_sa, 
+                                elk_wtr_rsf_sa, wtd_smr_rsf_sa, wtd_wtr_rsf_sa, 
+                                coug_smr_rsf_sa, coug_wtr_rsf_sa, wolf_smr_rsf_sa, 
+                                wolf_wtr_rsf_sa, bob_smr_rsf_sa, bob_wtr_rsf_sa, 
+                                coy_smr_rsf_sa, coy_wtr_rsf_sa)
+  # save(all_spp_RSF_predicted, file = paste0("./Outputs/RSF_output/all_spp_RSF_predicted_", Sys.Date(), ".RData"))
+  coy_rsf_predicted <- list(coy_smr_rsf_sa, coy_wtr_rsf_sa)
+
+  
+  #'  Identify any outliers
+  outliers <- function(predicted, title, covs_list) {
+    #'  Summarize predicted values
+    hist(predicted$predict_rsf, breaks = 100, main = title)
+    boxplot(predicted$predict_rsf, main = title)
+    #'  What value represents the 99th percentile in the predicted RSF values
+    quant <- quantile(predicted$predict_rsf, c(0.99), na.rm = TRUE)
+    #'  Print that value and maximum prediction
+    print(quant); print(max(predicted$predict_rsf, na.rm = TRUE))
+    #'  Identify the 1% most extreme values and set to 99th percentile value
+    predicted <- predicted %>%
+      mutate(outlier = ifelse(predict_rsf > quant, "outlier", "not_outlier"),
+             adjusted_rsf = ifelse(outlier == "outlier", quant, predict_rsf))
+    #'  How many predicted values are above the 99th percentile?
+    outlier <- predicted[predicted$outlier == "outlier",]
+    outlier <- filter(outlier, !is.na(outlier))
+    print(nrow(outlier))
+    
+    #' Summarize covariates associated with extreme values
+    bigvalues <- full_join(predicted, covs_list, by = c("ID", "StudyArea", "x", "y"))
+    print(summary(bigvalues)) 
+    hist(bigvalues$Elev, breaks = 25, main = "Frequency of Elevation values", xlab = "Standardize Elevation")
+    hist(bigvalues$Elev[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Elevation values", xlab = "Standardize Elevation")
+    hist(bigvalues$Slope, breaks = 25, main = "Frequency of Slope values", xlab = "Standardize Slope")
+    hist(bigvalues$Slope[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Slope values", xlab = "Standardize Slope")
+    hist(bigvalues$RoadDen, breaks = 25, main = "Frequency of Road Density values", xlab = "Standardize Road Density")
+    hist(bigvalues$RoadDen[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Road Density values", xlab = "Standardize Road Density")
+    hist(bigvalues$Dist2Water, breaks = 25, main = "Frequency of Distance to Water values", xlab = "Standardize Dist. to Water")
+    hist(bigvalues$Dist2Water[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Water values", xlab = "Standardize Dist. to Water")
+    hist(bigvalues$HumanMod, breaks = 25, main = "Frequency of Human Modified Landscape values", xlab = "Standardize Human Mod")
+    hist(bigvalues$HumanMod[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Human Modified Landscape values", xlab = "Standardize Human Mod")
+    hist(bigvalues$CanopyCover, breaks = 25, main = "Frequency of Canopy Cover values", xlab = "Standardize Canopy Cover")
+    hist(bigvalues$CanopyCover[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Canopy Cover values", xlab = "Standardize Canopy Cover")
+    hist(bigvalues$Dist2Edge, breaks = 25, main = "Frequency of Distance to Edge values", xlab = "Standardize Dist. to Edge")
+    hist(bigvalues$Dist2Edge[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Edge values", xlab = "Standardize Dist. to Edge")
+    
+    #' plot(bigvalues$RoadDen, bigvalues$predict_rsf, main = "Correlation between Predicted RSF and Road Density", xlab = "Road Density", ylab = "Predicted RSF Values")
+    #' #'  Simple regression between covaraites
+    #' abline(lm(bigvalues$predict_rsf ~ bigvalues$RoadDen), col = "red")
+    #' #'  Mark the 99th percentil value
+    #' abline(h = quant, col = "blue")
+    #' #'  Frequency of covariates associated with non-extreme & extreme RSF values
+    #' hist(bigvalues$RoadDen, breaks = 10, main = "Frequency of Road Density values", xlab = "Road Density")
+    #' hist(bigvalues$RoadDen[bigvalues$outlier == "not_outlier"], breaks = 10, main = "Frequency of Road Density values with NO RSF outliers", xlab = "Road Density")
+    #' hist(bigvalues$RoadDen[bigvalues$outlier == "outlier"], breaks = 10, main = "Frequency of Road Density values for RSF outliers", xlab = "Road Density")
+    #' 
+    #' bigvalues <- cbind(predicted, covs_list)
+    #' plot(bigvalues$Dist2Water, bigvalues$predict_rsf, main = "Correlation between Predicted RSF and Distance to Water", xlab = "Distance to Water", ylab = "Predicted RSF Values")
+    #' #'  Simple regression between covaraites
+    #' abline(lm(bigvalues$predict_rsf ~ bigvalues$Dist2Water), col = "red")
+    #' #'  Mark the 99th percentil value
+    #' abline(h = quant, col = "blue")
+    #' #'  Frequency of covariates associated with non-extreme & extreme RSF values
+    #' hist(bigvalues$Dist2Water, breaks = 10, main = "Frequency of Distance to Water values", xlab = "Distance to Water")
+    #' hist(bigvalues$Dist2Water[bigvalues$outlier == "not_outlier"], breaks = 10, main = "Frequency of Distance to Water values with NO RSF outliers", xlab = "Distance to Water")
+    #' hist(bigvalues$Dist2Water[bigvalues$outlier == "outlier"], breaks = 10, main = "Frequency of Distance to Water values for RSF outliers", xlab = "Distance to Water")
+
+    return(bigvalues)
+  }
+  #'  Identify outlier predictions and possible covariates associated with those
+  #'  Be sure to used standardized covariates for evaluation
+  md_smr_outliers <- lapply(md_smr_rsf_sa, outliers, title = "Mule Deer Summer RSF Predictions", covs_list = md_smr_zcovs[[1]]) 
+  md_wtr_outliers <- lapply(md_wtr_rsf_sa, outliers, title = "Mule Deer Winter RSF Predictions", covs_list = md_wtr_zcovs[[1]]) #' one extreme slope value associated w/ one big outlier (mask out pixels Slope >6)
+  elk_smr_outliers <- lapply(elk_smr_rsf_sa, outliers, title = "Elk Summer RSF Predictions", covs_list = elk_smr_zcovs[[1]]) #' one extreme dist2water value associated w/ one big outlier (mask out pixels Dist2Water >9)
+  elk_wtr_outliers <- lapply(elk_wtr_rsf_sa, outliers, title = "Elk Winter RSF Predictions", covs_list = elk_wtr_zcovs[[1]]) #' extreme dist2water values associated w/ outliers (mask out pixels Dist2Water >9)
+  wtd_smr_outliers <- lapply(wtd_smr_rsf_sa, outliers, title = "White-tailed Deer Summer RSF Predictions", covs_list = wtd_smr_zcovs[[1]]) #' extreme road density values associated w/ outliers (mask out pixels RoadDen >13)
+  wtd_wtr_outliers <- lapply(wtd_wtr_rsf_sa, outliers, title = "White-tailed Deer Winter RSF Predictions", covs_list = wtd_wtr_zcovs[[1]]) #' extreme road density & Dist2Water values associated w/ outliers (mask out pixels RoadDen >13, Dist2Water >9)
+  coug_smr_outliers <- lapply(coug_smr_rsf_sa, outliers, title = "Cougar Summer RSF Predictions", covs_list = coug_smr_zcovs[[1]])
+  coug_wtr_outliers <- lapply(coug_wtr_rsf_sa, outliers, title = "Cougar Winter RSF Predictions", covs_list = coug_wtr_zcovs[[1]])
+  wolf_smr_outliers <- lapply(wolf_smr_rsf_sa, outliers, title = "Wolf Summer RSF Predictions", covs_list = wolf_smr_zcovs[[1]])
+  wolf_wtr_outliers <- lapply(wolf_wtr_rsf_sa, outliers, title = "Wolf Winter RSF Predictions", covs_list = wolf_wtr_zcovs[[1]])
+  bob_smr_outliers <- lapply(bob_smr_rsf_sa, outliers, title = "Bobcat Summer RSF Predictions", covs_list = bob_smr_zcovs[[1]])
+  bob_wtr_outliers <- lapply(bob_wtr_rsf_sa, outliers, title = "Bobcat Winter RSF Predictions", covs_list = bob_wtr_zcovs[[1]])
+  coy_smr_outliers <- lapply(coy_smr_rsf_sa, outliers, title = "Coyote Summer RSF Predictions", covs_list = bob_smr_zcovs[[1]]) #' extreme road density, Dist2Water, & HumanMod values for some outliers but also for non-outliers
+  coy_wtr_outliers <- lapply(coy_wtr_rsf_sa, outliers, title = "Coyote Winter RSF Predictions", covs_list = coy_wtr_zcovs[[1]]) #' extreme road density values associated w/ outliers (mask out pixels RoadDen >13)
+  #'  After reviewing extreme RSF values and covaraite values associated with 
+  #'  those locations I am masking pixels for:
+  #'   1. Winter mule deer where SLOPE > 6
+  #'   2. Summer and Winter elk where DIST2WATER > 9
+  #'   3. Summer white-tailed deer where ROADDEN > 13
+  #'   4. Winter white-tailed deer where ROADDEN > 13 & DIST2WATER > 9
+  #'   5. Winter coyote where ROADDEN > 13
+  
+  #'  Exclude extreme outliers as identified above
+  #'  Mule Deer
+  mask_md <- function(predicted) {
+    predicted <- predicted %>%
+      mutate(masked_rsf = ifelse(Slope > 6, "NA", predict_rsf),
+             masked_rsf = as.numeric(masked_rsf))
+  }
+  md_wtr_outliers <- lapply(md_wtr_outliers, mask_md)
+  #'  Elk
+  mask_elk <- function(predicted) {
+    predicted <- predicted %>%
+      mutate(masked_rsf = ifelse(Dist2Water > 9, "NA", predict_rsf),
+             masked_rsf = as.numeric(masked_rsf))
+  }
+  elk_smr_outliers <- lapply(elk_smr_outliers, mask_elk)
+  elk_wtr_outliers <- lapply(elk_wtr_outliers, mask_elk)
+  #'  Winter White-tailed Deer
+  mask_wtd <- function(predicted) {
+    predicted <- predicted %>%
+      mutate(masked_rsf = ifelse(RoadDen > 13, "NA", predict_rsf),
+             masked_rsf = ifelse(Dist2Water > 9, "NA", masked_rsf),
+             masked_rsf = as.numeric(masked_rsf))
+  }
+  wtd_wtr_outliers <- lapply(wtd_wtr_outliers, mask_wtd)
+  #'  Summer White-tailed Deer, Winter Coyote
+  mask_rd <- function(predicted) {
+    predicted <- predicted %>%
+      mutate(masked_rsf = ifelse(RoadDen > 13, "NA", predict_rsf),
+             masked_rsf = as.numeric(masked_rsf))
+  }
+  wtd_smr_outliers <- lapply(wtd_smr_outliers, mask_rd)
+  coy_wtr_outliers <- lapply(coy_wtr_outliers, mask_rd)
+  
+  ####  Even after masking out extreme values related to high covariate values
+  ####  there are still extreme RSF values that skew the rescaling and lead to
+  ####  misleading plots. Using adjusted RSF values instead where extreme 1% are
+  ####  set to 99th percentile value.
+  
+
   #'  Re-scale predicted RSF values between 0 & 1 for plotting
   RSF_rescale <- function(out) {
     rescale_val <- out %>%
       mutate(
-        rescale_rsf = round(predict_rsf/(max(predict_rsf, na.rm = T)), digits = 4)
+        rescale_rsf = round(adjusted_rsf/(max(adjusted_rsf, na.rm = T)), digits = 4)
+        # rescale_rsf = round(masked_rsf/(max(masked_rsf, na.rm = T)), digits = 4)
+        # rescale_rsf = round(predict_rsf/(max(predict_rsf, na.rm = T)), digits = 4)
       ) %>%
-      dplyr::select(-c(ID, StudyArea, predict_rsf))
+      dplyr::select(c(x, y, rescale_rsf))
     return(rescale_val)
   }
   #'  Rescale predicted RSF values within each list of lists
-  md_smr_rescale_sa <- lapply(md_smr_rsf_sa, RSF_rescale)  
-  md_wtr_rescale_sa <- lapply(md_wtr_rsf_sa, RSF_rescale)
-  elk_smr_rescale_sa <- lapply(elk_smr_rsf_sa, RSF_rescale)  
-  elk_wtr_rescale_sa <- lapply(elk_wtr_rsf_sa, RSF_rescale)
-  wtd_smr_rescale_sa <- lapply(wtd_smr_rsf_sa, RSF_rescale)  
-  wtd_wtr_rescale_sa <- lapply(wtd_wtr_rsf_sa, RSF_rescale)
-  coug_smr_rescale_sa <- lapply(coug_smr_rsf_sa, RSF_rescale)  
-  coug_wtr_rescale_sa <- lapply(coug_wtr_rsf_sa, RSF_rescale)
-  wolf_smr_rescale_sa <- lapply(wolf_smr_rsf_sa, RSF_rescale)  
-  wolf_wtr_rescale_sa <- lapply(wolf_wtr_rsf_sa, RSF_rescale)
-  bob_smr_rescale_sa <- lapply(bob_smr_rsf_sa, RSF_rescale)  
-  bob_wtr_rescale_sa <- lapply(bob_wtr_rsf_sa, RSF_rescale)
-  coy_smr_rescale_sa <- lapply(coy_smr_rsf_sa, RSF_rescale)  # a few major outliers on the high end
-  coy_wtr_rescale_sa <- lapply(coy_wtr_rsf_sa, RSF_rescale)
+  md_smr_rescale_sa <- lapply(md_smr_outliers, RSF_rescale)  #md_smr_rsf_sa
+  md_wtr_rescale_sa <- lapply(md_wtr_outliers, RSF_rescale) 
+  elk_smr_rescale_sa <- lapply(elk_smr_outliers, RSF_rescale) 
+  elk_wtr_rescale_sa <- lapply(elk_wtr_outliers, RSF_rescale) 
+  wtd_smr_rescale_sa <- lapply(wtd_smr_outliers, RSF_rescale)  
+  wtd_wtr_rescale_sa <- lapply(wtd_wtr_outliers, RSF_rescale) 
+  coug_smr_rescale_sa <- lapply(coug_smr_outliers, RSF_rescale)  
+  coug_wtr_rescale_sa <- lapply(coug_wtr_outliers, RSF_rescale)
+  wolf_smr_rescale_sa <- lapply(wolf_smr_outliers, RSF_rescale)  
+  wolf_wtr_rescale_sa <- lapply(wolf_wtr_outliers, RSF_rescale)
+  bob_smr_rescale_sa <- lapply(bob_smr_outliers, RSF_rescale)  
+  bob_wtr_rescale_sa <- lapply(bob_wtr_outliers, RSF_rescale)
+  coy_smr_rescale_sa <- lapply(coy_smr_outliers, RSF_rescale)  
+  coy_wtr_rescale_sa <- lapply(coy_wtr_outliers, RSF_rescale) 
+
   
-  ####  NEED TO DEAL WITH THESE OUTLIERS BEFORE RESCALING!!!
-  ####  NEED TO DEAL WITH MASKING WATERBODIES OUT OF GRID BEFORE RESCALING TOO
-  
+  chk <- md_smr_rescale_sa[[1]]
   
   #'  Rasterize predicted RSF values
   rasterize_rsf <- function(rsf_list) {
@@ -716,8 +767,8 @@
     #'  Define projection
     crs(rasterRSF) <- sa_proj
     plot(rasterRSF)
-    # plot(NE.SA, add = T)
-    # plot(OK.SA, add = T)
+    plot(NE.SA, add = T)
+    plot(OK.SA, add = T)
     
     return(rasterRSF)
   }
@@ -725,8 +776,8 @@
   md_wtr_RSFraster <- lapply(md_wtr_rescale_sa, rasterize_rsf)
   elk_smr_RSFraster <- lapply(elk_smr_rescale_sa, rasterize_rsf)
   elk_wtr_RSFraster <- lapply(elk_wtr_rescale_sa, rasterize_rsf)
-  wtd_smr_RSFraster <- lapply(wtd_smr_rescale_sa, rasterize_rsf)
-  wtd_wtr_RSFraster <- lapply(wtd_wtr_rescale_sa, rasterize_rsf)
+  wtd_smr_RSFraster <- lapply(wtd_smr_rescale_sa, rasterize_rsf) 
+  wtd_wtr_RSFraster <- lapply(wtd_wtr_rescale_sa, rasterize_rsf) 
   coug_smr_RSFraster <- lapply(coug_smr_rescale_sa, rasterize_rsf)
   coug_wtr_RSFraster <- lapply(coug_wtr_rescale_sa, rasterize_rsf)
   wolf_smr_RSFraster <- lapply(wolf_smr_rescale_sa, rasterize_rsf)
@@ -742,13 +793,59 @@
     S <- stack(L)
     return(S)
   }
+  md_smr_RSFstack <- rename_raster(md_smr_RSFraster)
+  md_wtr_RSFstack <- rename_raster(md_wtr_RSFraster)
+  elk_smr_RSFstack <- rename_raster(elk_smr_RSFraster)
+  elk_wtr_RSFstack <- rename_raster(elk_wtr_RSFraster)
+  wtd_smr_RSFstack <- rename_raster(wtd_smr_RSFraster)
+  wtd_wtr_RSFstack <- rename_raster(wtd_wtr_RSFraster)
+  coug_smr_RSFstack <- rename_raster(coug_smr_RSFraster)
+  coug_wtr_RSFstack <- rename_raster(coug_wtr_RSFraster)
+  wolf_smr_RSFstack <- rename_raster(wolf_smr_RSFraster)
+  wolf_wtr_RSFstack <- rename_raster(wolf_wtr_RSFraster)
+  bob_smr_RSFstack <- rename_raster(bob_smr_RSFraster)
+  bob_wtr_RSFstack <- rename_raster(bob_wtr_RSFraster)
   coy_smr_RSFstack <- rename_raster(coy_smr_RSFraster)
   coy_wtr_RSFstack <- rename_raster(coy_wtr_RSFraster)
 
+  
+  #'  Plot & Save
+  pdf(file = "./Outputs/RSF_Maps.pdf")
+  plot(md_smr_RSFstack[[1]], main = "Summer Mule Deer Predicted RSF (2018)"); plot(OK.SA, add = T)
+  plot(md_wtr_RSFstack[[1]], main = "Winter Mule Deer Predicted RSF (2018)"); plot(OK.SA, add = T)
+  plot(elk_smr_RSFstack[[1]], main = "Summer Elk Predicted RSF (2018)"); plot(NE.SA, add = T)
+  plot(elk_wtr_RSFstack[[1]], main = "Winter Elk Predicted RSF (2018)"); plot(NE.SA, add = T)
+  plot(wtd_smr_RSFstack[[1]], main = "Summer White-tailed Deer Predicted RSF (2018)"); plot(NE.SA, add = T)
+  plot(wtd_wtr_RSFstack[[1]], main = "Winter White-tailed Deer Predicted RSF (2018)"); plot(NE.SA, add = T)
+  plot(coug_smr_RSFstack[[1]], main = "Summer Cougar Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
+  plot(coug_wtr_RSFstack[[1]], main = "Winter Cougar Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
+  plot(wolf_smr_RSFstack[[1]], main = "Summer Wolf Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
+  plot(wolf_wtr_RSFstack[[1]], main = "Winter Wolf Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
+  plot(bob_smr_RSFstack[[1]], main = "Summer Bobcat Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
+  plot(bob_wtr_RSFstack[[1]], main = "Winter Bobcat Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
+  plot(coy_smr_RSFstack[[1]], main = "Summer Coyote Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
+  plot(coy_wtr_RSFstack[[1]], main = "Winter Coyote Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
+  dev.off()
+  
+  
+  
+  #'  SAVE!
+  writeRaster(md_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/md_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(md_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/md_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(elk_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/elk_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(elk_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/elk_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(wtd_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wtd_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(wtd_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wtd_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(coug_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coug_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(coug_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coug_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(wolf_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wolf_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(wolf_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wolf_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(bob_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/bob_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(bob_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/bob_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
   writeRaster(coy_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coy_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
   writeRaster(coy_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coy_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
   
-  tst <- stack("./Shapefiles/Predicted_RSFs/coy_wtr_RSFstack.tif")
+
   
   
     #' ####  Summary tables  ####
