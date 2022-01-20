@@ -507,6 +507,10 @@
         SE = round(se, rounddig),
         Z = round(z, rounddig),
         Pval = round(pval, rounddig)) %>%
+      #'  Use p-values to change non-significant coefficients (alpha-level > 0.05) 
+      #'  to 0 so there is no effect. Only exception is when Elev^2 is significant
+      #'  but Elev is not. Coefficient for Elev still needs to be in the model.
+      mutate(Estimate = ifelse(Pval > 0.05 & Parameter != "Elev", Estimate == 0, Estimate)) %>%
       dplyr::select(c(Species, Season, Parameter, Estimate)) %>%
       mutate(Parameter = ifelse(Parameter == "(Intercept)", "alpha", Parameter),
              Parameter = ifelse(Parameter == "Elev", "b.elev", Parameter),
@@ -523,8 +527,8 @@
              Parameter = ifelse(Parameter == "Landcover_typeShrub Mix", "b.shrub", Parameter),
              Parameter = ifelse(Parameter == "Landcover_typeWetland", "b.wetland", Parameter)) %>%
       #'  Spread data so each row represents model coefficients for a single season, single species model
-      pivot_wider(names_from = Parameter, values_from = Estimate) 
-    
+      pivot_wider(names_from = Parameter, values_from = Estimate)
+
     #'  Covariates excluded from species-specific models not included in the data
     #'  frame but necessary for predicting function to work below
     #'  Vector of columns names that need to be included in this data frame
