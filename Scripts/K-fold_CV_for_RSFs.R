@@ -554,6 +554,7 @@
              Parameter = ifelse(Parameter == "HumanMod", "b.hm", Parameter),
              Parameter = ifelse(Parameter == "CanopyCover", "b.canopy", Parameter),
              Parameter = ifelse(Parameter == "Dist2Edge", "b.edge", Parameter),
+             Parameter = ifelse(Parameter == "Landcover_typeDeveloped", "b.developed", Parameter),
              Parameter = ifelse(Parameter == "Landcover_typeOpen Grass", "b.grass", Parameter),
              Parameter = ifelse(Parameter == "Landcover_typeOther", "b.other", Parameter),
              Parameter = ifelse(Parameter == "Landcover_typeShrub Mix", "b.shrub", Parameter),
@@ -593,6 +594,7 @@
                             coef$b.slope*cov$Slope[i] + coef$b.road*cov$RoadDen[i] +
                             coef$b.water*cov$Dist2Water[i] + coef$b.hm*cov$HumanMod[i] +
                             coef$b.canopy*cov$CanopyCover[i] + coef$b.edge*cov$Dist2Edge[i] +
+                              coef$b.developed*cov$Landcover_Developed[i] +
                             coef$b.grass*cov$Landcover_Grass[i] + coef$b.other*cov$Landcover_Other[i] +
                             coef$b.shrub*cov$Landcover_Shrub[i] + coef$b.wetland*cov$Landcover_Wetland[i])
     }
