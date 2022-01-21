@@ -565,7 +565,7 @@
     #'  Covariates excluded from species-specific models not included in this data 
     #'  frame but necessary for predicting function to work below
     #'  Vector of columns names that need to be included in this data frame
-    nms <- c("Species", "Season", "alpha", "b.elev", "b.elev2", "b.slope", "b.road", "b.water", "b.hm", "b.canopy", "b.edge", "b.grass", "b.other", "b.shrub", "b.wetland")
+    nms <- c("Species", "Season", "alpha", "b.elev", "b.elev2", "b.slope", "b.road", "b.water", "b.hm", "b.canopy", "b.edge", "b.developed", "b.grass", "b.other", "b.shrub", "b.wetland")
     #'  Identify if there are any missing column names in the data frame
     Missing <- setdiff(nms, names(out))
     #'  Add missing columns and fill with 0's
