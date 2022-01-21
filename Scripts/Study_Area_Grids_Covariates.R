@@ -86,6 +86,9 @@
   res(grid_1k); projection(grid_1k)
   bbox_1k <- bbox(grid_1k)
   
+  #'  Get the extent in Lat/Long
+  extent(projectExtent(grid_1k,"+proj=longlat +datum=WGS84 +no_defs"))
+  
   #'  Generate 30m2 grid based on WPPP 1km2 grid
   grid_30m <- raster(extent(bbox_1k), crs = projection(sa_proj), res = 30)
   grid_30m[] <- 1:ncell(grid_30m)
@@ -377,9 +380,9 @@
   #'  Run centroids of each study area raster through covariate extract function
   #'  30m resolution rasters take AWHILE
   NE.covs.1km <- cov_extract(locs = NE.centers.1km, locs_wgs84 = NE.centers.1km.wgs84, locs_dist = NE.centers.1km.distproj)
-  # NE.covs.30m <- cov_extract(locs = NE.centers.30m, locs_wgs84 = NE.centers.30m.wgs84, locs_dist = NE.centers.30m.distproj)
+  NE.covs.30m <- cov_extract(locs = NE.centers.30m, locs_wgs84 = NE.centers.30m.wgs84, locs_dist = NE.centers.30m.distproj)
   OK.covs.1km <- cov_extract(locs = OK.centers.1km, locs_wgs84 = OK.centers.1km.wgs84, locs_dist = OK.centers.1km.distproj)
-  # OK.covs.30m <- cov_extract(locs = OK.centers.30m, locs_wgs84 = OK.centers.30m.wgs84, locs_dist = OK.centers.30m.distproj) # fails on my computer
+  OK.covs.30m <- cov_extract(locs = OK.centers.30m, locs_wgs84 = OK.centers.30m.wgs84, locs_dist = OK.centers.30m.distproj) # fails on my computer
   
 
   #'  End time keeping
@@ -391,9 +394,9 @@
   
   
   save(NE.covs.1km, file = paste0("./Outputs/Telemetry_covs/NE_covs_1km_", Sys.Date(), ".RData"))
-  # save(NE.covs.30m, file = paste0("./Outputs/Telemetry_covs/NE_covs_30m_", Sys.Date(), ".RData"))
+  save(NE.covs.30m, file = paste0("./Outputs/Telemetry_covs/NE_covs_30m_", Sys.Date(), ".RData"))
   save(OK.covs.1km, file = paste0("./Outputs/Telemetry_covs/OK_covs_1km_", Sys.Date(), ".RData"))
-  # save(OK.covs.30m, file = paste0("./Outputs/Telemetry_covs/OK_covs_30m_", Sys.Date(), ".RData"))
+  save(OK.covs.30m, file = paste0("./Outputs/Telemetry_covs/OK_covs_30m_", Sys.Date(), ".RData"))
   
   load("./Outputs/Telemetry_covs/NE_covs_1km_2022-01-21.RData")
   load("./Outputs/Telemetry_covs/NE_covs_30m_2022-01-13.RData")
