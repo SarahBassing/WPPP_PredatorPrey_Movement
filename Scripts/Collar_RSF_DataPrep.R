@@ -84,7 +84,8 @@
   #'  Generate random "Available" locations for each individual
   #'  =========================================================
   #'  Set projection for spatial analyses
-  sa_proj <- CRS("+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs ")
+  sa_proj <- projection("EPSG:2855")  # NAD83(HARN) / Washington North
+  # sa_proj <- CRS("+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs ")
   
   #'  Load water bodies shapefile (needed to mask unavailable habitat)
   waterbody <- sf::st_read("./Shapefiles/WA_DeptEcology_HydroWA", layer = "WPPP_waterbody") %>%
@@ -271,11 +272,6 @@
   dist2edge_stack18 <- stack(dist_close18, dist_open18) # includes open & closed habitats
   dist2edge_stack19 <- stack(dist_close19, dist_open19) # includes open & closed habitats
   
-  
-  #'  Identify projections & resolutions of relevant features
-  sa_proj <- projection("+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs ")
-  wgs84 <- projection("+proj=longlat +datum=WGS84 +no_defs")
-  
   #'  Note the different projections
   projection(dem)
   projection(canopy20)
@@ -283,7 +279,13 @@
   projection(perc_stack18)
   projection(rdden)
   projection(h2o)
-  projection(dist_close18)
+  projection(dist_close18) # slightly off from sa_proj
+  
+  #'  Identify projections & resolutions of relevant features
+  sa_proj <- projection("EPSG:2855")  # NAD83(HARN) / Washington North
+  # sa_proj <- projection("+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs ")
+  dist_proj <- projection("+proj=lcc +lat_0=47 +lon_0=-120.833333333333 +lat_1=47.5 +lat_2=48.7333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs")
+  wgs84 <- projection("+proj=longlat +datum=WGS84 +no_defs")
   
 
   #'  Function to make available points data a spatial sf object
@@ -317,7 +319,7 @@
   #'  Extract covariates for each species at once
   #'  Identify how many cores I want to use
   detectCores(logical = FALSE)
-  cl <- parallel::makeCluster(3) 
+  cl <- parallel::makeCluster(4) 
   #'  Run in parallel on local computer with specified number of cores
   plan(cluster, workers = cl)
   
@@ -325,13 +327,14 @@
   cov_extract <- function(locs) {
     #'  Reproject to WGS84 to match unprojected rasters
     locs_wgs84 <- spTransform(locs, wgs84)
+    locs_dist <- spTransform(locs, dist_proj)
     
     #'  1. Extract data from terrain & anthropogenic rasters
     #'  ----------------------------------------------------
-    terrain <- raster::extract(terra_stack, locs_wgs84, df = TRUE)
-    modified <- raster::extract(HM, locs_wgs84, df = TRUE)
-    road_den <- raster::extract(rdden, locs, df = TRUE) # note the projection
-    water <- raster::extract(h2o, locs, df = TRUE) # note the projection
+    terrain <- raster::extract(terra_stack, locs_wgs84, df = TRUE) # WGS84
+    modified <- raster::extract(HM, locs_wgs84, df = TRUE) # WGS84
+    road_den <- raster::extract(rdden, locs, df = TRUE) # NAD83(HARN)
+    water <- raster::extract(h2o, locs, df = TRUE) # NAD83(HARN)
     #'  Merge into a single data frame of covariates
     join_covs <- terrain %>%
       full_join(modified, by = "ID") %>%
@@ -362,7 +365,7 @@
     #'  -----------------------------------
     animal$obs <- as.numeric(seq(1:nrow(animal)))
     #'  Extract annual canopy cover
-    cover18 <- raster::extract(canopy18, locs_wgs84, df = TRUE) %>%
+    cover18 <- raster::extract(canopy18, locs_wgs84, df = TRUE) %>% # WGS84
       transmute(
         obs = ID,
         Canopy = round(treecov_2018, digits = 2)
@@ -394,7 +397,7 @@
     #'  ------------------------------------------------------------------------
     animal$obs <- as.numeric(seq(1:nrow(animal)))
     #'  Extract distance to edge data at each location
-    Dist2Edge18 <- raster::extract(dist2edge_stack18, locs, df = TRUE) %>%
+    Dist2Edge18 <- raster::extract(dist2edge_stack18, locs_dist, df = TRUE) %>% # Dist2Edge projection
       transmute(
         obs = ID,
         Dist2Forest = round(Dist2ForestEdge18, 2),
@@ -406,7 +409,7 @@
       mutate(Dist2Edge = min(Dist2Forest, Dist2Open, na.rm=TRUE)) %>%
       full_join(animal, by = "obs") %>%
       filter(Season == "Summer18" | Season == "Winter1819")
-    Dist2Edge19 <- raster::extract(dist2edge_stack19, locs, df = TRUE) %>%
+    Dist2Edge19 <- raster::extract(dist2edge_stack19, locs_dist, df = TRUE) %>%
       transmute(
         obs = ID,
         Dist2Forest = round(Dist2ForestEdge19, 2),
@@ -448,7 +451,7 @@
     #'  ------------------------------------------------------------------------
     animal$obs <- as.numeric(seq(1:nrow(animal)))
     #'  Extract percent landcover type using 250m moving window at each location
-    landcover18 <- raster::extract(landcov18, locs_wgs84, df = TRUE) %>%
+    landcover18 <- raster::extract(landcov18, locs_wgs84, df = TRUE) %>% # WGS84
       transmute(
         obs = ID,
         landcov = landcover_2018
