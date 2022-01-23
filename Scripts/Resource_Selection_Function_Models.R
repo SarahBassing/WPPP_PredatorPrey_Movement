@@ -33,13 +33,13 @@
   # library(future.apply)
   
   #'  Load used and available locations, and covariate data
-  load("./Outputs/RSF_pts/md_dat_all_2022-01-06.RData")
-  load("./Outputs/RSF_pts/elk_dat_all_2022-01-06.RData")
-  load("./Outputs/RSF_pts/wtd_dat_all_2022-01-06.RData")
-  load("./Outputs/RSF_pts/coug_dat_all_2022-01-06.RData")
-  load("./Outputs/RSF_pts/wolf_dat_all_2022-01-06.RData")
-  load("./Outputs/RSF_pts/bob_dat_all_2022-01-06.RData")
-  load("./Outputs/RSF_pts/coy_dat_all_2022-01-06.RData")
+  load("./Outputs/RSF_pts/md_dat_all_2022-01-21.RData") #2022-01-06
+  load("./Outputs/RSF_pts/elk_dat_all_2022-01-21.RData")
+  load("./Outputs/RSF_pts/wtd_dat_all_2022-01-21.RData")
+  load("./Outputs/RSF_pts/coug_dat_all_2022-01-21.RData")
+  load("./Outputs/RSF_pts/wolf_dat_all_2022-01-21.RData")
+  load("./Outputs/RSF_pts/bob_dat_all_2022-01-21.RData")
+  load("./Outputs/RSF_pts/coy_dat_all_2022-01-21.RData")
   
   
   #'  Function to re-classify landcover into fewer categories
@@ -313,13 +313,13 @@
   #'  ==============================================
   
   #'  Load RSFs
-  load("./Outputs/RSF_output/RSF_MD_list_2022-01-13.RData")
-  load("./Outputs/RSF_output/RSF_ELK_list_2022-01-13.RData")
-  load("./Outputs/RSF_output/RSF_WTD_list_2022-01-13.RData")
-  load("./Outputs/RSF_output/RSF_COUG_list_2022-01-13.RData")
-  load("./Outputs/RSF_output/RSF_WOLF_list_2022-01-13.RData")
-  load("./Outputs/RSF_output/RSF_BOB_list_2022-01-13.RData")
-  load("./Outputs/RSF_output/RSF_COY_list_2022-01-13.RData")
+  load("./Outputs/RSF_output/RSF_MD_list_2022-01-22.RData") #2022-01-13
+  load("./Outputs/RSF_output/RSF_ELK_list_2022-01-22.RData")
+  load("./Outputs/RSF_output/RSF_WTD_list_2022-01-22.RData")
+  load("./Outputs/RSF_output/RSF_COUG_list_2022-01-22.RData")
+  load("./Outputs/RSF_output/RSF_WOLF_list_2022-01-22.RData")
+  load("./Outputs/RSF_output/RSF_BOB_list_2022-01-22.RData")
+  load("./Outputs/RSF_output/RSF_COY_list_2022-01-22.RData")
   
   #'  Load spatial libraries
   library(sf)
@@ -327,31 +327,39 @@
   
   #'  Define desired projections
   sa_proj <- projection("EPSG:2855")  # NAD83(HARN) / Washington North
+  # sa_proj <- "+proj=lcc +lat_0=47 +lon_0=-120.833333333333 +lat_1=48.7333333333333 +lat_2=47.5 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs"
   
   #'  Read in study area grids
   NE_1km <- raster("./Shapefiles/NE_1km_grid_mask.tif")
   OK_1km <- raster("./Shapefiles/OK_1km_grid_mask.tif")
-  # NE_30m <- raster("./Shapefiles/NE_30m_grid_mask.tif")
-  # OK_30m <- raster("./Shapefiles/OK_30m_grid_mask.tif")
+  # NE_30m <- raster("./Shapefiles/NE_30m_grid_mask.tif") # run on lab computer
+  # OK_30m <- raster("./Shapefiles/OK_30m_grid_mask.tif") # run on lab computer
+  
+  plot(OK_1km)
+  projection(OK_1km)
   
   #'  Load study area shapefiles
   OK.SA <- st_read("./Shapefiles/fwdstudyareamaps", layer = "METHOW_SA") %>%
-    st_transform(crs = sa_proj)
+    st_transform(crs = sa_proj) 
   OK.SA <- as(OK.SA, "Spatial")
   NE.SA <- st_read("./Shapefiles/fwdstudyareamaps", layer = "NE_SA") %>%
     st_transform(crs = sa_proj)
   NE.SA <- as(NE.SA, "Spatial")
   
   #'  Convert rasters to pixels and extract coordinates (centroid of each cell)
-  #'  FYI: grid.index is the original cell number but b/c some cells were masked 
-  #'  out for large water bodies, the gridID does not match the extracted study 
-  #'  area-wide covariate df so need to create a new ID specific to masked grid
+  #'  FYI: "data" are the grid cell IDs from the original WPPP reference grid;
+  #'  grid.index are the cell IDs based on renumbered cells in cropped rasters.
+  #'  Because some cells were masked out for large water bodies in both versions 
+  #'  of these rasters, the gridID does not match the extracted study area-wide 
+  #'  covariate df so need to create a new ID specific to masked grid
   raster_dat <- function(r) {
     dots <- as(r, "SpatialPixelsDataFrame")
+    ref_grid_ID <- dots@data
     gridID <- dots@grid.index
     coords <- coordinates(dots)
-    pts <- as.data.frame(cbind(gridID, coords))
+    pts <- as.data.frame(cbind(ref_grid_ID, gridID, coords))
     pts$ID <- seq(1:nrow(pts))
+    names(pts) <- c("ref_gridID", "gridID", "x", "y", "ID")
     return(pts)
   }
   NE_pts <- raster_dat(NE_1km)
@@ -360,41 +368,39 @@
   # OK_pts <- raster_dat(OK_30m)
   
   #'  Read in covariates extracted across each study area 
-  load("./Outputs/Telemetry_covs/NE_covs_1km_2022-01-13.RData") 
-  load("./Outputs/Telemetry_covs/OK_covs_1km_2022-01-13.RData")
-  # load("./Outputs/Telemetry_covs/NE_covs_30m_2022-01-13.RData") 
-  # load("./Outputs/Telemetry_covs/OK_covs_30m_2022-01-13.RData")
+  load("./Outputs/Telemetry_covs/NE_covs_1km_2022-01-21.RData") 
+  load("./Outputs/Telemetry_covs/OK_covs_1km_2022-01-21.RData")
+  # load("./Outputs/Telemetry_covs/NE_covs_30m_2022-01-21.RData") # run on lab computer
+  # load("./Outputs/Telemetry_covs/OK_covs_30m_2022-01-21.RData") # run on lab computer
   
   #'  Format study area-wide covariate data to include annually relevant data only
-  NE.covs <- NE.covs.1km %>%      # NE.covs.30m
+  NE.covs <- NE.covs.1km %>%      # NE.covs.30m run on lab computer
     mutate(StudyArea = "NE") %>%
     full_join(NE_pts, by = "ID") %>%
     dplyr::select(-gridID) %>%
-    #'  Covariate values were extracted at masked locations for some reason 
-    #'  need to exclude these because missing coordinate data when joined
+    #'  In case covariates were extracted at masked locations- drop these because 
+    #'  missing coordinate data when joined (this shouldn't actually happen though)
     filter(!is.na(x))
-  OK.covs <- OK.covs.1km %>%      # OK.covs.30m
+  OK.covs <- OK.covs.1km %>%      # OK.covs.30m run on lab computer
     mutate(StudyArea = "OK") %>%
     full_join(OK_pts, by = "ID") %>%
     dplyr::select(-gridID) %>%
-    #'  Covariate values were extracted at masked locations for some reason 
-    #'  need to exclude these because missing coordinate data when joined
     filter(!is.na(x))
   SA.covs <- rbind(NE.covs, OK.covs)
   SA.covs.Year1 <- dplyr::select(SA.covs, -c(CanopyCover19, CanopyCover20, Dist2Edge19, Landcover_type19))
   names(SA.covs.Year1) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
                                 "HumanMod", "CanopyCover", "Dist2Edge", 
-                                "Landcover_type", "StudyArea", "x", "y")
+                                "Landcover_type", "StudyArea", "ref_gridID", "x", "y")
   SA.covs.Year2 <- dplyr::select(SA.covs, -c(CanopyCover18, CanopyCover20, Dist2Edge18, Landcover_type18))
   names(SA.covs.Year2) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
                                 "HumanMod", "CanopyCover", "Dist2Edge", 
-                                "Landcover_type", "StudyArea", "x", "y")
+                                "Landcover_type", "StudyArea", "ref_gridID", "x", "y")
   #'  Note: applying 2019 Dist2Edge and Landcover_type to Year3 data due to lack
   #'  of 2020 landcover data
   SA.covs.Year3 <- dplyr::select(SA.covs, -c(CanopyCover18, CanopyCover19, Dist2Edge18, Landcover_type18))
   names(SA.covs.Year3) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
                                 "HumanMod", "CanopyCover", "Dist2Edge", 
-                                "Landcover_type", "StudyArea", "x", "y")
+                                "Landcover_type", "StudyArea", "ref_gridID", "x", "y")
   #'  List study area covariates by year to mirror rest of data structure
   SA.covs_list <- list(SA.covs.Year1, SA.covs.Year2, SA.covs.Year3)
   NE.covs_list <- list(SA.covs.Year1[SA.covs.Year1$StudyArea == "NE",], SA.covs.Year2[SA.covs.Year2$StudyArea == "NE",], SA.covs.Year3[SA.covs.Year3$StudyArea == "NE",])
@@ -488,6 +494,12 @@
   coy_smr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = coyCov_smr_summary)
   coy_wtr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = coyCov_wtr_summary)
 
+  #'  Double check it's scaling correctly- using the right mean and SD per dataset
+  covs18 <- SA.covs_list_reclass[[1]]
+  tst <- scaling_covs(covs18, mu.sd = bobCov_wtr_summary)
+  head(tst)
+  (covs18$Dist2Edge[4] - bobCov_wtr_summary$Dist2Edge[1]) / bobCov_wtr_summary$Dist2Edge[2]
+  #'  Does this value match what's calculated in tst?
   
   #'  Function to save parameter estimates from each RSF
   #'  Use coef(mod) to look at random effects estimates
@@ -557,8 +569,7 @@
   bob_wtr_rsfout <- rsf_out(RSF_BOB_list[[2]], spp = "Bobcat", season = "Winter")
   coy_smr_rsfout <- rsf_out(RSF_COY_list[[1]], spp = "Coyote", season = "Summer")
   coy_wtr_rsfout <- rsf_out(RSF_COY_list[[2]], spp = "Coyote", season = "Winter")
-  
-  
+
   #'  Function to predict across all grid cells based on RSF results
   #'  Should end up with 1 predicted value per grid cell
   #'  NOTE: I want the predict relative probability of selection from RSF dropping 
@@ -601,7 +612,7 @@
   bob_wtr_rsf_sa <- lapply(bob_wtr_zcovs, predict_rsf, coef = bob_wtr_rsfout)
   coy_smr_rsf_sa <- lapply(coy_smr_zcovs, predict_rsf, coef = coy_smr_rsfout)
   coy_wtr_rsf_sa <- lapply(coy_wtr_zcovs, predict_rsf, coef = coy_wtr_rsfout)
-  
+
   chk <- coy_smr_rsf_sa[[1]]
   
   #'  List and save
@@ -611,8 +622,6 @@
                                 wolf_wtr_rsf_sa, bob_smr_rsf_sa, bob_wtr_rsf_sa, 
                                 coy_smr_rsf_sa, coy_wtr_rsf_sa)
   # save(all_spp_RSF_predicted, file = paste0("./Outputs/RSF_output/all_spp_RSF_predicted_", Sys.Date(), ".RData"))
-  coy_rsf_predicted <- list(coy_smr_rsf_sa, coy_wtr_rsf_sa)
-
   
   #'  Function to identify any outliers
   outliers <- function(predicted, title, covs_list) {
@@ -634,21 +643,21 @@
     
     #' Summarize covariates associated with extreme values
     bigvalues <- full_join(predicted, covs_list, by = c("ID", "StudyArea", "x", "y"))
-    print(summary(bigvalues)) 
-    hist(bigvalues$Elev, breaks = 25, main = "Frequency of Elevation values", xlab = "Standardize Elevation")
-    hist(bigvalues$Elev[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Elevation values", xlab = "Standardize Elevation")
-    hist(bigvalues$Slope, breaks = 25, main = "Frequency of Slope values", xlab = "Standardize Slope")
-    hist(bigvalues$Slope[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Slope values", xlab = "Standardize Slope")
-    hist(bigvalues$RoadDen, breaks = 25, main = "Frequency of Road Density values", xlab = "Standardize Road Density")
-    hist(bigvalues$RoadDen[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Road Density values", xlab = "Standardize Road Density")
-    hist(bigvalues$Dist2Water, breaks = 25, main = "Frequency of Distance to Water values", xlab = "Standardize Dist. to Water")
-    hist(bigvalues$Dist2Water[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Water values", xlab = "Standardize Dist. to Water")
-    hist(bigvalues$HumanMod, breaks = 25, main = "Frequency of Human Modified Landscape values", xlab = "Standardize Human Mod")
-    hist(bigvalues$HumanMod[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Human Modified Landscape values", xlab = "Standardize Human Mod")
-    hist(bigvalues$CanopyCover, breaks = 25, main = "Frequency of Canopy Cover values", xlab = "Standardize Canopy Cover")
-    hist(bigvalues$CanopyCover[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Canopy Cover values", xlab = "Standardize Canopy Cover")
-    hist(bigvalues$Dist2Edge, breaks = 25, main = "Frequency of Distance to Edge values", xlab = "Standardize Dist. to Edge")
-    hist(bigvalues$Dist2Edge[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Edge values", xlab = "Standardize Dist. to Edge")
+    #' print(summary(bigvalues)) 
+    #' hist(bigvalues$Elev, breaks = 25, main = "Frequency of Elevation values", xlab = "Standardize Elevation")
+    #' hist(bigvalues$Elev[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Elevation values", xlab = "Standardize Elevation")
+    #' hist(bigvalues$Slope, breaks = 25, main = "Frequency of Slope values", xlab = "Standardize Slope")
+    #' hist(bigvalues$Slope[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Slope values", xlab = "Standardize Slope")
+    #' hist(bigvalues$RoadDen, breaks = 25, main = "Frequency of Road Density values", xlab = "Standardize Road Density")
+    #' hist(bigvalues$RoadDen[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Road Density values", xlab = "Standardize Road Density")
+    #' hist(bigvalues$Dist2Water, breaks = 25, main = "Frequency of Distance to Water values", xlab = "Standardize Dist. to Water")
+    #' hist(bigvalues$Dist2Water[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Water values", xlab = "Standardize Dist. to Water")
+    #' hist(bigvalues$HumanMod, breaks = 25, main = "Frequency of Human Modified Landscape values", xlab = "Standardize Human Mod")
+    #' hist(bigvalues$HumanMod[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Human Modified Landscape values", xlab = "Standardize Human Mod")
+    #' hist(bigvalues$CanopyCover, breaks = 25, main = "Frequency of Canopy Cover values", xlab = "Standardize Canopy Cover")
+    #' hist(bigvalues$CanopyCover[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Canopy Cover values", xlab = "Standardize Canopy Cover")
+    #' hist(bigvalues$Dist2Edge, breaks = 25, main = "Frequency of Distance to Edge values", xlab = "Standardize Dist. to Edge")
+    #' hist(bigvalues$Dist2Edge[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Edge values", xlab = "Standardize Dist. to Edge")
     
     return(bigvalues)
   }
@@ -742,7 +751,6 @@
   coy_smr_rescale_sa <- lapply(coy_smr_outliers, RSF_rescale)  
   coy_wtr_rescale_sa <- lapply(coy_wtr_outliers, RSF_rescale) 
 
-  
   chk <- md_smr_rescale_sa[[1]]
   
   #'  Rasterize predicted RSF values
@@ -776,7 +784,7 @@
   bob_wtr_RSFraster <- lapply(bob_wtr_rescale_sa, rasterize_rsf)
   coy_smr_RSFraster <- lapply(coy_smr_rescale_sa, rasterize_rsf)
   coy_wtr_RSFraster <- lapply(coy_wtr_rescale_sa, rasterize_rsf)
-  
+
   #'  Rename rasters
   rename_raster <- function(raster_list) {
     L <- setNames(raster_list, c("Year1", "Year2", "Year3"))
