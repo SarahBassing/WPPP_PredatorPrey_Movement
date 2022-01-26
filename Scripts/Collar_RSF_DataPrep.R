@@ -249,6 +249,7 @@
   #'  Cascadia Biodiveristy Watch rasters & shapefiles
   landcov18 <- raster("./Shapefiles/Cascadia_layers/landcover_2018.tif")
   landcov19 <- raster("./Shapefiles/Cascadia_layers/landcover_2019.tif")
+  landcov20 <- raster("./Shapefiles/Cascadia_layers/landcover_2020.tif")
   formix2prop18 <- raster("./Shapefiles/Cascadia_layers/forestmix2prop_18.tif")
   formix2prop19 <- raster("./Shapefiles/Cascadia_layers/forestmix2prop_19.tif")
   xgrassprop18 <- raster("./Shapefiles/Cascadia_layers/xgrassprop_18.tif")
@@ -257,8 +258,10 @@
   xshrubprop19 <- raster("./Shapefiles/Cascadia_layers/xshrubprop_19.tif")
   dist_open18 <- raster("./Shapefiles/Cascadia_layers/Dist2OpenEdge18.tif")
   dist_open19 <- raster("./Shapefiles/Cascadia_layers/Dist2OpenEdge19.tif")
+  dist_open20 <- raster("./Shapefiles/Cascadia_layers/Dist2OpenEdge20.tif")
   dist_close18 <- raster("./Shapefiles/Cascadia_layers/Dist2ForestEdge18.tif")
   dist_close19 <- raster("./Shapefiles/Cascadia_layers/Dist2ForestEdge19.tif")
+  dist_close20 <- raster("./Shapefiles/Cascadia_layers/Dist2ForestEdge20.tif")
   rdden <- raster("./Shapefiles/Cascadia_layers/roadsForTaylor/RoadDensity_1km.tif")
   #'  Water density
   h2o <- raster("./Shapefiles/WA_DeptEcology_HydroWA/WPPP_dist_to_water_2855.tif")
@@ -269,8 +272,10 @@
   terra_stack <- stack(dem, slope, tpi)
   perc_stack18 <- stack(formix2prop18, xgrassprop18, xshrubprop18)
   perc_stack19 <- stack(formix2prop19, xgrassprop19, xshrubprop19)
+  # perc_stack20 <- stack(formix2prop20, xgrassprop20, xshrubprop20)
   dist2edge_stack18 <- stack(dist_close18, dist_open18) # includes open & closed habitats
   dist2edge_stack19 <- stack(dist_close19, dist_open19) # includes open & closed habitats
+  dist2edge_stack20 <- stack(dist_close20, dist_open20) # includes open & closed habitats
   
   #'  Note the different projections
   projection(dem)
@@ -280,6 +285,7 @@
   projection(rdden)
   projection(h2o)
   projection(dist_close18) # slightly off from sa_proj
+  projection(dist_close20)
   
   #'  Identify projections & resolutions of relevant features
   sa_proj <- projection("EPSG:2855")  # NAD83(HARN) / Washington North
@@ -418,8 +424,18 @@
       rowwise() %>%
       mutate(Dist2Edge = min(Dist2Forest, Dist2Open, na.rm=TRUE)) %>%
       full_join(animal, by = "obs") %>%
-      filter(Season == "Summer19" | Season == "Winter1920" | Season == "Summer20" | Season == "Winter2021")
-    Dist2Edge <- rbind(Dist2Edge18, Dist2Edge19)
+      filter(Season == "Summer19" | Season == "Winter1920")
+    Dist2Edge20 <- raster::extract(dist2edge_stack20, locs_dist, df = TRUE) %>%
+      transmute(
+        obs = ID,
+        Dist2Forest = round(Dist2ForestEdge20, 2),
+        Dist2Open = round(Dist2OpenEdge20, 2)
+      ) %>%
+      rowwise() %>%
+      mutate(Dist2Edge = min(Dist2Forest, Dist2Open, na.rm=TRUE)) %>%
+      full_join(animal, by = "obs") %>%
+      filter(Season == "Summer20" | Season == "Winter2021")
+    Dist2Edge <- rbind(Dist2Edge18, Dist2Edge19, Dist2Edge20)
     
     #'  4. Extract percent landcover type within 250m per pixel. Only 2018 & 2019  
     #'     landcover rasters available so applying 2019 landcov to 2020 observations.
@@ -444,7 +460,16 @@
       ) %>%
       full_join(animal, by = "obs") %>%
       filter(Season == "Summer19" | Season == "Winter1920" | Season == "Summer20" | Season == "Winter2021")
-    percHab <- rbind(perc_landcover18, perc_landcover19)
+    # perc_landcover20 <- raster::extract(perc_stack20, locs, df = TRUE) %>%
+    #   transmute(
+    #     obs = ID,
+    #     PercForestMix2 = round(forestmix2prop_20, 2),
+    #     PercXericGrass = round(xgrassprop_20, 2),
+    #     PercXericShrub = round(xshrubprop_20, 2)
+    #   ) %>%
+    #   full_join(animal, by = "obs") %>%
+    #   filter(Season == "Summer20" | Season == "Winter2021")
+    percHab <- rbind(perc_landcover18, perc_landcover19) # perc_landcover20
     
     #'  5. Extract landcover data from Cascadia landcover rasters. Only 2018 & 2019
     #'  landcover rasters available so applying 2019 landcov to 2020 observations.
@@ -464,8 +489,15 @@
         landcov = landcover_2019
       ) %>%
       full_join(animal, by = "obs") %>%
-      filter(Season == "Summer19" | Season == "Winter1920" | Season == "Summer20" | Season == "Winter2021")
-    landcover <- rbind(landcover18, landcover19) %>%
+      filter(Season == "Summer19" | Season == "Winter1920")
+    landcover20 <- raster::extract(landcov20, locs_wgs84, df = TRUE) %>%
+      transmute(
+        obs = ID,
+        landcov = landcover_2020
+      ) %>%
+      full_join(animal, by = "obs") %>%
+      filter(Season == "Summer20" | Season == "Winter2021")
+    landcover <- rbind(landcover18, landcover19, landcover20) %>%
       mutate(
         landcover_type = ifelse(landcov == 101, "Water", landcov),
         landcover_type = ifelse(landcov == 111, "Glacier", landcover_type),
