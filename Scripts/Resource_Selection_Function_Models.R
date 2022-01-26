@@ -33,13 +33,13 @@
   # library(future.apply)
   
   #'  Load used and available locations, and covariate data
-  load("./Outputs/RSF_pts/md_dat_all_2022-01-21.RData") #2022-01-06
-  load("./Outputs/RSF_pts/elk_dat_all_2022-01-21.RData")
-  load("./Outputs/RSF_pts/wtd_dat_all_2022-01-21.RData")
-  load("./Outputs/RSF_pts/coug_dat_all_2022-01-21.RData")
-  load("./Outputs/RSF_pts/wolf_dat_all_2022-01-21.RData")
-  load("./Outputs/RSF_pts/bob_dat_all_2022-01-21.RData")
-  load("./Outputs/RSF_pts/coy_dat_all_2022-01-21.RData")
+  load("./Outputs/RSF_pts/md_dat_all_2022-01-23.RData") #2022-01-21
+  load("./Outputs/RSF_pts/elk_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/wtd_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/coug_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/wolf_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/bob_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/coy_dat_all_2022-01-23.RData")
   
   
   #'  Function to re-classify landcover into fewer categories
@@ -623,100 +623,100 @@
                                 coy_smr_rsf_sa, coy_wtr_rsf_sa)
   # save(all_spp_RSF_predicted, file = paste0("./Outputs/RSF_output/all_spp_RSF_predicted_", Sys.Date(), ".RData"))
   
-  #'  Function to identify any outliers
-  outliers <- function(predicted, title, covs_list) {
-    #'  Summarize predicted values
-    hist(predicted$predict_rsf, breaks = 100, main = title)
-    boxplot(predicted$predict_rsf, main = title)
-    #'  What value represents the 99th percentile in the predicted RSF values
-    quant <- quantile(predicted$predict_rsf, c(0.99), na.rm = TRUE)
-    #'  Print that value and maximum prediction
-    print(quant); print(max(predicted$predict_rsf, na.rm = TRUE))
-    #'  Identify the 1% most extreme values and set to 99th percentile value
-    predicted <- predicted %>%
-      mutate(outlier = ifelse(predict_rsf > quant, "outlier", "not_outlier"),
-             adjusted_rsf = ifelse(outlier == "outlier", quant, predict_rsf))
-    #'  How many predicted values are above the 99th percentile?
-    outlier <- predicted[predicted$outlier == "outlier",]
-    outlier <- filter(outlier, !is.na(outlier))
-    print(nrow(outlier))
-    
-    #' Summarize covariates associated with extreme values
-    bigvalues <- full_join(predicted, covs_list, by = c("ID", "StudyArea", "x", "y"))
-    #' print(summary(bigvalues)) 
-    #' hist(bigvalues$Elev, breaks = 25, main = "Frequency of Elevation values", xlab = "Standardize Elevation")
-    #' hist(bigvalues$Elev[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Elevation values", xlab = "Standardize Elevation")
-    #' hist(bigvalues$Slope, breaks = 25, main = "Frequency of Slope values", xlab = "Standardize Slope")
-    #' hist(bigvalues$Slope[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Slope values", xlab = "Standardize Slope")
-    #' hist(bigvalues$RoadDen, breaks = 25, main = "Frequency of Road Density values", xlab = "Standardize Road Density")
-    #' hist(bigvalues$RoadDen[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Road Density values", xlab = "Standardize Road Density")
-    #' hist(bigvalues$Dist2Water, breaks = 25, main = "Frequency of Distance to Water values", xlab = "Standardize Dist. to Water")
-    #' hist(bigvalues$Dist2Water[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Water values", xlab = "Standardize Dist. to Water")
-    #' hist(bigvalues$HumanMod, breaks = 25, main = "Frequency of Human Modified Landscape values", xlab = "Standardize Human Mod")
-    #' hist(bigvalues$HumanMod[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Human Modified Landscape values", xlab = "Standardize Human Mod")
-    #' hist(bigvalues$CanopyCover, breaks = 25, main = "Frequency of Canopy Cover values", xlab = "Standardize Canopy Cover")
-    #' hist(bigvalues$CanopyCover[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Canopy Cover values", xlab = "Standardize Canopy Cover")
-    #' hist(bigvalues$Dist2Edge, breaks = 25, main = "Frequency of Distance to Edge values", xlab = "Standardize Dist. to Edge")
-    #' hist(bigvalues$Dist2Edge[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Edge values", xlab = "Standardize Dist. to Edge")
-    
-    return(bigvalues)
-  }
-  #'  Identify outlier predictions and possible covariates associated with those
-  #'  Be sure to used standardized covariates for evaluation
-  md_smr_outliers <- lapply(md_smr_rsf_sa, outliers, title = "Mule Deer Summer RSF Predictions", covs_list = md_smr_zcovs[[1]]) 
-  md_wtr_outliers <- lapply(md_wtr_rsf_sa, outliers, title = "Mule Deer Winter RSF Predictions", covs_list = md_wtr_zcovs[[1]]) #' one extreme slope value associated w/ one big outlier (mask out pixels Slope >6)
-  elk_smr_outliers <- lapply(elk_smr_rsf_sa, outliers, title = "Elk Summer RSF Predictions", covs_list = elk_smr_zcovs[[1]]) #' one extreme dist2water value associated w/ one big outlier (mask out pixels Dist2Water >9)
-  elk_wtr_outliers <- lapply(elk_wtr_rsf_sa, outliers, title = "Elk Winter RSF Predictions", covs_list = elk_wtr_zcovs[[1]]) #' extreme dist2water values associated w/ outliers (mask out pixels Dist2Water >9)
-  wtd_smr_outliers <- lapply(wtd_smr_rsf_sa, outliers, title = "White-tailed Deer Summer RSF Predictions", covs_list = wtd_smr_zcovs[[1]]) #' extreme road density values associated w/ outliers (mask out pixels RoadDen >13)
-  wtd_wtr_outliers <- lapply(wtd_wtr_rsf_sa, outliers, title = "White-tailed Deer Winter RSF Predictions", covs_list = wtd_wtr_zcovs[[1]]) #' extreme road density & Dist2Water values associated w/ outliers (mask out pixels RoadDen >13, Dist2Water >9)
-  coug_smr_outliers <- lapply(coug_smr_rsf_sa, outliers, title = "Cougar Summer RSF Predictions", covs_list = coug_smr_zcovs[[1]])
-  coug_wtr_outliers <- lapply(coug_wtr_rsf_sa, outliers, title = "Cougar Winter RSF Predictions", covs_list = coug_wtr_zcovs[[1]])
-  wolf_smr_outliers <- lapply(wolf_smr_rsf_sa, outliers, title = "Wolf Summer RSF Predictions", covs_list = wolf_smr_zcovs[[1]])
-  wolf_wtr_outliers <- lapply(wolf_wtr_rsf_sa, outliers, title = "Wolf Winter RSF Predictions", covs_list = wolf_wtr_zcovs[[1]])
-  bob_smr_outliers <- lapply(bob_smr_rsf_sa, outliers, title = "Bobcat Summer RSF Predictions", covs_list = bob_smr_zcovs[[1]])
-  bob_wtr_outliers <- lapply(bob_wtr_rsf_sa, outliers, title = "Bobcat Winter RSF Predictions", covs_list = bob_wtr_zcovs[[1]])
-  coy_smr_outliers <- lapply(coy_smr_rsf_sa, outliers, title = "Coyote Summer RSF Predictions", covs_list = bob_smr_zcovs[[1]]) #' extreme road density, Dist2Water, & HumanMod values for some outliers but also for non-outliers
-  coy_wtr_outliers <- lapply(coy_wtr_rsf_sa, outliers, title = "Coyote Winter RSF Predictions", covs_list = coy_wtr_zcovs[[1]]) #' extreme road density values associated w/ outliers (mask out pixels RoadDen >13)
-  #'  After reviewing extreme RSF values and covaraite values associated with 
-  #'  those locations I am masking pixels for:
-  #'   1. Winter mule deer where SLOPE > 6
-  #'   2. Summer and Winter elk where DIST2WATER > 9
-  #'   3. Summer white-tailed deer where ROADDEN > 13
-  #'   4. Winter white-tailed deer where ROADDEN > 13 & DIST2WATER > 9
-  #'   5. Winter coyote where ROADDEN > 13
-  
-  #'  Exclude extreme outliers as identified above
-  #'  Mule Deer
-  mask_md <- function(predicted) {
-    predicted <- predicted %>%
-      mutate(masked_rsf = ifelse(Slope > 6, "NA", predict_rsf),
-             masked_rsf = as.numeric(masked_rsf))
-  }
-  md_wtr_outliers <- lapply(md_wtr_outliers, mask_md)
-  #'  Elk
-  mask_elk <- function(predicted) {
-    predicted <- predicted %>%
-      mutate(masked_rsf = ifelse(Dist2Water > 9, "NA", predict_rsf),
-             masked_rsf = as.numeric(masked_rsf))
-  }
-  elk_smr_outliers <- lapply(elk_smr_outliers, mask_elk)
-  elk_wtr_outliers <- lapply(elk_wtr_outliers, mask_elk)
-  #'  Winter White-tailed Deer
-  mask_wtd <- function(predicted) {
-    predicted <- predicted %>%
-      mutate(masked_rsf = ifelse(RoadDen > 13, "NA", predict_rsf),
-             masked_rsf = ifelse(Dist2Water > 9, "NA", masked_rsf),
-             masked_rsf = as.numeric(masked_rsf))
-  }
-  wtd_wtr_outliers <- lapply(wtd_wtr_outliers, mask_wtd)
-  #'  Summer White-tailed Deer, Winter Coyote
-  mask_rd <- function(predicted) {
-    predicted <- predicted %>%
-      mutate(masked_rsf = ifelse(RoadDen > 13, "NA", predict_rsf),
-             masked_rsf = as.numeric(masked_rsf))
-  }
-  wtd_smr_outliers <- lapply(wtd_smr_outliers, mask_rd)
-  coy_wtr_outliers <- lapply(coy_wtr_outliers, mask_rd)
+  #' #'  Function to identify any outliers
+  #' outliers <- function(predicted, title, covs_list) {
+  #'   #'  Summarize predicted values
+  #'   hist(predicted$predict_rsf, breaks = 100, main = title)
+  #'   boxplot(predicted$predict_rsf, main = title)
+  #'   #'  What value represents the 99th percentile in the predicted RSF values
+  #'   quant <- quantile(predicted$predict_rsf, c(0.99), na.rm = TRUE)
+  #'   #'  Print that value and maximum prediction
+  #'   print(quant); print(max(predicted$predict_rsf, na.rm = TRUE))
+  #'   #'  Identify the 1% most extreme values and set to 99th percentile value
+  #'   predicted <- predicted %>%
+  #'     mutate(outlier = ifelse(predict_rsf > quant, "outlier", "not_outlier"),
+  #'            adjusted_rsf = ifelse(outlier == "outlier", quant, predict_rsf))
+  #'   #'  How many predicted values are above the 99th percentile?
+  #'   outlier <- predicted[predicted$outlier == "outlier",]
+  #'   outlier <- filter(outlier, !is.na(outlier))
+  #'   print(nrow(outlier))
+  #'   
+  #'   #' Summarize covariates associated with extreme values
+  #'   bigvalues <- full_join(predicted, covs_list, by = c("ID", "StudyArea", "x", "y"))
+  #'   #' print(summary(bigvalues)) 
+  #'   #' hist(bigvalues$Elev, breaks = 25, main = "Frequency of Elevation values", xlab = "Standardize Elevation")
+  #'   #' hist(bigvalues$Elev[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Elevation values", xlab = "Standardize Elevation")
+  #'   #' hist(bigvalues$Slope, breaks = 25, main = "Frequency of Slope values", xlab = "Standardize Slope")
+  #'   #' hist(bigvalues$Slope[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Slope values", xlab = "Standardize Slope")
+  #'   #' hist(bigvalues$RoadDen, breaks = 25, main = "Frequency of Road Density values", xlab = "Standardize Road Density")
+  #'   #' hist(bigvalues$RoadDen[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Road Density values", xlab = "Standardize Road Density")
+  #'   #' hist(bigvalues$Dist2Water, breaks = 25, main = "Frequency of Distance to Water values", xlab = "Standardize Dist. to Water")
+  #'   #' hist(bigvalues$Dist2Water[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Water values", xlab = "Standardize Dist. to Water")
+  #'   #' hist(bigvalues$HumanMod, breaks = 25, main = "Frequency of Human Modified Landscape values", xlab = "Standardize Human Mod")
+  #'   #' hist(bigvalues$HumanMod[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Human Modified Landscape values", xlab = "Standardize Human Mod")
+  #'   #' hist(bigvalues$CanopyCover, breaks = 25, main = "Frequency of Canopy Cover values", xlab = "Standardize Canopy Cover")
+  #'   #' hist(bigvalues$CanopyCover[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Canopy Cover values", xlab = "Standardize Canopy Cover")
+  #'   #' hist(bigvalues$Dist2Edge, breaks = 25, main = "Frequency of Distance to Edge values", xlab = "Standardize Dist. to Edge")
+  #'   #' hist(bigvalues$Dist2Edge[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Edge values", xlab = "Standardize Dist. to Edge")
+  #'   
+  #'   return(bigvalues)
+  #' }
+  #' #'  Identify outlier predictions and possible covariates associated with those
+  #' #'  Be sure to used standardized covariates for evaluation
+  #' md_smr_outliers <- lapply(md_smr_rsf_sa, outliers, title = "Mule Deer Summer RSF Predictions", covs_list = md_smr_zcovs[[1]]) 
+  #' md_wtr_outliers <- lapply(md_wtr_rsf_sa, outliers, title = "Mule Deer Winter RSF Predictions", covs_list = md_wtr_zcovs[[1]]) #' one extreme slope value associated w/ one big outlier (mask out pixels Slope >6)
+  #' elk_smr_outliers <- lapply(elk_smr_rsf_sa, outliers, title = "Elk Summer RSF Predictions", covs_list = elk_smr_zcovs[[1]]) #' one extreme dist2water value associated w/ one big outlier (mask out pixels Dist2Water >9)
+  #' elk_wtr_outliers <- lapply(elk_wtr_rsf_sa, outliers, title = "Elk Winter RSF Predictions", covs_list = elk_wtr_zcovs[[1]]) #' extreme dist2water values associated w/ outliers (mask out pixels Dist2Water >9)
+  #' wtd_smr_outliers <- lapply(wtd_smr_rsf_sa, outliers, title = "White-tailed Deer Summer RSF Predictions", covs_list = wtd_smr_zcovs[[1]]) #' extreme road density values associated w/ outliers (mask out pixels RoadDen >13)
+  #' wtd_wtr_outliers <- lapply(wtd_wtr_rsf_sa, outliers, title = "White-tailed Deer Winter RSF Predictions", covs_list = wtd_wtr_zcovs[[1]]) #' extreme road density & Dist2Water values associated w/ outliers (mask out pixels RoadDen >13, Dist2Water >9)
+  #' coug_smr_outliers <- lapply(coug_smr_rsf_sa, outliers, title = "Cougar Summer RSF Predictions", covs_list = coug_smr_zcovs[[1]])
+  #' coug_wtr_outliers <- lapply(coug_wtr_rsf_sa, outliers, title = "Cougar Winter RSF Predictions", covs_list = coug_wtr_zcovs[[1]])
+  #' wolf_smr_outliers <- lapply(wolf_smr_rsf_sa, outliers, title = "Wolf Summer RSF Predictions", covs_list = wolf_smr_zcovs[[1]])
+  #' wolf_wtr_outliers <- lapply(wolf_wtr_rsf_sa, outliers, title = "Wolf Winter RSF Predictions", covs_list = wolf_wtr_zcovs[[1]])
+  #' bob_smr_outliers <- lapply(bob_smr_rsf_sa, outliers, title = "Bobcat Summer RSF Predictions", covs_list = bob_smr_zcovs[[1]])
+  #' bob_wtr_outliers <- lapply(bob_wtr_rsf_sa, outliers, title = "Bobcat Winter RSF Predictions", covs_list = bob_wtr_zcovs[[1]])
+  #' coy_smr_outliers <- lapply(coy_smr_rsf_sa, outliers, title = "Coyote Summer RSF Predictions", covs_list = bob_smr_zcovs[[1]]) #' extreme road density, Dist2Water, & HumanMod values for some outliers but also for non-outliers
+  #' coy_wtr_outliers <- lapply(coy_wtr_rsf_sa, outliers, title = "Coyote Winter RSF Predictions", covs_list = coy_wtr_zcovs[[1]]) #' extreme road density values associated w/ outliers (mask out pixels RoadDen >13)
+  #' #'  After reviewing extreme RSF values and covaraite values associated with 
+  #' #'  those locations I am masking pixels for:
+  #' #'   1. Winter mule deer where SLOPE > 6
+  #' #'   2. Summer and Winter elk where DIST2WATER > 9
+  #' #'   3. Summer white-tailed deer where ROADDEN > 13
+  #' #'   4. Winter white-tailed deer where ROADDEN > 13 & DIST2WATER > 9
+  #' #'   5. Winter coyote where ROADDEN > 13
+  #' 
+  #' #'  Exclude extreme outliers as identified above
+  #' #'  Mule Deer
+  #' mask_md <- function(predicted) {
+  #'   predicted <- predicted %>%
+  #'     mutate(masked_rsf = ifelse(Slope > 6, "NA", predict_rsf),
+  #'            masked_rsf = as.numeric(masked_rsf))
+  #' }
+  #' md_wtr_outliers <- lapply(md_wtr_outliers, mask_md)
+  #' #'  Elk
+  #' mask_elk <- function(predicted) {
+  #'   predicted <- predicted %>%
+  #'     mutate(masked_rsf = ifelse(Dist2Water > 9, "NA", predict_rsf),
+  #'            masked_rsf = as.numeric(masked_rsf))
+  #' }
+  #' elk_smr_outliers <- lapply(elk_smr_outliers, mask_elk)
+  #' elk_wtr_outliers <- lapply(elk_wtr_outliers, mask_elk)
+  #' #'  Winter White-tailed Deer
+  #' mask_wtd <- function(predicted) {
+  #'   predicted <- predicted %>%
+  #'     mutate(masked_rsf = ifelse(RoadDen > 13, "NA", predict_rsf),
+  #'            masked_rsf = ifelse(Dist2Water > 9, "NA", masked_rsf),
+  #'            masked_rsf = as.numeric(masked_rsf))
+  #' }
+  #' wtd_wtr_outliers <- lapply(wtd_wtr_outliers, mask_wtd)
+  #' #'  Summer White-tailed Deer, Winter Coyote
+  #' mask_rd <- function(predicted) {
+  #'   predicted <- predicted %>%
+  #'     mutate(masked_rsf = ifelse(RoadDen > 13, "NA", predict_rsf),
+  #'            masked_rsf = as.numeric(masked_rsf))
+  #' }
+  #' wtd_smr_outliers <- lapply(wtd_smr_outliers, mask_rd)
+  #' coy_wtr_outliers <- lapply(coy_wtr_outliers, mask_rd)
   
   ####  Even after masking out extreme values related to high covariate values
   ####  there are still extreme RSF values that skew the rescaling and lead to
