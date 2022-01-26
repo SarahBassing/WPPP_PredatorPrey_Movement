@@ -94,20 +94,7 @@
   grid_30m[] <- 1:ncell(grid_30m)
   res(grid_30m); projection(grid_30m)
   
-  
-  #'  Load water bodies shapefile (needed to mask unavailable habitat)
-  waterbody <- sf::st_read("./Shapefiles/WA_DeptEcology_HydroWA", layer = "WPPP_waterbody") %>%
-    st_transform(crs = sa_proj)
-  #'  Identify large bodies of water (anything larger than 1 sq-km in size)
-  bigwater <- waterbody[waterbody$AreSqKm > 1,]
-  #'  Mask large bodies of water from raster
-  grid_1k_mask <- mask(grid_1k, bigwater, inverse = TRUE)
-  grid_30m_mask <- mask(grid_30m, bigwater, inverse = TRUE)
-  
-  #'  Save grid cell IDs, including cells with NA values
-  #'  Use these to double check that covariate values were NOT extracted for
-  #'  locations with NA values (should be able to find the coordinates of those
-  #'  cells in the final covs_df dataframe generated at the end of this script)
+  #'  Save grid cell IDs, including cells with NA values that are masked below
   SA_gridID_1km <- as.data.frame(grid_1k)
   SA_coord_1km <- coordinates(grid_1k)
   SA_gridID_1km <- cbind(SA_gridID_1km, SA_coord_1km)
@@ -115,7 +102,16 @@
   SA_coord_30m <- coordinates(grid_30m)
   SA_gridID_30m <- cbind(SA_gridID_30m, SA_coord_30m)
   
+  #'  Load water bodies shapefile (needed to mask unavailable habitat)
+  waterbody <- sf::st_read("./Shapefiles/WA_DeptEcology_HydroWA", layer = "WPPP_waterbody") %>%
+    st_transform(crs = sa_proj)
+  #'  Identify large bodies of water (anything larger than 1 sq-km in size)
+  bigwater <- waterbody[waterbody$AreSqKm > 1,]
   
+  #'  Mask large bodies of water from raster
+  grid_1k_mask <- mask(grid_1k, bigwater, inverse = TRUE)
+  grid_30m_mask <- mask(grid_30m, bigwater, inverse = TRUE)
+
   #'  Crop raster to just the study area unions- will reduce the number of pixels
   #'  that need to extract covariate data for
   NE_1km <- crop(grid_1k_mask, extent(NE.union))
@@ -132,6 +128,29 @@
   # writeRaster(OK_1km, filename = "./Shapefiles/OK_1km_grid_mask.tif", format = "GTiff", overwrite = TRUE)
   # writeRaster(OK_30m, filename = "./Shapefiles/OK_30m_grid_mask.tif", format = "GTiff", overwrite = TRUE)
   
+  #'  Save original reference grid IDs from grid_1km/grid_30m specific to the 
+  #'  pixels in these new cropped rasters
+  NE_1km_df <- as.data.frame(NE_1km)
+  NE_1km_coord <- coordinates(NE_1km)
+  NE_1km_df <- cbind(NE_1km_df, NE_1km_coord)
+  NE_1km_df$ID <- seq(1:nrow(NE_1km_df))
+  
+  NE_30m_df <- as.data.frame(NE_30m)
+  NE_30m_coord <- coordinates(NE_30m)
+  NE_30m_df <- cbind(NE_30m_df, NE_30m_coord)
+  NE_30m_df$ID <- seq(1:nrow(NE_30m_df))
+  
+  OK_1km_df <- as.data.frame(OK_1km)
+  OK_1km_coord <- coordinates(OK_1km)
+  OK_1km_df <- cbind(OK_1km_df, OK_1km_coord)
+  OK_1km_df$ID <- seq(1:nrow(OK_1km_df))
+  
+  OK_30m_df <- as.data.frame(OK_30m)
+  OK_30m_coord <- coordinates(OK_30m)
+  OK_30m_df <- cbind(OK_30m_df, OK_30m_coord)
+  OK_30m_df$ID <- seq(1:nrow(OK_30m_df))
+  
+
   NE_1km <- raster("./Shapefiles/NE_1km_grid_mask.tif")
   NE_30m <- raster("./Shapefiles/NE_30m_grid_mask.tif")
   OK_1km <- raster("./Shapefiles/OK_1km_grid_mask.tif")
@@ -180,10 +199,13 @@
   #'  Cascadia Biodiveristy Watch rasters & shapefiles
   landcov18 <- raster("./Shapefiles/Cascadia_layers/landcover_2018.tif")
   landcov19 <- raster("./Shapefiles/Cascadia_layers/landcover_2019.tif")
+  landcov20 <- raster("./Shapefiles/Cascadia_layers/landcover_2020.tif")
   dist_open18 <- raster("./Shapefiles/Cascadia_layers/Dist2OpenEdge18.tif")
   dist_open19 <- raster("./Shapefiles/Cascadia_layers/Dist2OpenEdge19.tif")
+  dist_open20 <- raster("./Shapefiles/Cascadia_layers/Dist2OpenEdge20.tif")
   dist_close18 <- raster("./Shapefiles/Cascadia_layers/Dist2ForestEdge18.tif")
   dist_close19 <- raster("./Shapefiles/Cascadia_layers/Dist2ForestEdge19.tif")
+  dist_close20 <- raster("./Shapefiles/Cascadia_layers/Dist2ForestEdge20.tif")
   rdden <- raster("./Shapefiles/Cascadia_layers/roadsForTaylor/RoadDensity_1km.tif")
   #'  Distance to water
   h2o <- raster("./Shapefiles/WA_DeptEcology_HydroWA/WPPP_dist_to_water_2855.tif")
@@ -194,12 +216,15 @@
   terra_stack <- stack(dem, slope)
   dist2edge_stack18 <- stack(dist_close18, dist_open18) # includes open & closed habitats
   dist2edge_stack19 <- stack(dist_close19, dist_open19) # includes open & closed habitats
+  dist2edge_stack20 <- stack(dist_close20, dist_open20) # includes open & closed habitats
   
   #' #'  Create distance to edge raster
   #' dist2edge18 <- calc(dist2edge_stack18, function(x){min(x)})
   #' dist2edge19 <- calc(dist2edge_stack19, function(x){min(x)})
+  #' dist2edge20 <- calc(dist2edge_stack20, function(x){min(x)})
   #' writeRaster(dist2edge18, "./Shapefiles/Cascadia_layers/Dist2Edge18.tif", type = "GTiff", Overwrite = T)
   #' writeRaster(dist2edge19, "./Shapefiles/Cascadia_layers/Dist2Edge19.tif", type = "GTiff", Overwrite = T)
+  #' writeRaster(dist2edge20, "./Shapefiles/Cascadia_layers/Dist2Edge20.tif", type = "GTiff", Overwrite = T)
   
   #'  Check out projections
   projection(dem)
@@ -209,6 +234,7 @@
   projection(rdden)
   projection(h2o)
   projection(dist_open18) # Note the difference here
+  projection(dist_open20)
 
   
   #'  COVARIATE EXTRACTION
@@ -291,12 +317,21 @@
         Dist2Open19 = round(Dist2OpenEdge19, 2)
       ) %>%
       rowwise() %>%
-      mutate(Dist2Edge19 = min(Dist2Forest19, Dist2Open19, na.rm=TRUE))     
-    Dist2Edge <- full_join(Dist2Edge18, Dist2Edge19, by = "ID") %>%
+      mutate(Dist2Edge19 = min(Dist2Forest19, Dist2Open19, na.rm=TRUE)) 
+    Dist2Edge20 <- raster::extract(dist2edge_stack20, locs_dist, df = TRUE) %>%
+      transmute(
+        ID = ID,
+        Dist2Forest20 = round(Dist2ForestEdge20, 2),
+        Dist2Open20 = round(Dist2OpenEdge20, 2)
+      ) %>%
+      rowwise() %>%
+      mutate(Dist2Edge20 = min(Dist2Forest20, Dist2Open20, na.rm=TRUE))
+    Dist2Edge <- full_join(Dist2Edge18, Dist2Edge19, Dist2Edge20, by = "ID") %>%
       transmute(
         ID = ID,
         Dist2Edge18 = Dist2Edge18,
-        Dist2Edge19 = Dist2Edge19
+        Dist2Edge19 = Dist2Edge19,
+        Dist2Edge20 = Dist2Edge20
       )
     
     #'  4. Extract landcover data from Cascadia landcover rasters. Only 2018 & 2019
@@ -346,11 +381,34 @@
         landcover_type19 = ifelse(landcov19 == 331, "Commercial", landcover_type19), 
         landcover_type19 = ifelse(landcov19 == 332, "Developed", landcover_type19)  
       )
-    landcover <- full_join(landcover18, landcover19, by = "ID") %>%
+    landcover20 <- raster::extract(landcov20, locs_wgs84, df = TRUE) %>%
+      transmute(
+        ID = ID,
+        landcov20 = landcover_2020
+      ) %>%
+      mutate(
+        landcover_type20 = ifelse(landcov20 == 101, "Water", landcov20),
+        landcover_type20 = ifelse(landcov20 == 111, "Glacier", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 121, "Barren", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 201, "Wetland", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 201, "Wetland", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 202, "Woody Wetland", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 211, "Mesic Grass", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 212, "Xeric Grass", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 221, "Mesic Shrub", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 222, "Xeric Shrub", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 230, "Forest", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 301, "Agriculture", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 310, "Developed", landcover_type20),
+        landcover_type20 = ifelse(landcov20 == 331, "Commercial", landcover_type20), 
+        landcover_type20 = ifelse(landcov20 == 332, "Developed", landcover_type20)  
+      )
+    landcover <- full_join(landcover18, landcover19, landcover20, by = "ID") %>%
       transmute(
         ID = ID,
         landcover_type18 = landcover_type18,
-        landcover_type19 = landcover_type19
+        landcover_type19 = landcover_type19,
+        landcover_type20 = landcover_type20
       )
       
     #'  5. Join all covariates together & clean up to use for projecting RSFs
@@ -370,8 +428,10 @@
         CanopyCover20 = Canopy20,
         Dist2Edge18 = Dist2Edge18,
         Dist2Edge19 = Dist2Edge19,
+        Dist2Edge20 = Dist2Edge20,
         Landcover_type18 = landcover_type18,
-        Landcover_type19 = landcover_type19) 
+        Landcover_type19 = landcover_type19,
+        Landcover_type20 = landcover_type20) 
     
     return(raster_covs)
     
@@ -398,10 +458,10 @@
   save(OK.covs.1km, file = paste0("./Outputs/Telemetry_covs/OK_covs_1km_", Sys.Date(), ".RData"))
   save(OK.covs.30m, file = paste0("./Outputs/Telemetry_covs/OK_covs_30m_", Sys.Date(), ".RData"))
   
-  load("./Outputs/Telemetry_covs/NE_covs_1km_2022-01-21.RData")
-  load("./Outputs/Telemetry_covs/NE_covs_30m_2022-01-13.RData")
+  load("./Outputs/Telemetry_covs/NE_covs_1km_2022-01-21.RData") # 2022-01-13 (wrong Dist2Edge projection but doesn't make a difference)
+  load("./Outputs/Telemetry_covs/NE_covs_30m_2022-01-21.RData")
   load("./Outputs/Telemetry_covs/OK_covs_1km_2022-01-21.RData")
-  load("./Outputs/Telemetry_covs/OK_covs_30m_2022-01-13.RData")
+  load("./Outputs/Telemetry_covs/OK_covs_30m_2022-01-21.RData")
   
   #'  Create landcover type specific rasters for visualization
   #'  Open grass: mesic grass (211), xeric grass (212), wetland woody (202)
@@ -414,6 +474,7 @@
                         300,333,1),ncol=3,byrow=TRUE)
   developed18 <- reclassify(landcov18, developed)
   developed19 <- reclassify(landcov19, developed)
+  developed20 <- reclassify(landcov20, developed)
   open <- matrix(c(0,201,0,
                    201,202,1,
                    202,210,0,
@@ -421,30 +482,36 @@
                    212,333,0),ncol=3,byrow=TRUE)
   open18 <- reclassify(landcov18, open)
   open19 <- reclassify(landcov19, open)
+  open20 <- reclassify(landcov20, open)
   other <- matrix(c(0,121,1,
                     122,333,0),ncol=3,byrow=TRUE)
   other18 <- reclassify(landcov18, other)
   other19 <- reclassify(landcov19, other)
+  other20 <- reclassify(landcov20, other)
   shrub <- matrix(c(0,220,0,
                     220,222,1,
                     222,333,0),ncol=3,byrow=TRUE)
   shrub18 <- reclassify(landcov18, shrub)
   shrub19 <- reclassify(landcov19, shrub)
+  shrub20 <- reclassify(landcov20, shrub)
   forest <- matrix(c(0,229,0,
                      229,230,1,
                      230,333,0),ncol=3,byrow=TRUE)
   forest18 <- reclassify(landcov18, forest)
   forest19 <- reclassify(landcov19, forest)
+  forest20 <- reclassify(landcov20, forest)
   wetland <- matrix(c(0,200,0,
                       200,201,1,
                       201,333,0),ncol=3,byrow=TRUE)
   wetland18 <- reclassify(landcov18, wetland)
   wetland19 <- reclassify(landcov19, wetland)
+  wetland20 <- reclassify(landcov20, wetland)
   reclass_other <- matrix(c(0,121,1,
                             122,300,0,
                             300,333,1),ncol=3,byrow=TRUE)
   re_other18 <- reclassify(landcov18, reclass_other)
   re_other19 <- reclassify(landcov19, reclass_other)
+  re_other20 <- reclassify(landcov20, reclass_other)
   wolf_other <- matrix(c(0,121,1,
                          122,200,0,
                          200,201,1,
@@ -452,6 +519,7 @@
                          300,333,1),ncol=3,byrow=TRUE)
   wolf_other18 <- reclassify(landcov18, wolf_other)
   wolf_other19 <- reclassify(landcov19, wolf_other)
+  wolf_other20 <- reclassify(landcov20, wolf_other)
   
   ####  Visualizing covariates  ####
   #'  Re-project study area/MCP polygon
