@@ -374,17 +374,23 @@
                          spp_telem_covs[[8]], spp_telem_covs[[10]], spp_telem_covs[[12]], 
                          spp_telem_covs[[14]])
   
-  #'  Functions to remove unnecessary columns
+  #'  Functions to remove unnecessary columns and rename
   remove_wtr_covs <- function(smr_data) {
-    smr_data <- dplyr::select(smr_data, -c("SDD", "MD_wtr", "ELK_wtr", "WTD_wtr", # UPDATE SDD!!!
-                                           "COUG_wtr", "WOLF_wtr", "BOB_wtr", "COY_wtr"))
+    smr_data <- dplyr::select(smr_data, -c("MD_wtr", "ELK_wtr", "WTD_wtr", "COUG_wtr", 
+                                           "WOLF_wtr", "BOB_wtr", "COY_wtr")) 
+    names(covs) <- c("obs", "AnimalID", "Season", "StudyArea", "time", "Date", 
+                     "Dist2Road", "PercOpen", "SDD", "TRI", "MD_RSF", "ELK_RSF", 
+                     "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")
     return(smr_data)
   }
   smr_telem_data <- lapply(smr_covs, remove_wtr_covs)
   
   remove_smr_covs <- function(wtr_data) {
-    wtr_data <- dplyr::select(wtr_data, -c("MD_smr", "ELK_smr", "WTD_smr",  
-                                           "COUG_smr", "WOLF_smr", "BOB_smr", "COY_smr"))
+    wtr_data <- dplyr::select(wtr_data, -c("MD_smr", "ELK_smr", "WTD_smr", "COUG_smr",  
+                                           "WOLF_smr", "BOB_smr", "COY_smr"))
+    names(covs) <- c("obs", "AnimalID", "Season", "StudyArea", "time", "Date", 
+                     "Dist2Road", "PercOpen", "SDD", "TRI", "MD_RSF", "ELK_RSF", 
+                     "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")
     return(wtr_data)
   }
   wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
@@ -393,7 +399,8 @@
   #'  Remember: NDVIsmr are the spatio-temporally matched NDVI values for summer locs
   #'  NDVImax are the maximum NDVI value from previous growing season for each winter loc
   add_ndvi <- function(covs, ndvi) {
-    full_covs <- full_join(covs, ndvi, by = c("obs", "AnimalID", "Season", "StudyArea", "time"))
+    full_covs <- full_join(covs, ndvi, by = c("obs", "AnimalID", "Season", "StudyArea", "time")) %>%
+      relocate(NDVI, .after = Dist2Road)
   }
   #'  Append species and season specific NDVI data to covariate datasets
   smr_cov_data <- mapply(add_ndvi, smr_telem_data, NDVIsmr, SIMPLIFY = FALSE)
