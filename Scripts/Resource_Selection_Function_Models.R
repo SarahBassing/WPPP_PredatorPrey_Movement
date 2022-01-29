@@ -940,7 +940,6 @@
     unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
     spread(Parameter, Est_SE_Pval) %>%
     separate("(Intercept)", c("Intercept (SE)", "Intercept Pval"), sep = "_") %>%
-    # separate("AreaOK", c("AreaOK (SE)", "AreaOK Pval"), sep = "_") %>%
     separate("Elev", c("Elev (SE)", "Elev Pval"), sep = "_") %>%
     separate("I(Elev^2)", c("I(Elev^2) (SE)", "I(Elev^2) Pval"), sep = "_") %>%
     separate("Slope", c("Slope (SE)", "Slope Pval"), sep = "_") %>%
