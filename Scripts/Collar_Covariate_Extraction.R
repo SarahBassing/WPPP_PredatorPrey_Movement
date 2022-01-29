@@ -62,8 +62,6 @@
   snow_off1819 <- rast("./Shapefiles/Snow/SDD2019_WPPP_start10012018.tif")
   snow_off1920 <- rast("./Shapefiles/Snow/SDD2020_WPPP_start10012019.tif")
   snow_off2021 <- rast("./Shapefiles/Snow/SDD2021_WPPP_start10012020.tif")
-  
-  tst <- rast("G:/My Drive/SNOW/SOD_2018.tif")
   #'  RSFs: stack of 3 rasters, 1 per year
   md_smr_rsf <- rast("./Shapefiles/Predicted_RSFs/md_smr_RSFstack.tif") # use rast instead
   md_wtr_rsf <- rast("./Shapefiles/Predicted_RSFs/md_wtr_RSFstack.tif")
@@ -110,6 +108,7 @@
     move <- locs[[2]]
     sf_locs <- st_as_sf(move, coords = c("mu.x", "mu.y"), crs = sa_proj) %>%
       mutate(obs = seq(1:nrow(.))) %>%
+      dplyr::select(c("FullID", "Sex", "Season", "StudyArea", "AnimalID", "time", "obs")) %>%
       #'  Fill in missing values for AnimalID, etc. where locations interpolated
       fill(FullID, .direction = "down") %>%
       fill(Sex, .direction = "down") %>%
@@ -120,24 +119,28 @@
   }
   sf_locs <- lapply(crwOut_ALL, spatial_locs)
   
-  #'  Reproject sf objects to match WGS84 rasters
-  sf_reproj <- function(locs) {
-    locs_wgs84 <- st_transform(locs, crs = wgs84)
-    return(locs_wgs84)
-  }
-  sf_locs_wgs84 <- lapply(sf_locs, sf_reproj)
-  
-  tst <- sf_locs[[9]]
-  tst_wgs84 <- sf_locs_wgs84[[9]]
+  #' #'  Reproject sf objects to match WGS84 rasters
+  #' sf_reproj <- function(locs) {
+  #'   locs_wgs84 <- st_transform(locs, crs = wgs84)
+  #'   return(locs_wgs84)
+  #' }
+  #' sf_locs_wgs84 <- lapply(sf_locs, sf_reproj)
+  #' 
+  #' tst <- sf_locs[[9]]
+  #' tst_wgs84 <- sf_locs_wgs84[[9]]
   
   #'  Reformat NDVI data so they have matching columns
   NDVIsmr <- function(NDVIsmr) {
-    NDVIsmr <- transmute(NDVIsmr, obs = ID, AnimalID = AnimalID, Season = Season, StudyArea = StudyArea, time = times, NDVI = NDVI)
+    NDVIsmr <- transmute(NDVIsmr, obs = ID, AnimalID = AnimalID, Season = Season, 
+                         StudyArea = StudyArea, time = times, NDVI = NDVI) %>%
+      mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8"))
     return(NDVIsmr)
   }
   NDVIsmr <- lapply(ee_NDVIsmr_list, NDVIsmr)
   NDVImax <- function(NDVImax) {
-    NDVImax <- transmute(NDVImax, obs = ID, AnimalID = AnimalID, Season = Season, StudyArea = StudyArea, time = times, NDVI = maxNDVI)
+    NDVImax <- transmute(NDVImax, obs = ID, AnimalID = AnimalID, Season = Season, 
+                         StudyArea = StudyArea, time = times, NDVI = maxNDVI) %>%
+      mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8"))
     return(NDVImax)
   }
   NDVImax <- lapply(ee_NDVImax_list, NDVImax)
@@ -161,7 +164,10 @@
   plan(cluster, workers = cl)
 
   #'  Master function to extract and manipulate covariate data for each species
-  cov_extract <- function(locs, locs_wgs84, spp_ndvi) {
+  cov_extract <- function(locs) { #, locs_wgs84, spp_ndvi
+    
+    #'  Reproject sf objects to match WGS84 rasters to match certain rasters
+    locs_wgs84 <- st_transform(locs, crs = wgs84)
     
     #'  1. Extract data from habitat rasters 
     #'  ------------------------------------
@@ -169,30 +175,29 @@
     #'  Be sure to match data and raster projections
     #'  FYI: Terra package MUCH faster than Raster package for this many locations
     #'  Extract from terra package requires location data be vectorized (vect())
-    tri <- terra::extract(TRI, vect(tst_wgs84)) %>% #locs_wgs84
+    tri <- terra::extract(TRI, vect(locs_wgs84)) %>% 
       transmute(obs = ID, TRI = WPPP_TRI)
-    dist2Road <- terra::extract(road_stack, vect(tst)) #locs
+    dist2Road <- terra::extract(road_stack, vect(locs))
     #'  Find distance to nearest road between major and minor roadways- takes a minute
     #'  apply min function row-wise (1 = across each row), excluding 1st column of df
     dist2Road$NearestRd <- apply(dist2Road[-1], 1, min)
-    dist2Road <- transmute(dist2Road, obs = ID, NearestRd = NearestRd)
-    percopen <- terra::extract(open_stack, vect(tst_wgs84)) %>% #locs_wgs84
+    dist2Road <- transmute(dist2Road, obs = ID, Dist2Road = NearestRd)
+    percopen <- terra::extract(open_stack, vect(locs_wgs84)) %>%
       transmute(obs = ID, PercOpen18 = PercOpen18, PercOpen19 = PercOpen19, PercOpen20 = PercOpen20) %>%
-      full_join(tst, by = "obs") %>%
+      full_join(locs, by = "obs") %>%
       mutate(
         PercOpen = ifelse(Season == "Summer18", PercOpen18, PercOpen20),
         PercOpen = ifelse(Season == "Summer19", PercOpen19, PercOpen),
         PercOpen = ifelse(Season == "Winter1819", PercOpen18, PercOpen),
-        PercOpen = ifelse(Season == "Winter1920", PercOpen19, PercOpen),
-        time = as.character(time)
+        PercOpen = ifelse(Season == "Winter1920", PercOpen19, PercOpen)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, PercOpen, time))
-    
-    # snowon <- terra::extract(snowOn_stack, vect(tst_wgs84)) #locs_wgs84
-    
+      dplyr::select(c(obs, AnimalID, Season, StudyArea, PercOpen)) 
+
+    # snowon <- terra::extract(snowOn_stack, vect(locs_wgs84))
+
     #'  Snow disapearance date
-    snowoff <- terra::extract(snowOff_stack, vect(tst_wgs84)) #locs_wgs84
-    names(snowoff) <- c("obs", "SDD1819", "SDD1920", "SDD2021") 
+    snowoff <- terra::extract(snowOff_stack, vect(locs_wgs84))
+    names(snowoff) <- c("obs", "SDD1819", "SDD1920", "SDD2021")
     snowoff <- snowoff %>%
       #'  Convert SDD (days since Oct. 1) to actual dates
       #'  Note origin date is start of "Water Year" not January 1
@@ -203,10 +208,9 @@
         SDD2021_Date = as.character(as.Date(SDD2021, origin = "2020-10-01"))
       ) %>%
       #'  Join with crwOut data
-      full_join(tst, by = "obs") %>%
+      full_join(locs, by = "obs") %>%
       mutate(
         Date = as.Date(time, tz = "America/Los_Angeles"),
-        time = as.character(time),
         #'  Snow Disappearance Date
         SDD = ifelse(Season == "Summer18", SDD1819_Date, SDD2021_Date), # don't actually need SDD for summer locs but helpful for column book-keeping
         SDD = ifelse(Season == "Summer19", SDD1920_Date, SDD), # don't actually need SDD for summer locs but helpful for column book-keeping
@@ -214,372 +218,138 @@
         SDD = ifelse(Season == "Winter1920", SDD1920_Date, SDD),
         SDD = as.Date(SDD, format = "%Y-%m-%d")
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, SDD, Date, time)) 
-    
+      dplyr::select(c(obs, AnimalID, Season, StudyArea, SDD, Date)) 
+
     #'  --------------------------------------------------
     #'  Species and season specific RSFs (stacked by year)
     #'  --------------------------------------------------
-    #'  Note: NAs arise for locations if RSF is specific to only one study area 
+    #'  Note: NAs arise for locations if RSF is specific to only one study area
     ####  MULE DEER  ####
-    md_smr <- terra::extract(md_smr_rsf, vect(tst)) #locs
+    md_smr <- terra::extract(md_smr_rsf, vect(locs))
     names(md_smr) <- c("obs", "MD_smr18", "MD_smr19", "MD_smr20")
-    md_wtr <- terra::extract(md_wtr_rsf, vect(tst)) #locs
+    md_wtr <- terra::extract(md_wtr_rsf, vect(locs))
     names(md_wtr) <- c("obs", "MD_wtr1819", "MD_wtr1920", "MD_wtr2021")
     md_rsf <- full_join(md_smr, md_wtr, by = "obs") %>%
-      full_join(tst, by = "obs") %>%
+      full_join(locs, by = "obs") %>%
       mutate(
         MD_smr = ifelse(Season == "Summer18", MD_smr18, MD_smr20),
         MD_smr = ifelse(Season == "Summer19", MD_smr19, MD_smr),
         MD_wtr = ifelse(Season == "Winter1819", MD_wtr1819, MD_wtr2021),
-        MD_wtr = ifelse(Season == "Winter1920", MD_wtr1920, MD_wtr),
-        time = as.character(time)
+        MD_wtr = ifelse(Season == "Winter1920", MD_wtr1920, MD_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, MD_smr, MD_wtr, time))
+      dplyr::select(c(obs, AnimalID, Season, StudyArea, MD_smr, MD_wtr)) 
     ####  ELK  ####
-    elk_smr <- terra::extract(elk_smr_rsf, vect(tst)) #locs
+    elk_smr <- terra::extract(elk_smr_rsf, vect(locs))
     names(elk_smr) <- c("obs", "ELK_smr18", "ELK_smr19", "ELK_smr20")
-    elk_wtr <- terra::extract(elk_wtr_rsf, vect(tst)) #locs
+    elk_wtr <- terra::extract(elk_wtr_rsf, vect(locs))
     names(elk_wtr) <- c("obs", "ELK_wtr1819", "ELK_wtr1920", "ELK_wtr2021")
     elk_rsf <- full_join(elk_smr, elk_wtr, by = "obs") %>%
-      full_join(tst, by = "obs") %>%
+      full_join(locs, by = "obs") %>%
       mutate(
         ELK_smr = ifelse(Season == "Summer18", ELK_smr18, ELK_smr20),
         ELK_smr = ifelse(Season == "Summer19", ELK_smr19, ELK_smr),
         ELK_wtr = ifelse(Season == "Winter1819", ELK_wtr1819, ELK_wtr2021),
-        ELK_wtr = ifelse(Season == "Winter1920", ELK_wtr1920, ELK_wtr),
-        time = as.character(time)
+        ELK_wtr = ifelse(Season == "Winter1920", ELK_wtr1920, ELK_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, ELK_smr, ELK_wtr, time))
+      dplyr::select(c(obs, AnimalID, Season, StudyArea, ELK_smr, ELK_wtr)) 
     ####  WHITE-TAILED DEER  ####
-    wtd_smr <- terra::extract(wtd_smr_rsf, vect(tst)) #locs
+    wtd_smr <- terra::extract(wtd_smr_rsf, vect(locs))
     names(wtd_smr) <- c("obs", "WTD_smr18", "WTD_smr19", "WTD_smr20")
-    wtd_wtr <- terra::extract(wtd_wtr_rsf, vect(tst)) #locs
+    wtd_wtr <- terra::extract(wtd_wtr_rsf, vect(locs))
     names(wtd_wtr) <- c("obs", "WTD_wtr1819", "WTD_wtr1920", "WTD_wtr2021")
     wtd_rsf <- full_join(wtd_smr, wtd_wtr, by = "obs") %>%
-      full_join(tst, by = "obs") %>%
+      full_join(locs, by = "obs") %>%
       mutate(
         WTD_smr = ifelse(Season == "Summer18", WTD_smr18, WTD_smr20),
         WTD_smr = ifelse(Season == "Summer19", WTD_smr19, WTD_smr),
         WTD_wtr = ifelse(Season == "Winter1819", WTD_wtr1819, WTD_wtr2021),
-        WTD_wtr = ifelse(Season == "Winter1920", WTD_wtr1920, WTD_wtr),
-        time = as.character(time)
+        WTD_wtr = ifelse(Season == "Winter1920", WTD_wtr1920, WTD_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, WTD_smr, WTD_wtr, time))
+      dplyr::select(c(obs, AnimalID, Season, StudyArea, WTD_smr, WTD_wtr)) 
     ####  COUGAR  ####
-    coug_smr <- terra::extract(coug_smr_rsf, vect(tst)) #locs
+    coug_smr <- terra::extract(coug_smr_rsf, vect(locs))
     names(coug_smr) <- c("obs", "COUG_smr18", "COUG_smr19", "COUG_smr20")
-    coug_wtr <- terra::extract(coug_wtr_rsf, vect(tst)) #locs
+    coug_wtr <- terra::extract(coug_wtr_rsf, vect(locs))
     names(coug_wtr) <- c("obs", "COUG_wtr1819", "COUG_wtr1920", "COUG_wtr2021")
     coug_rsf <- full_join(coug_smr, coug_wtr, by = "obs") %>%
-      full_join(tst, by = "obs") %>%
+      full_join(locs, by = "obs") %>%
       mutate(
         COUG_smr = ifelse(Season == "Summer18", COUG_smr18, COUG_smr20),
         COUG_smr = ifelse(Season == "Summer19", COUG_smr19, COUG_smr),
         COUG_wtr = ifelse(Season == "Winter1819", COUG_wtr1819, COUG_wtr2021),
-        COUG_wtr = ifelse(Season == "Winter1920", COUG_wtr1920, COUG_wtr),
-        time = as.character(time)
+        COUG_wtr = ifelse(Season == "Winter1920", COUG_wtr1920, COUG_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, COUG_smr, COUG_wtr, time))
+      dplyr::select(c(obs, AnimalID, Season, StudyArea, COUG_smr, COUG_wtr)) 
     ####  WOLF  ####
-    wolf_smr <- terra::extract(wolf_smr_rsf, vect(tst)) #locs
+    wolf_smr <- terra::extract(wolf_smr_rsf, vect(locs))
     names(wolf_smr) <- c("obs", "WOLF_smr18", "WOLF_smr19", "WOLF_smr20")
-    wolf_wtr <- terra::extract(wolf_wtr_rsf, vect(tst)) #locs
+    wolf_wtr <- terra::extract(wolf_wtr_rsf, vect(locs))
     names(wolf_wtr) <- c("obs", "WOLF_wtr1819", "WOLF_wtr1920", "WOLF_wtr2021")
     wolf_rsf <- full_join(wolf_smr, wolf_wtr, by = "obs") %>%
-      full_join(tst, by = "obs") %>%
+      full_join(locs, by = "obs") %>%
       mutate(
         WOLF_smr = ifelse(Season == "Summer18", WOLF_smr18, WOLF_smr20),
         WOLF_smr = ifelse(Season == "Summer19", WOLF_smr19, WOLF_smr),
         WOLF_wtr = ifelse(Season == "Winter1819", WOLF_wtr1819, WOLF_wtr2021),
-        WOLF_wtr = ifelse(Season == "Winter1920", WOLF_wtr1920, WOLF_wtr),
-        time = as.character(time)
+        WOLF_wtr = ifelse(Season == "Winter1920", WOLF_wtr1920, WOLF_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, WOLF_smr, WOLF_wtr, time))
-    ####  COYOTE  ####
-    coy_smr <- terra::extract(coy_smr_rsf, vect(tst)) #locs
-    names(coy_smr) <- c("obs", "COY_smr18", "COY_smr19", "COY_smr20")
-    coy_wtr <- terra::extract(coy_wtr_rsf, vect(tst)) #locs
-    names(coy_wtr) <- c("obs", "COY_wtr1819", "COY_wtr1920", "COY_wtr2021")
-    coy_rsf <- full_join(coy_smr, coy_wtr, by = "obs") %>%
-      full_join(tst, by = "obs") %>%
-      mutate(
-        COY_smr = ifelse(Season == "Summer18", COY_smr18, COY_smr20),
-        COY_smr = ifelse(Season == "Summer19", COY_smr19, COY_smr),
-        COY_wtr = ifelse(Season == "Winter1819", COY_wtr1819, COY_wtr2021),
-        COY_wtr = ifelse(Season == "Winter1920", COY_wtr1920, COY_wtr),
-        time = as.character(time)
-      ) %>%
-      dplyr::select(c(obs, AnimalID, Season, COY_smr, COY_wtr, time))
+      dplyr::select(c(obs, AnimalID, Season, StudyArea, WOLF_smr, WOLF_wtr)) 
     ####  BOBCAT  ####
-    bob_smr <- terra::extract(bob_smr_rsf, vect(tst)) #locs
+    bob_smr <- terra::extract(bob_smr_rsf, vect(locs))
     names(bob_smr) <- c("obs", "BOB_smr18", "BOB_smr19", "BOB_smr20")
-    bob_wtr <- terra::extract(bob_wtr_rsf, vect(tst)) #locs
+    bob_wtr <- terra::extract(bob_wtr_rsf, vect(locs))
     names(bob_wtr) <- c("obs", "BOB_wtr1819", "BOB_wtr1920", "BOB_wtr2021")
     bob_rsf <- full_join(bob_smr, bob_wtr, by = "obs") %>%
-      full_join(tst, by = "obs") %>%
+      full_join(locs, by = "obs") %>%
       mutate(
         BOB_smr = ifelse(Season == "Summer18", BOB_smr18, BOB_smr20),
         BOB_smr = ifelse(Season == "Summer19", BOB_smr19, BOB_smr),
         BOB_wtr = ifelse(Season == "Winter1819", BOB_wtr1819, BOB_wtr2021),
-        BOB_wtr = ifelse(Season == "Winter1920", BOB_wtr1920, BOB_wtr),
-        time = as.character(time)
+        BOB_wtr = ifelse(Season == "Winter1920", BOB_wtr1920, BOB_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, BOB_smr, BOB_wtr, time))
+      dplyr::select(c(obs, AnimalID, Season, StudyArea, BOB_smr, BOB_wtr)) 
+    ####  COYOTE  ####
+    coy_smr <- terra::extract(coy_smr_rsf, vect(locs))
+    names(coy_smr) <- c("obs", "COY_smr18", "COY_smr19", "COY_smr20")
+    coy_wtr <- terra::extract(coy_wtr_rsf, vect(locs))
+    names(coy_wtr) <- c("obs", "COY_wtr1819", "COY_wtr1920", "COY_wtr2021")
+    coy_rsf <- full_join(coy_smr, coy_wtr, by = "obs") %>%
+      full_join(locs, by = "obs") %>%
+      mutate(
+        COY_smr = ifelse(Season == "Summer18", COY_smr18, COY_smr20),
+        COY_smr = ifelse(Season == "Summer19", COY_smr19, COY_smr),
+        COY_wtr = ifelse(Season == "Winter1819", COY_wtr1819, COY_wtr2021),
+        COY_wtr = ifelse(Season == "Winter1920", COY_wtr1920, COY_wtr)
+      ) %>%
+      dplyr::select(c(obs, AnimalID, Season, StudyArea, COY_smr, COY_wtr)) 
     
-    #'  NDVI summer values and maximum NDVI
-    #'  Remember: NDVI summer values extracted for summer locations only and 
-    #'  maximum NDVI values extracted from previous growing season for winter
-    #'  locations only- BE SURE TO PROVIDE THE FUNCTION WITH CORRECT SEASON
-    spp_ndvi <- NDVIsmr[[5]]
     
-    #'  Merge all covatiates together
+    #'  Join all extracted covariates together
     crwOut_covs <- full_join(tri, dist2Road, by = "obs") %>%
       full_join(percopen, by = "obs") %>%
-      full_join(snowoff, by = c("obs", "AnimalID", "Season", "time")) %>% #update this once snowon date and julian day stuff is sorted
-      full_join(md_rsf, by = c("obs", "AnimalID", "Season", "time")) %>%
-      full_join(elk_rsf, by = c("obs", "AnimalID", "Season", "time")) %>%
-      full_join(wtd_rsf, by = c("obs", "AnimalID", "Season", "time")) %>%
-      full_join(coug_rsf, by = c("obs", "AnimalID", "Season", "time")) %>%
-      full_join(wolf_rsf, by = c("obs", "AnimalID", "Season", "time")) %>%
-      full_join(coy_rsf, by = c("obs", "AnimalID", "Season", "time")) %>%
-      full_join(bob_rsf, by = c("obs", "AnimalID", "Season", "time")) %>%
-      full_join(spp_ndvi, by = c("obs", "AnimalID", "Season", "time")) # need to feed this to the function
-      
-  
-    
-    
-    
-    
-    
-    #'  2. Find minimum distance for roads layers (is location closest to major
-    #'  or minor road)
-    #'  3. Retain only openhab values for correct year given fix date
-    #'  4. Assign categorical value to snow on and snow off data (did GPS fix
-    #'  occur between snow-on and -off date or outside this range) this will require
-    #'  converting location dates to julian days and then calculating whether 
-    #'  they fall within snow interval (which will also need to be adjusted to julian day)
-    #'  5. Extract predator and prey RSF values specific to correct study area,
-    #'  then retain only RSF values for correct year given fix date
-    #'  6. Attach NDVI values
-    
-    #'  Merge into a single data frame of covariates
-    join_covs <- full_join(elevation, slope, by = "ID") %>%
-      full_join(modified, by = "ID") %>%
-      transmute(
-        obs = ID,
-        Elev = WPPP_DEM_30m,
-        Slope = round(WPPP_slope_aspect, digits = 2),
-        HumanMod = WPPP_gHM
-      )
-    #'  Pull out unique animal/time information
-    animal <- as.data.frame(reproj_locs) %>%
-      dplyr::select(c(ID, time))
-    #'  Merge animal/time information with covariates
-    covs <- as.data.frame(cbind(animal, join_covs))
-    
-    
-    #'  2. Extract data from roads shapefile & calculate distance to nearest road
-    #'     for each location
-    #'  ------------------------------------------------------------------------
-    dist2road <- sapply(1:nrow(locs), function(x) min(st_distance(road_reproj, locs[x, ])))
-    dist2road <- as.data.frame(dist2road)
-    dist2road$ID <- locs$ID
-    dist2road$time <- locs$time
-    dist2road$obs <- c(1:nrow(locs))
-    #'  Append to covariate data frame
-    covs <- covs %>%
-      full_join(dist2road, by = c("ID", "time"))
-    
-    
-    #'  3. Extract landcover data from within 250m of each location & calculate
-    #'     percent habitat type within that buffer
-    #'  ------------------------------------------------------------------------
-    #'  Extract landcover value from each pixel within 250m radius of locations
-    #'  using interpolated landcover rasters derived from Cascadia landcover
-    pixvals18 <- raster::extract(interp_landcov18, locs, factors = TRUE, buffer = 250, df = TRUE)
-    pixvals_df18 <- as.data.frame(pixvals18)
-    pixvals19 <- raster::extract(interp_landcov19, locs, factors = TRUE, buffer = 250, df = TRUE)
-    pixvals_df19 <- as.data.frame(pixvals19)
-    #'  Merge together and rename variables
-    landcov <- cbind(pixvals_df18, pixvals_df19$interpolated_landcover_2019) 
-    colnames(landcov) <- c("obs", "landcover_2018", "landcover_2019")
-    #'  Rename categories so they're easier to work with
-    landcover <- landcov %>%
-      mutate(
-        landcover_2018 = ifelse(landcover_2018 == "101", "Water", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "121", "Barren", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "201", "EmergentWetland", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "202", "WoodyWetland", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "211", "MesicGrass", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "212", "XericGrass", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "221", "MesicShrub", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "222", "XericShrub", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "230", "Forest", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "310", "Agriculture", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "331", "Commercial", landcover_2018),
-        landcover_2018 = ifelse(landcover_2018 == "332", "Residential", landcover_2018),
-        landcover_2019 = ifelse(landcover_2019 == "101", "Water", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "121", "Barren", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "201", "EmergentWetland", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "202", "WoodyWetland", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "211", "MesicGrass", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "212", "XericGrass", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "221", "MesicShrub", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "222", "XericShrub", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "230", "Forest", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "310", "Agriculture", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "331", "Commercial", landcover_2019),
-        landcover_2019 = ifelse(landcover_2019 == "332", "Residential", landcover_2019),
-      )
-    #'  Add animal ID info to landcover data for further manipulation
-    animal <- animal %>% 
-      mutate(obs = 1:nrow(.))
-    landcover_250m <- full_join(animal, landcover, by = "obs")
-    #'  Count the number of cells in each landcover category per location
-    #'  2018 landcover and telemetry locations only
-    tbl_landcover18 <- as.data.frame(landcover_250m) %>%
-      # select(-geometry) %>%
-      group_by(obs) %>%
-      count(landcover_2018) %>%
-      ungroup() %>%
-      pivot_wider(names_from = landcover_2018, values_from = n) %>%
-      replace(is.na(.), 0) %>% 
-      mutate(
-        #'  Count number of pixels within 250m of each location
-        sumPixels = rowSums(.[2:ncol(.)]),
-        #'  Combine similar habitat types
-        Forest =  Forest + WoodyWetland + EmergentWetland,
-        MesicGrass = MesicGrass,# + Barren,
-        MesicMix = MesicShrub + MesicGrass,
-        ForestMix = Forest + MesicMix,
-        ForestMix2 = Forest + MesicShrub
-      ) %>%
-      #'  Calculate percent landcover type within 250m of each camera site
-      mutate(
-        PercForest = round(Forest/sumPixels, 2),
-        PercForestMix = round(ForestMix/sumPixels,2),     # Cannot be used in conjunction with Forest or any Mesic landcover types
-        PercForestMix2 = round(ForestMix2/sumPixels, 2),
-        PercXericShrub = round(XericShrub/sumPixels, 2),
-        PercMesicShrub = round(MesicShrub/sumPixels, 2),  # Cannot be used in conjunction with MesicMix
-        PercXericGrass = round(XericGrass/sumPixels, 2),
-        PercMesicGrass = round(MesicGrass/sumPixels, 2),  # Cannot be used in conjunction with MesicMix
-        PercMesicMix = round(MesicMix/sumPixels, 2)      # Cannot be used in conjunction with other Mesic landcover types
-      ) %>%
-      #'  Join % habitat data to animal location data
-      full_join(animal, by = "obs") %>%
-      #'  Drop data for year camera was NOT present
-      mutate(
-        Year = lubridate::year(time),
-        Month = lubridate::month(time),
-        Season = ifelse(Year == 2018 & Month < 10, "Summer18", NA),
-        Season = ifelse(Year == 2018 & Month > 11, "Winter1819", Season),
-        Season = ifelse(Year == 2019 & Month < 4, "Winter1819", Season),
-        Season = ifelse(Year == 2019 & Month > 6 & Month < 10, "Summer19", Season),
-        Season = ifelse(Year == 2019 & Month > 11, "Winter1920", Season),
-        Season = ifelse(Year == 2020 & Month < 4, "Winter1920", Season),
-        PercForest = ifelse(Season == "Summer19" | Season == "Winter1920", NA, PercForest),
-        PercForestMix = ifelse(Season == "Summer19" | Season == "Winter1920", NA, PercForestMix),
-        PercForestMix2 = ifelse(Season == "Summer19" | Season == "Winter1920", NA, PercForestMix2),
-        PercXericShrub = ifelse(Season == "Summer19" | Season == "Winter1920", NA, PercXericShrub),
-        PercMesicShrub = ifelse(Season == "Summer19" | Season == "Winter1920", NA, PercMesicShrub),
-        PercXericGrass = ifelse(Season == "Summer19" | Season == "Winter1920", NA, PercXericGrass),
-        PercMesicGrass = ifelse(Season == "Summer19" | Season == "Winter1920", NA, PercMesicGrass),
-        PercMesicMix = ifelse(Season == "Summer19" | Season == "Winter1920", NA, PercMesicMix) 
-      ) %>%
-      #'  Only retain relevant columns
-      dplyr::select(obs, sumPixels, PercForest, PercForestMix, PercForestMix2, PercXericShrub,
-                    PercMesicShrub, PercXericGrass, PercMesicGrass, PercMesicMix, ID, time, Season) %>%
-      #'  Filter out rows with NAs
-      filter(!is.na(PercForest))
-    #'  Repeat for 2019 landcover data and telemetry locations
-    tbl_landcover19 <- as.data.frame(landcover_250m) %>%
-      # select(-geometry) %>%
-      group_by(obs) %>%
-      count(landcover_2019) %>%
-      ungroup() %>%
-      pivot_wider(names_from = landcover_2019, values_from = n) %>%
-      replace(is.na(.), 0) %>% 
-      mutate(
-        #'  Count number of pixels within 250m of each location
-        sumPixels = rowSums(.[2:ncol(.)]),
-        #'  Combine similar habitat types
-        Forest =  Forest + WoodyWetland + EmergentWetland,
-        MesicGrass = MesicGrass, # + Barren,
-        MesicMix = MesicShrub + MesicGrass,
-        ForestMix = Forest + MesicMix,
-        ForestMix2 = Forest + MesicShrub
-      ) %>%
-      #'  Calculate percent landcover type within 250m of each camera site
-      mutate(
-        PercForest = round(Forest/sumPixels, 2),
-        PercForestMix = round(ForestMix/sumPixels,2),     # Cannot be used in conjunction with Forest or any Mesic landcover types
-        PercForestMix2 = round(ForestMix2/sumPixels, 2),
-        PercXericShrub = round(XericShrub/sumPixels, 2),
-        PercMesicShrub = round(MesicShrub/sumPixels, 2),  # Cannot be used in conjunction with MesicMix
-        PercXericGrass = round(XericGrass/sumPixels, 2),
-        PercMesicGrass = round(MesicGrass/sumPixels, 2),  # Cannot be used in conjunction with MesicMix
-        PercMesicMix = round(MesicMix/sumPixels, 2)      # Cannot be used in conjunction with other Mesic landcover types
-      ) %>%
-      #'  Join % habitat data to animal location data
-      full_join(animal, by = "obs") %>%
-      #'  Drop data for year camera was NOT present
-      mutate(
-        Year = lubridate::year(time),
-        Month = lubridate::month(time),
-        Season = ifelse(Year == 2018 & Month < 10, "Summer18", NA),
-        Season = ifelse(Year == 2018 & Month > 11, "Winter1819", Season),
-        Season = ifelse(Year == 2019 & Month < 4, "Winter1819", Season),
-        Season = ifelse(Year == 2019 & Month > 6 & Month < 10, "Summer19", Season),
-        Season = ifelse(Year == 2019 & Month > 11, "Winter1920", Season),
-        Season = ifelse(Year == 2020 & Month < 4, "Winter1920", Season),
-        PercForest = ifelse(Season == "Summer18" | Season == "Winter1819", NA, PercForest),
-        PercForestMix = ifelse(Season == "Summer18" | Season == "Winter1819", NA, PercForestMix),
-        PercForestMix2 = ifelse(Season == "Summer18" | Season == "Winter1819", NA, PercForestMix2),
-        PercXericShrub = ifelse(Season == "Summer18" | Season == "Winter1819", NA, PercXericShrub),
-        PercMesicShrub = ifelse(Season == "Summer18" | Season == "Winter1819", NA, PercMesicShrub),
-        PercXericGrass = ifelse(Season == "Summer18" | Season == "Winter1819", NA, PercXericGrass),
-        PercMesicGrass = ifelse(Season == "Summer18" | Season == "Winter1819", NA, PercMesicGrass),
-        PercMesicMix = ifelse(Season == "Summer18" | Season == "Winter1819", NA, PercMesicMix)
-      ) %>%
-      #'  Only retain relevant columns
-      dplyr::select(obs, sumPixels, PercForest, PercForestMix, PercForestMix2, PercXericShrub,
-                    PercMesicShrub, PercXericGrass, PercMesicGrass, PercMesicMix, ID, time, Season) %>%
-      #'  Filter out rows with NAs
-      filter(!is.na(PercForest))
-    #'  Merge annual landcover data together so no duplicates
-    percHab <- rbind(tbl_landcover18, tbl_landcover19)
-    
-    #'  4. Join all covatiates together & clean up for inclusion in HMM
-    telem_covs <- covs %>%
-      full_join(percHab, by = c("ID", "time")) %>%
-      transmute(
-        ID = ID,
-        time = time,
-        Season = Season,
-        Year = ifelse(Season == "Summer18" | Season == "Winter1819", "Year1", "Year2"),
-        Elev = Elev,
-        Slope = Slope,
-        HumanMod = HumanMod,
-        NearestRd = dist2road, 
-        PercForMix = PercForestMix2,
-        PercXGrass = PercXericGrass,
-        PercXShrub = PercXericShrub,
-        obs = obs) %>%
-      mutate(
-        Area = ifelse(grepl("NE", ID), "NE", "OK"),
-        Area = ifelse(grepl("MD", ID), "OK", Area),
-        Area = ifelse(grepl("EA", ID), "NE", Area),
-        Area = ifelse(grepl("ELK", ID), "NE", Area),
-        Area = ifelse(grepl("WTD", ID), "NE", Area))
-    
-    return(telem_covs)
-    
+      full_join(snowoff, by = c("obs", "AnimalID", "Season", "StudyArea")) %>% #update this once snowon date and julian day stuff is sorted
+      full_join(md_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(elk_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(wtd_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(coug_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(wolf_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(coy_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(bob_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(locs, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
+      dplyr::select(c("obs", "AnimalID", "Season", "StudyArea", "time", "Date",
+                      "Dist2Road", "PercOpen", "SDD", "TRI", "MD_smr",       
+                      "MD_wtr", "ELK_smr", "ELK_wtr", "WTD_smr", "WTD_wtr",
+                      "COUG_smr", "COUG_wtr", "WOLF_smr", "WOLF_wtr", "BOB_smr",
+                      "BOB_wtr", "COY_smr", "COY_wtr"))
+
+    return(crwOut_covs)
   }
-  
+  tst_locs <- list(sf_locs[[9]], sf_locs[[10]], sf_locs[[11]], sf_locs[[12]], sf_locs[[13]], sf_locs[[14]])
+  spp_telem_covs <- lapply(tst_locs, cov_extract) 
+
   #'  Run list of species location data through function in parallel
-  #'  This will take AWHILE even in parallel
-  # spp_telem_covs <- lapply(sf_locs, cov_extract) # non-parallel approach
-  spp_telem_covs <- future_lapply(sf_locs, cov_extract)
+  #spp_telem_covs <- lapply(sf_locs, cov_extract) # non-parallel approach
+  # spp_telem_covs <- future_lapply(sf_locs, cov_extract) 
   
   
   #'  End time keeping
@@ -590,7 +360,53 @@
   difftime(end.time, start.time, units = "hours")
 
   
+  #'  Clean up summer and winter datasets-
+  #'  Drop snow data from summer datasets; drop summer/winter RSF values from 
+  #'  winter/summer datasets, respectively.
+  #'  Be aware there are some locations where landscape covariates were extracted
+  #'  but missing RSF values b/c those locations were masked in the RSF analyses,
+  #'  producing NAs for all RSF values at these locations
+  #'  List covariate datasets by season
+  smr_covs <- list(spp_telem_covs[[1]], spp_telem_covs[[3]], spp_telem_covs[[5]], 
+                         spp_telem_covs[[7]], spp_telem_covs[[9]], spp_telem_covs[[11]], 
+                         spp_telem_covs[[13]])
+  wtr_covs <- list(spp_telem_covs[[2]], spp_telem_covs[[4]], spp_telem_covs[[6]], 
+                         spp_telem_covs[[8]], spp_telem_covs[[10]], spp_telem_covs[[12]], 
+                         spp_telem_covs[[14]])
+  
+  #'  Functions to remove unnecessary columns
+  remove_wtr_covs <- function(smr_data) {
+    smr_data <- dplyr::select(smr_data, -c("SDD", "MD_wtr", "ELK_wtr", "WTD_wtr", # UPDATE SDD!!!
+                                           "COUG_wtr", "WOLF_wtr", "BOB_wtr", "COY_wtr"))
+    return(smr_data)
+  }
+  smr_telem_data <- lapply(smr_covs, remove_wtr_covs)
+  
+  remove_smr_covs <- function(wtr_data) {
+    wtr_data <- dplyr::select(wtr_data, -c("MD_smr", "ELK_smr", "WTD_smr",  
+                                           "COUG_smr", "WOLF_smr", "BOB_smr", "COY_smr"))
+    return(wtr_data)
+  }
+  wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
+  
+  #'  Add NDVI data to covariate data frames based on species and season
+  #'  Remember: NDVIsmr are the spatio-temporally matched NDVI values for summer locs
+  #'  NDVImax are the maximum NDVI value from previous growing season for each winter loc
+  add_ndvi <- function(covs, ndvi) {
+    full_covs <- full_join(covs, ndvi, by = c("obs", "AnimalID", "Season", "StudyArea", "time"))
+  }
+  #'  Append species and season specific NDVI data to covariate datasets
+  smr_cov_data <- mapply(add_ndvi, smr_telem_data, NDVIsmr, SIMPLIFY = FALSE)
+  wtr_cov_data <- mapply(add_ndvi, wtr_telem_data, NDVImax, SIMPLIFY = FALSE)
+  
+  #'  Merge back into one giant list
+  spp_telem_covs <- list(smr_cov_data[[1]], wtr_cov_data[[1]], smr_cov_data[[2]], 
+                         wtr_cov_data[[2]], smr_cov_data[[3]], wtr_cov_data[[3]], 
+                         smr_cov_data[[4]], wtr_cov_data[[4]], smr_cov_data[[5]], 
+                         wtr_cov_data[[5]], smr_cov_data[[6]], wtr_cov_data[[6]], 
+                         smr_cov_data[[7]], wtr_cov_data[[7]])
 
+  
   #'  Save and hope you never have to run this again!
   save(spp_telem_covs, file = paste0("./Outputs/Telemetry_covs/spp_telem_covs_", Sys.Date(), ".RData"))
 
