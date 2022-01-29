@@ -44,9 +44,9 @@
   load("./Outputs/RSF_pts/elk_dat_all_2022-01-23.RData")
   load("./Outputs/RSF_pts/wtd_dat_all_2022-01-23.RData")
   load("./Outputs/RSF_pts/coug_dat_all_2022-01-23.RData")
-  load("./HMM/Outputs/RSF_pts/wolf_dat_all_2022-01-23.RData")
-  load("./HMM/Outputs/RSF_pts/bob_dat_all_2022-01-23.RData")
-  load("./HMM/Outputs/RSF_pts/coy_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/wolf_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/bob_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/coy_dat_all_2022-01-23.RData")
   
   #'  Read in study area grids (1km^2)
   NE_1km <- raster("./Shapefiles/NE_1km_grid_mask.tif") 
@@ -368,14 +368,14 @@
   md_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)"
   md_wtr_mod <- "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)"
   #'  Elk models
-  elk_smr_mod <- "Used ~ 1 + Elev + I(Elev2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  elk_wtr_mod <- "Used ~ 1 + Elev + I(Elev2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  elk_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  elk_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   #'  White-tailed Deer models
   wtd_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)"
   wtd_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   #'  Cougar models
-  coug_smr_mod <- "Used ~ 1 + Elev + I(Elev2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  coug_wtr_mod <- "Used ~ 1 + Elev + I(Elev2) + Slope + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  coug_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  coug_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   #'  Wolf models
   wolf_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)"
   wolf_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
@@ -387,6 +387,7 @@
   coy_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)"
  
   
+  #'  =============================
   ####  K-fold model training  ####
   #'  =============================
   #'  Function to run GLMM on K-folded data 
@@ -443,7 +444,7 @@
   save(coy_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_", Sys.Date(), ".RData"))
 
   
-  
+  #'  =================================
   ####  Projecting trained models  ####
   #'  =================================
   #'  Function to find mean & standard deviation for original (raw) covariates
@@ -518,25 +519,21 @@
   bob_wtr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = bobCov_wtr_summary)
   coy_smr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = coyCov_smr_summary)
   coy_wtr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = coyCov_wtr_summary)
-  #' #'  fyi: mapply allows each call of the scaling_covs function to get the 1st,
-  #' #'  2nd, 3rd, etc. element of BOTH lists, SIMPLIFY keeps output in list format
-  #' coy_smr_zcovs <- mapply(scaling_covs, mu.sd = coyCov_smr_summary, covs = SA.covs_list_reclass, SIMPLIFY = FALSE)
-  #' coy_wtr_zcovs <- mapply(scaling_covs, mu.sd = coyCov_wtr_summary, covs = SA.covs_list_reclass, SIMPLIFY = FALSE)
-  
+
   
   #'  Read in saved k-fold trained model results
   load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/md_kfold_smr_2022-01-26.RData")
   load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/md_kfold_wtr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/elk_kfold_smr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/bob_kfold_smr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_2022-01-26.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/elk_kfold_smr_2022-01-27.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_2022-01-27.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_2022-01-27.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_2022-01-27.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2022-01-27.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2022-01-27.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2022-01-27.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2022-01-27.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/bob_kfold_smr_2022-01-27.RData")
+  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_2022-01-27.RData")
   load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-01-26.RData")
   load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-01-26.RData")
   
@@ -642,62 +639,62 @@
   md_smr19_Kpredict <- lapply(md_smr_trainout, predict_rsf, cov = md_smr_zcovs[[2]])
   md_smr20_Kpredict <- lapply(md_smr_trainout, predict_rsf, cov = md_smr_zcovs[[3]])
   md_smr_Kpredict <- list(md_smr18_Kpredict, md_smr19_Kpredict, md_smr20_Kpredict)
-  # save(md_smr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/md_smr_Kpredict_", Sys.Date(), ".RData"))
+  save(md_smr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/md_smr_Kpredict_", Sys.Date(), ".RData"))
   md_wtr1819_Kpredict <- lapply(md_wtr_trainout, predict_rsf, cov = md_wtr_zcovs[[1]])
   md_wtr1920_Kpredict <- lapply(md_wtr_trainout, predict_rsf, cov = md_wtr_zcovs[[2]])
   md_wtr2021_Kpredict <- lapply(md_wtr_trainout, predict_rsf, cov = md_wtr_zcovs[[3]])
   md_wtr_Kpredict <- list(md_wtr1819_Kpredict, md_wtr1920_Kpredict, md_wtr2021_Kpredict)
-  # save(md_wtr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/md_wtr_Kpredict_", Sys.Date(), ".RData"))
+  save(md_wtr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/md_wtr_Kpredict_", Sys.Date(), ".RData"))
   elk_smr18_Kpredict <- lapply(elk_smr_trainout, predict_rsf, cov = elk_smr_zcovs[[1]])
   elk_smr19_Kpredict <- lapply(elk_smr_trainout, predict_rsf, cov = elk_smr_zcovs[[2]])
   elk_smr20_Kpredict <- lapply(elk_smr_trainout, predict_rsf, cov = elk_smr_zcovs[[3]])
   elk_smr_Kpredict <- list(elk_smr18_Kpredict, elk_smr19_Kpredict, elk_smr20_Kpredict)
-  # save(elk_smr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/elk_smr_Kpredict_", Sys.Date(), ".RData"))
+  save(elk_smr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/elk_smr_Kpredict_", Sys.Date(), ".RData"))
   elk_wtr1819_Kpredict <- lapply(elk_wtr_trainout, predict_rsf, cov = elk_wtr_zcovs[[1]])
   elk_wtr1920_Kpredict <- lapply(elk_wtr_trainout, predict_rsf, cov = elk_wtr_zcovs[[2]])
   elk_wtr2021_Kpredict <- lapply(elk_wtr_trainout, predict_rsf, cov = elk_wtr_zcovs[[3]])
   elk_wtr_Kpredict <- list(elk_wtr1819_Kpredict, elk_wtr1920_Kpredict, elk_wtr2021_Kpredict)
-  # save(elk_wtr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/elk_wtr_Kpredict_", Sys.Date(), ".RData"))
+  save(elk_wtr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/elk_wtr_Kpredict_", Sys.Date(), ".RData"))
   wtd_smr18_Kpredict <- lapply(wtd_smr_trainout, predict_rsf, cov = wtd_smr_zcovs[[1]])
   wtd_smr19_Kpredict <- lapply(wtd_smr_trainout, predict_rsf, cov = wtd_smr_zcovs[[2]])
   wtd_smr20_Kpredict <- lapply(wtd_smr_trainout, predict_rsf, cov = wtd_smr_zcovs[[3]])
   wtd_smr_Kpredict <- list(wtd_smr18_Kpredict, wtd_smr19_Kpredict, wtd_smr20_Kpredict)
-  # save(wtd_smr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wtd_smr_Kpredict_", Sys.Date(), ".RData"))
+  save(wtd_smr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/wtd_smr_Kpredict_", Sys.Date(), ".RData"))
   wtd_wtr1819_Kpredict <- lapply(wtd_wtr_trainout, predict_rsf, cov = wtd_wtr_zcovs[[1]])
   wtd_wtr1920_Kpredict <- lapply(wtd_wtr_trainout, predict_rsf, cov = wtd_wtr_zcovs[[2]])
   wtd_wtr2021_Kpredict <- lapply(wtd_wtr_trainout, predict_rsf, cov = wtd_wtr_zcovs[[3]])
   wtd_wtr_Kpredict <- list(wtd_wtr1819_Kpredict, wtd_wtr1920_Kpredict, wtd_wtr2021_Kpredict)
-  # save(wtd_wtr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wtd_wtr_Kpredict_", Sys.Date(), ".RData"))
+  save(wtd_wtr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/wtd_wtr_Kpredict_", Sys.Date(), ".RData"))
   coug_smr18_Kpredict <- lapply(coug_smr_trainout, predict_rsf, cov = coug_smr_zcovs[[1]])
   coug_smr19_Kpredict <- lapply(coug_smr_trainout, predict_rsf, cov = coug_smr_zcovs[[2]])
   coug_smr20_Kpredict <- lapply(coug_smr_trainout, predict_rsf, cov = coug_smr_zcovs[[3]])
   coug_smr_Kpredict <- list(coug_smr18_Kpredict, coug_smr19_Kpredict, coug_smr20_Kpredict)
-  # save(coug_smr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coug_smr_Kpredict_", Sys.Date(), ".RData"))
+  save(coug_smr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_smr_Kpredict_", Sys.Date(), ".RData"))
   coug_wtr1819_Kpredict <- lapply(coug_wtr_trainout, predict_rsf, cov = coug_wtr_zcovs[[1]])
   coug_wtr1920_Kpredict <- lapply(coug_wtr_trainout, predict_rsf, cov = coug_wtr_zcovs[[2]])
   coug_wtr2021_Kpredict <- lapply(coug_wtr_trainout, predict_rsf, cov = coug_wtr_zcovs[[3]])
   coug_wtr_Kpredict <- list(coug_wtr1819_Kpredict, coug_wtr1920_Kpredict, coug_wtr2021_Kpredict)
-  # save(coug_wtr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coug_wtr_Kpredict_", Sys.Date(), ".RData"))
+  save(coug_wtr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_wtr_Kpredict_", Sys.Date(), ".RData"))
   wolf_smr18_Kpredict <- lapply(wolf_smr_trainout, predict_rsf, cov = wolf_smr_zcovs[[1]])
   wolf_smr19_Kpredict <- lapply(wolf_smr_trainout, predict_rsf, cov = wolf_smr_zcovs[[2]])
   wolf_smr20_Kpredict <- lapply(wolf_smr_trainout, predict_rsf, cov = wolf_smr_zcovs[[3]])
   wolf_smr_Kpredict <- list(wolf_smr18_Kpredict, wolf_smr19_Kpredict, wolf_smr20_Kpredict)
-  # save(wolf_smr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wolf_smr_Kpredict_", Sys.Date(), ".RData"))
+  save(wolf_smr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_smr_Kpredict_", Sys.Date(), ".RData"))
   wolf_wtr1819_Kpredict <- lapply(wolf_wtr_trainout, predict_rsf, cov = wolf_wtr_zcovs[[1]])
   wolf_wtr1920_Kpredict <- lapply(wolf_wtr_trainout, predict_rsf, cov = wolf_wtr_zcovs[[2]])
   wolf_wtr2021_Kpredict <- lapply(wolf_wtr_trainout, predict_rsf, cov = wolf_wtr_zcovs[[3]])
   wolf_wtr_Kpredict <- list(wolf_wtr1819_Kpredict, wolf_wtr1920_Kpredict, wolf_wtr2021_Kpredict)
-  # save(wolf_wtr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wolf_wtr_Kpredict_", Sys.Date(), ".RData"))
+  save(wolf_wtr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_wtr_Kpredict_", Sys.Date(), ".RData"))
   bob_smr18_Kpredict <- lapply(bob_smr_trainout, predict_rsf, cov = bob_smr_zcovs[[1]])
   bob_smr19_Kpredict <- lapply(bob_smr_trainout, predict_rsf, cov = bob_smr_zcovs[[2]])
   bob_smr20_Kpredict <- lapply(bob_smr_trainout, predict_rsf, cov = bob_smr_zcovs[[3]])
   bob_smr_Kpredict <- list(bob_smr18_Kpredict, bob_smr19_Kpredict, bob_smr20_Kpredict)
-  # save(bob_smr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/bob_smr_Kpredict_", Sys.Date(), ".RData"))
+  save(bob_smr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/bob_smr_Kpredict_", Sys.Date(), ".RData"))
   bob_wtr1819_Kpredict <- lapply(bob_wtr_trainout, predict_rsf, cov = bob_wtr_zcovs[[1]])
   bob_wtr1920_Kpredict <- lapply(bob_wtr_trainout, predict_rsf, cov = bob_wtr_zcovs[[2]])
   bob_wtr2021_Kpredict <- lapply(bob_wtr_trainout, predict_rsf, cov = bob_wtr_zcovs[[3]])
   bob_wtr_Kpredict <- list(bob_wtr1819_Kpredict, bob_wtr1920_Kpredict, bob_wtr2021_Kpredict)
-  # save(bob_wtr_Kpredict, file = paste0("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/bob_wtr_Kpredict_", Sys.Date(), ".RData"))
+  save(bob_wtr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/bob_wtr_Kpredict_", Sys.Date(), ".RData"))
   coy_smr18_Kpredict <- lapply(coy_smr_trainout, predict_rsf, cov = coy_smr_zcovs[[1]])
   coy_smr19_Kpredict <- lapply(coy_smr_trainout, predict_rsf, cov = coy_smr_zcovs[[2]])
   coy_smr20_Kpredict <- lapply(coy_smr_trainout, predict_rsf, cov = coy_smr_zcovs[[3]])
@@ -709,8 +706,6 @@
   coy_wtr_Kpredict <- list(coy_wtr1819_Kpredict, coy_wtr1920_Kpredict, coy_wtr2021_Kpredict)
   save(coy_wtr_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/coy_wtr_Kpredict_", Sys.Date(), ".RData"))
 
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coy_smr_Kpredict_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coy_wtr_Kpredict_2022-01-26.RData")
   
   #'  Function to identify any outliers
   outliers <- function(predicted, title) { #, covs_list
@@ -731,10 +726,6 @@
     print(nrow(outlier))
     
     return(predicted)
-    
-    #' #' Summarize covariates associated with extreme values
-    #' bigvalues <- full_join(predicted, covs_list, by = c("ID", "StudyArea", "x", "y"))
-    #' return(bigvalues)
   }
   #'  Identify outlier predictions and possible covariates associated with those
   #'  Be sure to used standardized covariates for evaluation
@@ -894,6 +885,7 @@
   coy_wtr_karea <- lapply(coy_wtr_Kbins, lapply, calc_bin_area)
   
  
+  #'  ===========================
   ####  Cross-validate RSFs  ####
   #'  ===========================
   #'  Read in saved testing data
@@ -969,8 +961,6 @@
   coy_smr_usedbin <- lapply(coy_smr_Kbins, used_bins, test_used = coy_smr_test_used)
   coy_wtr_usedbin <- lapply(coy_wtr_Kbins, used_bins, test_used = coy_wtr_test_used)
 
-  load("coy_smr_karea.RData")
-  load("coy_smr_usedbin.RData")
   
   #'  Function to area weight frequency of each bin and calculate Spearman's 
   #'  Rank Correlation
@@ -981,9 +971,18 @@
       summarise(Freq = sum(layer)) %>%
       ungroup() %>%
       #'  Drop NA's for the rare instance when a location overlaps masked pixels
-      filter(!is.na(Freq)) %>%
-      #'  Area-weight frequency by number of area of each bin in study area
-      cbind(bin_area) %>%
+      filter(!is.na(Freq))
+    #'  Identify any missing bins (e.g., if lowest bin was never used) and IF
+    #'  missing, add to data frame with frequency = 0, ELSE leave as is
+    missing <- setdiff(1:10, wgtBinFreq$layer)
+    if(length(missing) > 0){
+      #'  Complete finishes the sequence in layer column (1:10) and fills Freq 
+      wgtBinFreq <- complete(wgtBinFreq, layer = 1:10, fill = list(Freq = 0)) 
+    } else {
+      wgtBinFreq
+    }
+    #'  Area-weight frequency by number of area of each bin in study area
+    wgtBinFreq <- cbind(wgtBinFreq, bin_area) %>%
       mutate(wgt_Freq = Freq/bin_area)
     #'  Calculate Spearman's Rank Correlation between bin rank and area-weighted
     #'  frequency of used locations
@@ -1002,9 +1001,9 @@
         SpRankCor[i,j] <- area_weighted_freq(usedbin, binarea)
         #'  Calculate mean, SD, & SE across k-folds for each year
         SpRankCor <- as.data.frame(SpRankCor) %>%
-          mutate(mu.SpCor = rowMeans(select(.,starts_with("V")), na.rm = TRUE),
-                 sd.SpCor = apply(select(.,starts_with("V")), 1, sd),
-                 se.SpCor = sd.SpCor/sqrt(length(select(.,starts_with("V")))),
+          mutate(mu.SpCor = rowMeans(dplyr::select(.,starts_with("V")), na.rm = TRUE),
+                 sd.SpCor = apply(dplyr::select(.,starts_with("V")), 1, sd),
+                 se.SpCor = sd.SpCor/sqrt(length(dplyr::select(.,starts_with("V")))),
                  Species = species,
                  Season = season)
       }
@@ -1014,14 +1013,33 @@
   #'  Run each list of lists (3 years, 5 folds per year for bins & area data) 
   #'  through Sp_Rank_Cor function, which calls the area_weighted_freq function
   #'  to calculate Spearman's Rank Correlation for every year and fold
+  md_smr_SpRankCor <- Sp_Rank_Cor(used_bin = md_smr_usedbin, bin_area = md_smr_karea, species = "Mule Deer", season = "Summer")
+  md_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = md_wtr_usedbin, bin_area = md_wtr_karea, species = "Mule Deer", season = "Winter")
+  elk_smr_SpRankCor <- Sp_Rank_Cor(used_bin = elk_smr_usedbin, bin_area = elk_smr_karea, species = "Elk", season = "Summer")
+  elk_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = elk_wtr_usedbin, bin_area = elk_wtr_karea, species = "Elk", season = "Winter")
+  wtd_smr_SpRankCor <- Sp_Rank_Cor(used_bin = wtd_smr_usedbin, bin_area = wtd_smr_karea, species = "White-tailed Deer", season = "Summer")
+  wtd_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = wtd_wtr_usedbin, bin_area = wtd_wtr_karea, species = "White-tailed Deer", season = "Winter")
+  coug_smr_SpRankCor <- Sp_Rank_Cor(used_bin = coug_smr_usedbin, bin_area = coug_smr_karea, species = "Cougar", season = "Summer")
+  coug_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = coug_wtr_usedbin, bin_area = coug_wtr_karea, species = "Cougar", season = "Winter")
+  wolf_smr_SpRankCor <- Sp_Rank_Cor(used_bin = wolf_smr_usedbin, bin_area = wolf_smr_karea, species = "Wolf", season = "Summer")
+  wolf_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = wolf_wtr_usedbin, bin_area = wolf_wtr_karea, species = "Wolf", season = "Winter")
+  bob_smr_SpRankCor <- Sp_Rank_Cor(used_bin = bob_smr_usedbin, bin_area = bob_smr_karea, species = "Bobcat", season = "Summer")
+  bob_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = bob_wtr_usedbin, bin_area = bob_wtr_karea, species = "Bobcat", season = "Winter")
   coy_smr_SpRankCor <- Sp_Rank_Cor(used_bin = coy_smr_usedbin, bin_area = coy_smr_karea, species = "Coyote", season = "Summer")
   coy_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = coy_wtr_usedbin, bin_area = coy_wtr_karea, species = "Coyote", season = "Winter")
   
-  #'  ---------------------------------------------
+  #'  ================================================
   ####  Plot Spearman's Rank Correlation results  ####
-  #'  --------------------------------------------
-  spearman_out <- rbind(coy_smr_SpRankCor)
+  #'  ================================================
+  #'  Create a single df of all Spearman's Rank Correlation results
+  spearman_out <- rbind(md_smr_SpRankCor, md_wtr_SpRankCor, elk_smr_SpRankCor, 
+                        elk_wtr_SpRankCor, wtd_smr_SpRankCor, wtd_wtr_SpRankCor, 
+                        coug_smr_SpRankCor, coug_wtr_SpRankCor, wolf_smr_SpRankCor, 
+                        wolf_wtr_SpRankCor, bob_smr_SpRankCor, bob_wtr_SpRankCor, 
+                        coy_smr_SpRankCor, coy_wtr_SpRankCor)
   spearman_out <- dplyr::select(spearman_out, c("Species", "Season", "mu.SpCor", "se.SpCor"))
+  
+  write.csv(spearman_out, "./Outputs/RSF_output/Kfold_CV/Spearman_Rank_Correlations.csv")
   
   
  
