@@ -108,7 +108,7 @@
     move <- locs[[2]]
     sf_locs <- st_as_sf(move, coords = c("mu.x", "mu.y"), crs = sa_proj) %>%
       mutate(obs = seq(1:nrow(.))) %>%
-      dplyr::select(c("FullID", "Sex", "Season", "StudyArea", "AnimalID", "time", "obs")) %>%
+      dplyr::select(c("ID", "FullID", "Sex", "Season", "StudyArea", "AnimalID", "time", "obs")) %>%
       #'  Fill in missing values for AnimalID, etc. where locations interpolated
       fill(FullID, .direction = "down") %>%
       fill(Sex, .direction = "down") %>%
@@ -155,13 +155,13 @@
   #'  Monitor time
   start.time <- Sys.time()
 
-  #'  Setup script to run in parallel
-  #'  Extract covariates for each species at once
-  #'  Identify how many cores I want to use
-  detectCores(logical = FALSE)
-  cl <- parallel::makeCluster(4)  # change to 14 when working correctly on lab computer
-  #'  Run in parallel on local computer with specified number of cores
-  plan(cluster, workers = cl)
+  #' #'  Setup script to run in parallel
+  #' #'  Extract covariates for each species at once
+  #' #'  Identify how many cores I want to use
+  #' detectCores(logical = FALSE)
+  #' cl <- parallel::makeCluster(4)  # change to 14 when working correctly on lab computer
+  #' #'  Run in parallel on local computer with specified number of cores
+  #' plan(cluster, workers = cl)
 
   #'  Master function to extract and manipulate covariate data for each species
   cov_extract <- function(locs) { #, locs_wgs84, spp_ndvi
@@ -191,7 +191,7 @@
         PercOpen = ifelse(Season == "Winter1819", PercOpen18, PercOpen),
         PercOpen = ifelse(Season == "Winter1920", PercOpen19, PercOpen)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, StudyArea, PercOpen)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, PercOpen)) 
 
     # snowon <- terra::extract(snowOn_stack, vect(locs_wgs84))
 
@@ -218,7 +218,7 @@
         SDD = ifelse(Season == "Winter1920", SDD1920_Date, SDD),
         SDD = as.Date(SDD, format = "%Y-%m-%d")
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, StudyArea, SDD, Date)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, SDD, Date)) 
 
     #'  --------------------------------------------------
     #'  Species and season specific RSFs (stacked by year)
@@ -237,7 +237,7 @@
         MD_wtr = ifelse(Season == "Winter1819", MD_wtr1819, MD_wtr2021),
         MD_wtr = ifelse(Season == "Winter1920", MD_wtr1920, MD_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, StudyArea, MD_smr, MD_wtr)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, MD_smr, MD_wtr)) 
     ####  ELK  ####
     elk_smr <- terra::extract(elk_smr_rsf, vect(locs))
     names(elk_smr) <- c("obs", "ELK_smr18", "ELK_smr19", "ELK_smr20")
@@ -251,7 +251,7 @@
         ELK_wtr = ifelse(Season == "Winter1819", ELK_wtr1819, ELK_wtr2021),
         ELK_wtr = ifelse(Season == "Winter1920", ELK_wtr1920, ELK_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, StudyArea, ELK_smr, ELK_wtr)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, ELK_smr, ELK_wtr)) 
     ####  WHITE-TAILED DEER  ####
     wtd_smr <- terra::extract(wtd_smr_rsf, vect(locs))
     names(wtd_smr) <- c("obs", "WTD_smr18", "WTD_smr19", "WTD_smr20")
@@ -265,7 +265,7 @@
         WTD_wtr = ifelse(Season == "Winter1819", WTD_wtr1819, WTD_wtr2021),
         WTD_wtr = ifelse(Season == "Winter1920", WTD_wtr1920, WTD_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, StudyArea, WTD_smr, WTD_wtr)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, WTD_smr, WTD_wtr)) 
     ####  COUGAR  ####
     coug_smr <- terra::extract(coug_smr_rsf, vect(locs))
     names(coug_smr) <- c("obs", "COUG_smr18", "COUG_smr19", "COUG_smr20")
@@ -279,7 +279,7 @@
         COUG_wtr = ifelse(Season == "Winter1819", COUG_wtr1819, COUG_wtr2021),
         COUG_wtr = ifelse(Season == "Winter1920", COUG_wtr1920, COUG_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, StudyArea, COUG_smr, COUG_wtr)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, COUG_smr, COUG_wtr)) 
     ####  WOLF  ####
     wolf_smr <- terra::extract(wolf_smr_rsf, vect(locs))
     names(wolf_smr) <- c("obs", "WOLF_smr18", "WOLF_smr19", "WOLF_smr20")
@@ -293,7 +293,7 @@
         WOLF_wtr = ifelse(Season == "Winter1819", WOLF_wtr1819, WOLF_wtr2021),
         WOLF_wtr = ifelse(Season == "Winter1920", WOLF_wtr1920, WOLF_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, StudyArea, WOLF_smr, WOLF_wtr)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, WOLF_smr, WOLF_wtr)) 
     ####  BOBCAT  ####
     bob_smr <- terra::extract(bob_smr_rsf, vect(locs))
     names(bob_smr) <- c("obs", "BOB_smr18", "BOB_smr19", "BOB_smr20")
@@ -307,7 +307,7 @@
         BOB_wtr = ifelse(Season == "Winter1819", BOB_wtr1819, BOB_wtr2021),
         BOB_wtr = ifelse(Season == "Winter1920", BOB_wtr1920, BOB_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, StudyArea, BOB_smr, BOB_wtr)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, BOB_smr, BOB_wtr)) 
     ####  COYOTE  ####
     coy_smr <- terra::extract(coy_smr_rsf, vect(locs))
     names(coy_smr) <- c("obs", "COY_smr18", "COY_smr19", "COY_smr20")
@@ -321,41 +321,38 @@
         COY_wtr = ifelse(Season == "Winter1819", COY_wtr1819, COY_wtr2021),
         COY_wtr = ifelse(Season == "Winter1920", COY_wtr1920, COY_wtr)
       ) %>%
-      dplyr::select(c(obs, AnimalID, Season, StudyArea, COY_smr, COY_wtr)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, COY_smr, COY_wtr)) 
     
     
     #'  Join all extracted covariates together
     crwOut_covs <- full_join(tri, dist2Road, by = "obs") %>%
       full_join(percopen, by = "obs") %>%
-      full_join(snowoff, by = c("obs", "AnimalID", "Season", "StudyArea")) %>% #update this once snowon date and julian day stuff is sorted
-      full_join(md_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
-      full_join(elk_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
-      full_join(wtd_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
-      full_join(coug_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
-      full_join(wolf_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
-      full_join(coy_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
-      full_join(bob_rsf, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
-      full_join(locs, by = c("obs", "AnimalID", "Season", "StudyArea")) %>%
-      dplyr::select(c("obs", "AnimalID", "Season", "StudyArea", "time", "Date",
-                      "Dist2Road", "PercOpen", "SDD", "TRI", "MD_smr",       
+      full_join(snowoff, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>% #update this once snowon date and julian day stuff is sorted
+      full_join(md_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(elk_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(wtd_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(coug_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(wolf_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(coy_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(bob_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      full_join(locs, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      dplyr::select(c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", 
+                      "Date", "Dist2Road", "PercOpen", "SDD", "TRI", "MD_smr",       
                       "MD_wtr", "ELK_smr", "ELK_wtr", "WTD_smr", "WTD_wtr",
                       "COUG_smr", "COUG_wtr", "WOLF_smr", "WOLF_wtr", "BOB_smr",
                       "BOB_wtr", "COY_smr", "COY_wtr"))
 
     return(crwOut_covs)
   }
-  tst_locs <- list(sf_locs[[9]], sf_locs[[10]], sf_locs[[11]], sf_locs[[12]], sf_locs[[13]], sf_locs[[14]])
-  spp_telem_covs <- lapply(tst_locs, cov_extract) 
-
   #'  Run list of species location data through function in parallel
-  #spp_telem_covs <- lapply(sf_locs, cov_extract) # non-parallel approach
+  spp_telem_covs <- lapply(sf_locs, cov_extract) # non-parallel approach
   # spp_telem_covs <- future_lapply(sf_locs, cov_extract) 
   
   
   #'  End time keeping
   end.time <- Sys.time()
-  #'  Stop running in parallel
-  parallel::stopCluster(cl)
+  #' #'  Stop running in parallel
+  #' parallel::stopCluster(cl)
   #'  How long did this take?
   difftime(end.time, start.time, units = "hours")
 
@@ -378,7 +375,7 @@
   remove_wtr_covs <- function(smr_data) {
     smr_data <- dplyr::select(smr_data, -c("MD_wtr", "ELK_wtr", "WTD_wtr", "COUG_wtr", 
                                            "WOLF_wtr", "BOB_wtr", "COY_wtr")) 
-    names(covs) <- c("obs", "AnimalID", "Season", "StudyArea", "time", "Date", 
+    names(covs) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SDD", "TRI", "MD_RSF", "ELK_RSF", 
                      "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")
     return(smr_data)
@@ -388,7 +385,7 @@
   remove_smr_covs <- function(wtr_data) {
     wtr_data <- dplyr::select(wtr_data, -c("MD_smr", "ELK_smr", "WTD_smr", "COUG_smr",  
                                            "WOLF_smr", "BOB_smr", "COY_smr"))
-    names(covs) <- c("obs", "AnimalID", "Season", "StudyArea", "time", "Date", 
+    names(covs) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SDD", "TRI", "MD_RSF", "ELK_RSF", 
                      "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")
     return(wtr_data)
