@@ -1,36 +1,40 @@
   #'  ===================================
-  #'  Hidden Markove Movement Models 
+  #'  Hidden Markov Movement Models 
   #'  Washington Predator-Prey Project
   #'  Sarah Bassing
-  #'  April 2021
+  #'  February 2022
   #'  ===================================
   #'  Script to run hidden Markov movement models for deer, elk, cougars, wolves, 
-  #'  coyotes, and bobcats for summer 2018/2019 & winter 2018-2019, respectively. 
+  #'  coyotes, and bobcats for summer & winter, July 2018 - March 2021. 
   #'  Data were collected & generously provided by WPPP collaborators including
-  #'  T.Ganz, T.Roussin, L.Satterfield, B.Windell, and others. Code adapted from
-  #'  momentuHMM GitHub, J.Merkel Movement Workshop, L.Satterfield, & R.Emmet.
-  #'  Time periods and covariates to match up with single-season occupancy models.
+  #'  M. Devivo, B. Kertson, T.Ganz, T.Roussin, L.Satterfield, B.Windell, & others. 
+  #'  Code adapted from momentuHMM GitHub, J.Merkel Movement Workshop, L.Satterfield, 
+  #'  & R.Emmet.
   #'  
   #'  Cleaned telemetry and covariate data were prepared for HMMs with the
-  #'  Collar_Movement_DataPrep.R script which took FOREVER to run so only due once.
+  #'  Collar_Movement_DataPrep.R script which took FOREVER to run so only do once.
+  #'  Covariates extracted using Collar_Covariate_Extraction.R script.
   #'  ============================================
   
   #'  Clear memory
   rm(list=ls())
 
   #'  Load libraries
-  # remotes::install_github('bmcclintock/momentuHMM@develop') # development version, unstable
-  # remotes::install_github("bmcclintock/momentuHMM@fitCTHMM") # version w/ ctmc model, unstable
-  # install.packages("xfun", INSTALL_opts = '--no-lock') # if xfun fails to install
   library(momentuHMM)
   library(rgdal)
   library(tidyverse)
 
   #'  Load crwOut & covaraite data
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2021-05-03.RData")
-  load("./Outputs/Telemetry_covs/spp_telem_covs_2021-05-10.RData")
-  # load("./Outputs/Telemetry_covs/coy_telem_covs_smr.RData")
-  # load("./Outputs/Telemetry_covs/coy_telem_covs_wtr.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2021-12-08.RData") 
+  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-01-31.RData") #update with snow data
+  
+  smr_covs <- list(spp_telem_covs[[1]], spp_telem_covs[[3]], spp_telem_covs[[5]], 
+                   spp_telem_covs[[7]], spp_telem_covs[[9]], spp_telem_covs[[11]], 
+                   spp_telem_covs[[13]])
+  
+  wtr_covs <- list(spp_telem_covs[[2]], spp_telem_covs[[4]], spp_telem_covs[[6]], 
+                   spp_telem_covs[[8]], spp_telem_covs[[10]], spp_telem_covs[[12]], 
+                   spp_telem_covs[[14]])
   
 
   #'  Merge datasets and create momentuHMMData object
@@ -38,26 +42,36 @@
     #'  Merge crawlOut data with extracted covariate data
     crwlMerge <- crawlMerge(crwOut, telem_covs, Time.name = "time")
     #'  Make categorical variables factors
-    crwlMerge$crwPredict$Area <- as.factor(crwlMerge$crwPredict$Area)
+    crwlMerge$crwPredict$StudyArea <- as.factor(crwlMerge$crwPredict$StudyArea)
     crwlMerge$crwPredict$Sex <- as.factor(crwlMerge$crwPredict$Sex)
-    crwlMerge$crwPredict$Year <- as.factor(crwlMerge$crwPredict$Year)
     crwlMerge$crwPredict$Season <- as.factor(crwlMerge$crwPredict$Season)
     #'  Standardize continuous variables
-    crwlMerge$crwPredict$Elev <- scale(crwlMerge$crwPredict$Elev)
-    crwlMerge$crwPredict$Slope <- scale(crwlMerge$crwPredict$Slope)
-    crwlMerge$crwPredict$HumanMod <- scale(crwlMerge$crwPredict$HumanMod)
-    crwlMerge$crwPredict$NearestRd <- scale(crwlMerge$crwPredict$NearestRd)
-    crwlMerge$crwPredict$PercForMix <- scale(crwlMerge$crwPredict$PercForMix)
-    crwlMerge$crwPredict$PercXGrass <- scale(crwlMerge$crwPredict$PercXGrass)
-    crwlMerge$crwPredict$PercXShrub <- scale(crwlMerge$crwPredict$PercXShrub)
+    crwlMerge$crwPredict$Dist2Road <- scale(crwlMerge$crwPredict$Dist2Road)
+    crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
+    crwlMerge$crwPredict$PercOpen <- scale(crwlMerge$crwPredict$PercOpen)
+    crwlMerge$crwPredict$SDD <- scale(crwlMerge$crwPredict$SDD)
+    crwlMerge$crwPredict$TRI <- scale(crwlMerge$crwPredict$TRI)
+    crwlMerge$crwPredict$MD_RSF <- scale(crwlMerge$crwPredict$MD_RSF)   
+    crwlMerge$crwPredict$ELK_RSF <- scale(crwlMerge$crwPredict$ELK_RSF)
+    crwlMerge$crwPredict$WTD_RSF <- scale(crwlMerge$crwPredict$WTD_RSF)
+    crwlMerge$crwPredict$COUG_RSF <- scale(crwlMerge$crwPredict$COUG_RSF)
+    crwlMerge$crwPredict$WOLF_RSF <- scale(crwlMerge$crwPredict$WOLF_RSF)
+    crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
+    crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
     #'  Prep crwlMerge data for fitHMM function
-    Data <- prepData(data = crwlMerge, covNames = c("Elev", "Slope", "HumanMod", "NearestRd", 
-                                                   "PercForMix", "PercXGrass", "PercXShrub", 
-                                                   "Year", "Sex", "Area", "Season"))
+    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "NDVI", "PercOpen", "SDD", 
+                                                   "TRI", "MD_RSF", "ELK_RSF", "WTD_RSF",
+                                                   "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF",
+                                                   "Sex", "StudyArea", "Season")) 
     return(Data)
   }
   #'  Run season & species-specific data through prep function
-  #'  Warnings are due to missing Sex data for interpolated locations
+  #'  WARNING-------
+  #'  Warnings are due to missing data for interpolated locations and NAs
+  #'  in the ungulate RSFs for the respective study areas. NOTE: prepData function
+  #'  automatically fills in values for MD in the NE and ELK/WTD in the OK even
+  #'  though NO RSFs were run for these species in these study areas. 
+  #'  DO NOT use these values in the HMMs!!!!!!!!
   mdData_smr <- spp_dataPrep(crwOut_ALL[[1]], spp_telem_covs[[1]])
   mdData_wtr <- spp_dataPrep(crwOut_ALL[[2]], spp_telem_covs[[2]])
   elkData_smr <- spp_dataPrep(crwOut_ALL[[3]], spp_telem_covs[[3]])
@@ -74,14 +88,14 @@
   coyData_wtr <- spp_dataPrep(crwOut_ALL[[14]], spp_telem_covs[[14]])
   
   
-  #'  Visualize data to inform initial parameter specifications
-  # plot(mdData_smr)  #250, 500, 250, 500
-  # plot(elkData_smr)  #500, 1000, 500, 1000
-  # plot(wtdData_smr)  #100, 500, 100, 500
-  # plot(cougData_smr)  #500, 1500, 500, 1500
-  # plot(wolfData_smr)  #500, 3000, 500, 3000
-  # plot(bobData_smr)  #500, 1000, 500, 1000
-  # plot(coyData_smr)  #500, 2000, 500, 2000
+  #' #'  Visualize data to inform initial parameter specifications
+  #' plot(mdData_smr)  #250, 500, 250, 500
+  #' plot(elkData_smr)  #500, 1000, 500, 1000
+  #' plot(wtdData_smr)  #100, 500, 100, 500
+  #' plot(cougData_smr)  #500, 1500, 500, 1500
+  #' plot(wolfData_smr)  #500, 3000, 500, 3000
+  #' plot(bobData_smr)  #500, 1000, 500, 1000
+  #' plot(coyData_smr)  #500, 2000, 500, 2000
   
   
   
@@ -116,23 +130,49 @@
   
   #'  Define formula to be applied to transition probabilities
   #'  Covariates affecting probability of transitioning from one state to another
+  #'  FOR ALL SPECIES
   trans_formula_null <- ~1
-  trans_formula <- ~Elev + Slope + PercForMix + PercXGrass + PercXShrub + NearestRd + HumanMod
+  trans_formula_habitat <- ~tri + open
+  #'  FOR PREY MODELS ONLY
+  trans_formula_predpres <- ~coug_rsf + wolf_rsf + bob_rsf + coy_rsf
+  trans_formula_hab_pred <- ~tri + open + coug_rsf + wolf_rsf + bob_rsf + coy_rsf
+  trans_formula_triXpred <- ~tri + open + coug_rsf + wolf_rsf + bob_rsf + coy_rsf + tri*coug_rsf + tri*wolf_rsf + tri*bob_rsf + tri*coy_rsf
+  trans_formula_openXpred <- ~tri + open + coug_rsf + wolf_rsf + bob_rsf + coy_rsf + open*coug_rsf + open*wolf_rsf + open*bob_rsf + open*coy_rsf
+  #'  FOR PREDATOR MODELS ONLY
+  trans_formula_ndvi <- ~ndvi
+  trans_formula_mdpres <- ~md_rsf
+  trans_formula_elkwtdpres <- ~elk_rsf + wtd_rsf
+  trans_formula_triXmd_rsf <- ~tri + md_rsf + tri*md_rsf
+  trans_formula_triXelkwtdpres <- ~tri + elk_rsf + wtd_rsf + tri*elk_rsf + tri*wtd_rsf
+  trans_formula_triXndvi <- ~tri + ndvi + tri*ndvi
+  trans_formula_openXmd_rsf <- ~open + md_rsf + open*md_rsf
+  trans_formula_openXelkwtdpres <- ~open + elk_rsf + wtd_rsf + open*elk_rsf + open*wtd_rsf
+  trans_formula_openXndvi <- ~open + ndvi + open*ndvi
   
   #'  Define formula(s) to be applied to state-dependent distributions
-  #'  Apply habitat covariates here??? since these distributions describe the different
-  #'  movement behaviors and goal is to evaluate whether behavior varies by habitat
+  #'  Covariates that help describe movement patterns of a given state
   #'  Add zeromass = formula for species that need zeromass parameters above
   DM_formula_null <- ~1
-  DM_formula_sexSA <- ~Area + Sex
-  DM_formula_pred <- ~Elev + Slope + PercForMix + PercXGrass + PercXShrub + NearestRd + HumanMod + Area + Sex
-  DM_formula_prey <- ~Elev + Slope + PercForMix + PercXGrass + PercXShrub + NearestRd + HumanMod
+  # DM_formula_sex <- ~sex
+  DM_formula_terrain <- ~tri 
+  DM_formula_wtr_terrain <- ~tri + snow
+  DM_formula_permiable <- ~dist2rd + tri
+  DM_formula_wtr_permiable <- ~dist2rd + tri + snow
+  DM_formula_all <- ~dist2rd + tri
+  # DM_formula_wtr_all <- ~dist2rd + tri + snow + sex
+  
+  #### NEED TO GET THE TRANSFORMED TIME-OF-DAY AND DAY-OF-YEAR IN HERE ####
+  
+  
   #'  Create pseudo-design matices for state-dependent distributions
   #'  Null DM (predators & prey) and DM with sex & study area (predators only)
   DM_nullpred <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
   DM_nullprey <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
   DM_pred <- list(step = list(mean = DM_formula_sexSA, sd = DM_formula_sexSA), angle = list(concentration = ~1))
   DM_coug <- list(step = list(mean = DM_formula_sexSA, sd = DM_formula_sexSA, zeromass = DM_formula_sexSA), angle = list(concentration = ~1)) # includes zeromass parameters
+  #make more based on the resto fhte DM formulas above...........
+  
+  
   #'  DM with habitat covariates- don't use
   # pred_DM <- list(step = list(mean = DM_formula_pred, sd = DM_formula_pred), angle = list(concentration = ~1))
   # coug_DM <- list(step = list(mean = DM_formula_pred, sd = DM_formula_pred, zeromass = DM_formula_pred), angle = list(concentration = ~1))
@@ -157,7 +197,7 @@
   #'  meaning the variables that influence whether an animal will transition from
   #'  one state to the other, or on the state-dependent observation distributions,
   #'  meaning variables that influence step length and/or turning angle for each
-  #'  of the states. Currently fitting covariates to state transition probabilities.
+  #'  of the states. 
 
   #'  Use retryFits argument to specify the number of attempts to minimize the 
   #'  negative log-likelihood based on random perturbations of the parameter 
