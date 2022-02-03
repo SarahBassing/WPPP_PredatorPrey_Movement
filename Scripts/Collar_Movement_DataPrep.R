@@ -27,9 +27,6 @@
   library(tidyverse)
   
   #'  Source cleaned telemetry data
-  # source("G:/My Drive/1_Repositories/CamTraps_and_Collars/Scripts/Collar_Truncating&Filtering.R")
-  #load("G:/My Drive/1_Repositories/CamTraps_and_Collars/Data/Collar_Truncating&Filtering_2021-05-01.RData")
-  #load("./Data/Collar_Truncating&Filtering_noDispersal_2021-07-22.RData") #2021-06-14
   # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-11-16.RData") # includes some deer data with low fix rate, esp. the white-tail data
   load("./Data/Collar_Truncating&Filtering_noDispMig_2021-12-02.RData")
   
@@ -213,19 +210,27 @@
   MD_track <- bursts(rawMD)
   ELK_track <- bursts(rawELK)
   WTD_track <- bursts(rawWTD)
-  COUG_track <- bursts(rawCOUG)
-  WOLF_track <- bursts(rawWOLF)
-  BOB_track <- bursts(rawBOB)
-  COY_track <- bursts(rawCOY)
+  COUG_track_OK <- bursts(rawCOUG[rawCOUG$StudyArea == "OK",])
+  COUG_track_NE <- bursts(rawCOUG[rawCOUG$StudyArea == "NE",])
+  WOLF_track_OK <- bursts(rawWOLF[rawWOLF$StudyArea == "OK",])
+  WOLF_track_NE <- bursts(rawWOLF[rawWOLF$StudyArea == "NE",])
+  BOB_track_OK <- bursts(rawBOB[rawBOB$StudyArea == "OK",])
+  BOB_track_NE <- bursts(rawBOB[rawBOB$StudyArea == "NE",])
+  COY_track_OK <- bursts(rawCOY[rawCOY$StudyArea == "OK",])
+  COY_track_NE <- bursts(rawCOY[rawCOY$StudyArea == "NE",])
   
   #'  Save track data sets
   save(MD_track, file = "./Outputs/Telemetry_tracks/MD_track.RData")
   save(ELK_track, file = "./Outputs/Telemetry_tracks/ELK_track.RData")
   save(WTD_track, file = "./Outputs/Telemetry_tracks/WTD_track.RData")
-  save(COUG_track, file = "./Outputs/Telemetry_tracks/COUG_track.RData")
-  save(WOLF_track, file = "./Outputs/Telemetry_tracks/WOLF_track.RData")
-  save(BOB_track, file = "./Outputs/Telemetry_tracks/BOB_track.RData")
-  save(COY_track, file = "./Outputs/Telemetry_tracks/COY_track.RData")
+  save(COUG_track_OK, file = "./Outputs/Telemetry_tracks/COUG_track_OK.RData")
+  save(COUG_track_NE, file = "./Outputs/Telemetry_tracks/COUG_track_NE.RData")
+  save(WOLF_track_OK, file = "./Outputs/Telemetry_tracks/WOLF_track_OK.RData")
+  save(WOLF_track_NE, file = "./Outputs/Telemetry_tracks/WOLF_track_NE.RData")
+  save(BOB_track_OK, file = "./Outputs/Telemetry_tracks/BOB_track_OK.RData")
+  save(BOB_track_NE, file = "./Outputs/Telemetry_tracks/BOB_track_NE.RData")
+  save(COY_track_OK, file = "./Outputs/Telemetry_tracks/COY_track_OK.RData")
+  save(COY_track_NE, file = "./Outputs/Telemetry_tracks/COY_track_NE.RData")
   
   #'  Create season-specific data sets for crawlWrap function
   MD_smr_track <- MD_track[MD_track$Season == "Summer18" | MD_track$Season == "Summer19", ]
@@ -234,14 +239,22 @@
   ELK_wtr_track <- ELK_track[ELK_track$Season == "Winter1819" | ELK_track$Season == "Winter1920", ]
   WTD_smr_track <- WTD_track[WTD_track$Season == "Summer18" | WTD_track$Season == "Summer19", ]
   WTD_wtr_track <- WTD_track[WTD_track$Season == "Winter1819" | WTD_track$Season == "Winter1920", ]
-  COUG_smr_track <- COUG_track[COUG_track$Season == "Summer18" | COUG_track$Season == "Summer19", ]
-  COUG_wtr_track <- COUG_track[COUG_track$Season == "Winter1819" | COUG_track$Season == "Winter1920", ]
-  WOLF_smr_track <- WOLF_track[WOLF_track$Season == "Summer18" | WOLF_track$Season == "Summer19", ]
-  WOLF_wtr_track <- WOLF_track[WOLF_track$Season == "Winter1819" | WOLF_track$Season == "Winter1920", ]
-  BOB_smr_track <- BOB_track[BOB_track$Season == "Summer18" | BOB_track$Season == "Summer19", ]
-  BOB_wtr_track <- BOB_track[BOB_track$Season == "Winter1819" | BOB_track$Season == "Winter1920", ]
-  COY_smr_track <- COY_track[COY_track$Season == "Summer18" | COY_track$Season == "Summer19", ]
-  COY_wtr_track <- COY_track[COY_track$Season == "Winter1819" | COY_track$Season == "Winter1920", ]
+  COUG_smr_track_OK <- COUG_track_OK[COUG_track_OK$Season == "Summer18" | COUG_track_OK$Season == "Summer19" | COUG_track_OK$Season == "Summer20", ]
+  COUG_smr_track_NE <- COUG_track_NE[COUG_track_NE$Season == "Summer18" | COUG_track_NE$Season == "Summer19" | COUG_track_NE$Season == "Summer20", ]
+  COUG_wtr_track_OK <- COUG_track_OK[COUG_track_OK$Season == "Winter1819" | COUG_track_OK$Season == "Winter1920" | COUG_track_OK$Season == "Winter2021", ]
+  COUG_wtr_track_NE <- COUG_track_NE[COUG_track_NE$Season == "Winter1819" | COUG_track_NE$Season == "Winter1920" | COUG_track_NE$Season == "Winter2021", ]
+  WOLF_smr_track_OK <- WOLF_track_OK[WOLF_track_OK$Season == "Summer18" | WOLF_track_OK$Season == "Summer19" | WOLF_track_OK$Season == "Summer20", ]
+  WOLF_smr_track_NE <- WOLF_track_NE[WOLF_track_NE$Season == "Summer18" | WOLF_track_NE$Season == "Summer19" | WOLF_track_NE$Season == "Summer20", ]
+  WOLF_wtr_track_OK <- WOLF_track_OK[WOLF_track_OK$Season == "Winter1819" | WOLF_track_OK$Season == "Winter1920" | WOLF_track_OK$Season == "Winter2021", ]
+  WOLF_wtr_track_NE <- WOLF_track_NE[WOLF_track_NE$Season == "Winter1819" | WOLF_track_NE$Season == "Winter1920" | WOLF_track_NE$Season == "Winter2021", ]
+  BOB_smr_track_OK <- BOB_track_OK[BOB_track_OK$Season == "Summer18" | BOB_track_OK$Season == "Summer19"| BOB_track_OK$Season == "Summer20", ]
+  BOB_smr_track_NE <- BOB_track_NE[BOB_track_NE$Season == "Summer18" | BOB_track_NE$Season == "Summer19"| BOB_track_NE$Season == "Summer20", ]
+  BOB_wtr_track_OK <- BOB_track_OK[BOB_track_OK$Season == "Winter1819" | BOB_track_OK$Season == "Winter1920" | BOB_track_OK$Season == "Winter2021", ]
+  BOB_wtr_track_NE <- BOB_track_NE[BOB_track_NE$Season == "Winter1819" | BOB_track_NE$Season == "Winter1920" | BOB_track_NE$Season == "Winter2021", ]
+  COY_smr_track_OK <- COY_track_OK[COY_track_OK$Season == "Summer18" | COY_track_OK$Season == "Summer19" | COY_track_OK$Season == "Summer20", ]
+  COY_smr_track_NE <- COY_track_NE[COY_track_NE$Season == "Summer18" | COY_track_NE$Season == "Summer19" | COY_track_NE$Season == "Summer20", ]
+  COY_wtr_track_OK <- COY_track_OK[COY_track_OK$Season == "Winter1819" | COY_track_OK$Season == "Winter1920" | COY_track_OK$Season == "Winter2021", ]
+  COY_wtr_track_NE <- COY_track_NE[COY_track_NE$Season == "Winter1819" | COY_track_NE$Season == "Winter1920" | COY_track_NE$Season == "Winter2021", ]
   
   #'  Save seasonal tracks
   save(MD_smr_track, file = "./Outputs/Telemetry_tracks/MD_smr_track.RData")
@@ -250,49 +263,39 @@
   save(ELK_wtr_track, file = "./Outputs/Telemetry_tracks/ELK_wtr_track.RData")
   save(WTD_smr_track, file = "./Outputs/Telemetry_tracks/WTD_smr_track.RData")
   save(WTD_wtr_track, file = "./Outputs/Telemetry_tracks/WTD_wtr_track.RData")
-  save(COUG_smr_track, file = "./Outputs/Telemetry_tracks/COUG_smr_track.RData")
-  save(COUG_wtr_track, file = "./Outputs/Telemetry_tracks/COUG_wtr_track.RData")
-  save(WOLF_smr_track, file = "./Outputs/Telemetry_tracks/WOLF_smr_track.RData")
-  save(WOLF_wtr_track, file = "./Outputs/Telemetry_tracks/WOLF_wtr_track.RData")
-  save(BOB_smr_track, file = "./Outputs/Telemetry_tracks/BOB_smr_track.RData")
-  save(BOB_wtr_track, file = "./Outputs/Telemetry_tracks/BOB_wtr_track.RData")
-  save(COY_smr_track, file = "./Outputs/Telemetry_tracks/COY_smr_track.RData")
-  save(COY_wtr_track, file = "./Outputs/Telemetry_tracks/COY_wtr_track.RData")
+  save(COUG_smr_track_OK, file = "./Outputs/Telemetry_tracks/COUG_smr_track_OK.RData")
+  save(COUG_smr_track_NE, file = "./Outputs/Telemetry_tracks/COUG_smr_track_NE.RData")
+  save(COUG_wtr_track_OK, file = "./Outputs/Telemetry_tracks/COUG_wtr_track_OK.RData")
+  save(COUG_wtr_track_NE, file = "./Outputs/Telemetry_tracks/COUG_wtr_track_NE.RData")
+  save(WOLF_smr_track_OK, file = "./Outputs/Telemetry_tracks/WOLF_smr_track_OK.RData")
+  save(WOLF_smr_track_NE, file = "./Outputs/Telemetry_tracks/WOLF_smr_track_NE.RData")
+  save(WOLF_wtr_track_OK, file = "./Outputs/Telemetry_tracks/WOLF_wtr_track_OK.RData")
+  save(WOLF_wtr_track_NE, file = "./Outputs/Telemetry_tracks/WOLF_wtr_track_NE.RData")
+  save(BOB_smr_track_OK, file = "./Outputs/Telemetry_tracks/BOB_smr_track_OK.RData")
+  save(BOB_smr_track_NE, file = "./Outputs/Telemetry_tracks/BOB_smr_track_NE.RData")
+  save(BOB_wtr_track_OK, file = "./Outputs/Telemetry_tracks/BOB_wtr_track_OK.RData")
+  save(BOB_wtr_track_NE, file = "./Outputs/Telemetry_tracks/BOB_wtr_track_NE.RData")
+  save(COY_smr_track_OK, file = "./Outputs/Telemetry_tracks/COY_smr_track_OK.RData")
+  save(COY_smr_track_NE, file = "./Outputs/Telemetry_tracks/COY_smr_track_NE.RData")
+  save(COY_wtr_track_OK, file = "./Outputs/Telemetry_tracks/COY_wtr_track_OK.RData")
+  save(COY_wtr_track_NE, file = "./Outputs/Telemetry_tracks/COY_wtr_track_NE.RData")
 
   
   #'  Save a giant list of all seasonal tracks
+  #'  NOTE the ordering of this list for the predators--- study area then season
   spp_all_tracks <- list(MD_smr_track, MD_wtr_track, ELK_smr_track, ELK_wtr_track,
-                     WTD_smr_track, WTD_wtr_track, COUG_smr_track, COUG_wtr_track,
-                     WOLF_smr_track, WOLF_wtr_track, BOB_smr_track, BOB_wtr_track,
-                     COY_smr_track, COY_wtr_track)
+                     WTD_smr_track, WTD_wtr_track, COUG_smr_track_OK, COUG_wtr_track_OK,
+                     COUG_smr_track_NE, COUG_wtr_track_NE, WOLF_smr_track_OK, WOLF_wtr_track_OK, 
+                     WOLF_smr_track_NE, WOLF_wtr_track_NE, BOB_smr_track_OK, BOB_wtr_track_OK,
+                     BOB_smr_track_NE, BOB_wtr_track_NE, COY_smr_track_OK, COY_wtr_track_OK,
+                     COY_smr_track_NE, COY_wtr_track_NE)
   #save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks.RData")
-  save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig.RData")
+  save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific.RData")
   
   
   #'  Load tracks
-  # setwd("C:/Users/sb89/Desktop/CamTrap_and_Collars")
-  # load("./Outputs/Telemetry_tracks/MD_track.RData")
-  # load("./Outputs/Telemetry_tracks/ELK_track.RData")
-  # load("./Outputs/Telemetry_tracks/WTD_track.RData")
-  # load("./Outputs/Telemetry_tracks/COUG_track.RData")
-  # load("./Outputs/Telemetry_tracks/WOLF_track.RData")
-  # load("./Outputs/Telemetry_tracks/BOB_track.RData")
-  # load("./Outputs/Telemetry_tracks/COY_track.RData")
+  load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific.RData")
   
-  # load("./Outputs/Telemetry_tracks/MD_smr_track.RData")
-  # load("./Outputs/Telemetry_tracks/MD_wtr_track.RData")
-  # load("./Outputs/Telemetry_tracks/ELK_smr_track.RData")
-  # load("./Outputs/Telemetry_tracks/ELK_wtr_track.RData")
-  # load("./Outputs/Telemetry_tracks/WTD_smr_track.RData")
-  # load("./Outputs/Telemetry_tracks/WTD_wtr_track.RData")
-  # load("./Outputs/Telemetry_tracks/COUG_smr_track.RData")
-  # load("./Outputs/Telemetry_tracks/COUG_wtr_track.RData")
-  # load("./Outputs/Telemetry_tracks/WOLF_smr_track.RData")
-  # load("./Outputs/Telemetry_tracks/WOLF_wtr_track.RData")
-  # load("./Outputs/Telemetry_tracks/BOB_smr_track.RData")
-  # load("./Outputs/Telemetry_tracks/BOB_wtr_track.RData")
-  # load("./Outputs/Telemetry_tracks/COY_smr_track.RData")
-  # load("./Outputs/Telemetry_tracks/COY_wtr_track.RData")
   
   
   #'  Function to interpolate missing fixes based on regular time intervals (4hr)
@@ -320,20 +323,29 @@
     # return(crwOUT) # LOOK INTO RUNNING THIS IN PARALLEL
   }
   #'  Interpolate missing locations for each species
-  crwOut_MD_smr <- crwWrp(MD_smr_track)
-  crwOut_MD_wtr <- crwWrp(MD_wtr_track)
-  crwOut_ELK_smr <- crwWrp(ELK_smr_track)
-  crwOut_ELK_wtr <- crwWrp(ELK_wtr_track)
-  crwOut_WTD_smr <- crwWrp(WTD_smr_track)
-  crwOut_WTD_wtr <- crwWrp(WTD_wtr_track)
-  crwOut_COUG_smr <- crwWrp(COUG_smr_track)
-  crwOut_COUG_wtr <- crwWrp(COUG_wtr_track)
-  crwOut_WOLF_smr <- crwWrp(WOLF_smr_track)
-  crwOut_WOLF_wtr <- crwWrp(WOLF_wtr_track)
-  crwOut_BOB_smr <- crwWrp(BOB_smr_track)
-  crwOut_BOB_wtr <- crwWrp(BOB_wtr_track)
-  crwOut_COY_smr <- crwWrp(COY_smr_track)
-  crwOut_COY_wtr <- crwWrp(COY_wtr_track)
+  #'  KEPP TRACK OF LIST ORDER HERE!!! Predators are ordered by study area then season
+  crwOut_MD_smr <- crwWrp(spp_all_tracks[[1]]) #MD_smr_track
+  crwOut_MD_wtr <- crwWrp(spp_all_tracks[[2]]) #MD_wtr_track
+  crwOut_ELK_smr <- crwWrp(spp_all_tracks[[3]]) #ELK_smr_track
+  crwOut_ELK_wtr <- crwWrp(spp_all_tracks[[4]]) #ELK_wtr_track
+  crwOut_WTD_smr <- crwWrp(spp_all_tracks[[5]]) #WTD_smr_track
+  crwOut_WTD_wtr <- crwWrp(spp_all_tracks[[6]]) #WTD_wtr_track
+  crwOut_COUG_smr_OK <- crwWrp(spp_all_tracks[[7]]) #COUG_smr_track_OK
+  crwOut_COUG_wtr_OK <- crwWrp(spp_all_tracks[[8]]) # COUG_wtr_track_OK
+  crwOut_COUG_smr_NE <- crwWrp(spp_all_tracks[[9]]) #COUG_smr_track_NE
+  crwOut_COUG_wtr_NE <- crwWrp(spp_all_tracks[[10]]) # COUG_wtr_track_NE
+  crwOut_WOLF_smr_OK <- crwWrp(spp_all_tracks[[11]]) #WOLF_smr_track_OK
+  crwOut_WOLF_wtr_OK <- crwWrp(spp_all_tracks[[12]]) #WOLF_wtr_track_OK
+  crwOut_WOLF_smr_NE <- crwWrp(spp_all_tracks[[13]]) #WOLF_smr_track_NE
+  crwOut_WOLF_wtr_NE <- crwWrp(spp_all_tracks[[14]]) #WOLF_wtr_track_NE
+  crwOut_BOB_smr_OK <- crwWrp(spp_all_tracks[[15]]) #BOB_smr_track_OK
+  crwOut_BOB_wtr_OK <- crwWrp(spp_all_tracks[[16]]) #BOB_wtr_track_OK
+  crwOut_BOB_smr_NE <- crwWrp(spp_all_tracks[[17]]) #BOB_smr_track_NE
+  crwOut_BOB_wtr_NE <- crwWrp(spp_all_tracks[[18]]) #BOB_wtr_track_NE
+  crwOut_COY_smr_OK <- crwWrp(spp_all_tracks[[19]]) #COY_smr_track_OK
+  crwOut_COY_wtr_OK <- crwWrp(spp_all_tracks[[20]]) #COY_wtr_track_OK
+  crwOut_COY_smr_NE <- crwWrp(spp_all_tracks[[21]]) #COY_smr_track_NE
+  crwOut_COY_wtr_NE <- crwWrp(spp_all_tracks[[22]]) #COY_wtr_track_NE
   
   #'  View interpolated data and new data (step length and turning angle)
   md_move_smr <- crwOut_MD_smr[[2]]
@@ -342,14 +354,22 @@
   elk_move_wtr <- crwOut_ELK_wtr[[2]]
   wtd_move_smr <- crwOut_WTD_smr[[2]]
   wtd_move_wtr <- crwOut_WTD_wtr[[2]]
-  coug_move_smr <- crwOut_COUG_smr[[2]]
-  coug_move_wtr <- crwOut_COUG_wtr[[2]]
-  wolf_move_smr <- crwOut_WOLF_smr[[2]]
-  wolf_move_wtr <- crwOut_WOLF_wtr[[2]]
-  bob_move_smr <- crwOut_BOB_smr[[2]]
-  bob_move_wtr <- crwOut_BOB_wtr[[2]]
-  coy_move_smr <- crwOut_COY_smr[[2]]
-  coy_move_wtr <- crwOut_COY_wtr[[2]]
+  coug_move_smr_OK <- crwOut_COUG_smr_OK[[2]]
+  coug_move_wtr_OK <- crwOut_COUG_wtr_OK[[2]]
+  coug_move_smr_NE <- crwOut_COUG_smr_NE[[2]]
+  coug_move_wtr_NE <- crwOut_COUG_wtr_NE[[2]]
+  wolf_move_smr_OK <- crwOut_WOLF_smr_OK[[2]]
+  wolf_move_wtr_OK <- crwOut_WOLF_wtr_OK[[2]]
+  wolf_move_smr_NE <- crwOut_WOLF_smr_NE[[2]]
+  wolf_move_wtr_NE <- crwOut_WOLF_wtr_NE[[2]]
+  bob_move_smr_OK <- crwOut_BOB_smr_OK[[2]]
+  bob_move_wtr_OK <- crwOut_BOB_wtr_OK[[2]]
+  bob_move_smr_NE <- crwOut_BOB_smr_NE[[2]]
+  bob_move_wtr_NE <- crwOut_BOB_wtr_NE[[2]]
+  coy_move_smr_OK <- crwOut_COY_smr_OK[[2]]
+  coy_move_wtr_OK <- crwOut_COY_wtr_OK[[2]]
+  coy_move_smr_NE <- crwOut_COY_smr_NE[[2]]
+  coy_move_wtr_NE <- crwOut_COY_wtr_NE[[2]]
   
   #'  Save individual crwOut datasets
   save(crwOut_MD_smr, file = "./Outputs/Telemetry_crwOut/crwOut_MD_smr.RData")
@@ -358,20 +378,31 @@
   save(crwOut_ELK_wtr, file = "./Outputs/Telemetry_crwOut/crwOut_ELK_wtr.RData")
   save(crwOut_WTD_smr, file = "./Outputs/Telemetry_crwOut/crwOut_WTD_smr.RData")
   save(crwOut_WTD_wtr, file = "./Outputs/Telemetry_crwOut/crwOut_WTD_wtr.RData")
-  save(crwOut_COUG_smr, file = "./Outputs/Telemetry_crwOut/crwOut_COUG_smr.RData")
-  save(crwOut_COUG_wtr, file = "./Outputs/Telemetry_crwOut/crwOut_COUG_wtr.RData")
-  save(crwOut_WOLF_smr, file = "./Outputs/Telemetry_crwOut/crwOut_WOLF_smr.RData")
-  save(crwOut_WOLF_wtr, file = "./Outputs/Telemetry_crwOut/crwOut_WOLF_wtr.RData")
-  save(crwOut_BOB_smr, file = "./Outputs/Telemetry_crwOut/crwOut_BOB_smr.RData")
-  save(crwOut_BOB_wtr, file = "./Outputs/Telemetry_crwOut/crwOut_BOB_wtr.RData")
-  save(crwOut_COY_smr, file = "./Outputs/Telemetry_crwOut/crwOut_COY_smr.RData")
-  save(crwOut_COY_wtr, file = "./Outputs/Telemetry_crwOut/crwOut_COY_wtr.RData")
+  save(crwOut_COUG_smr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_COUG_smr_OK.RData")
+  save(crwOut_COUG_wtr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_COUG_wtr_OK.RData")
+  save(crwOut_COUG_smr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_COUG_smr_NE.RData")
+  save(crwOut_COUG_wtr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_COUG_wtr_NE.RData")
+  save(crwOut_WOLF_smr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_WOLF_smr_OK.RData")
+  save(crwOut_WOLF_wtr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_WOLF_wtr_OK.RData")
+  save(crwOut_WOLF_smr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_WOLF_smr_NE.RData")
+  save(crwOut_WOLF_wtr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_WOLF_wtr_NE.RData")
+  save(crwOut_BOB_smr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_BOB_smr_OK.RData")
+  save(crwOut_BOB_wtr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_BOB_wtr_OK.RData")
+  save(crwOut_BOB_smr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_BOB_smr_NE.RData")
+  save(crwOut_BOB_wtr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_BOB_wtr_NE.RData")
+  save(crwOut_COY_smr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_COY_smr_OK.RData")
+  save(crwOut_COY_wtr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_COY_wtr_OK.RData")
+  save(crwOut_COY_smr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_COY_smr_NE.RData")
+  save(crwOut_COY_wtr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_COY_wtr_NE.RData")
   
   #'  List all crwOut datasets together
   crwOut_ALL <- list(crwOut_MD_smr, crwOut_MD_wtr, crwOut_ELK_smr, crwOut_ELK_wtr,
-                     crwOut_WTD_smr, crwOut_WTD_wtr, crwOut_COUG_smr, crwOut_COUG_wtr, 
-                     crwOut_WOLF_smr, crwOut_WOLF_wtr, crwOut_BOB_smr, crwOut_BOB_wtr,
-                     crwOut_COY_smr, crwOut_COY_wtr)
+                     crwOut_WTD_smr, crwOut_WTD_wtr, crwOut_COUG_smr_OK, crwOut_COUG_wtr_OK,
+                     crwOut_COUG_smr_NE, crwOut_COUG_wtr_NE, crwOut_WOLF_smr_OK, crwOut_WOLF_wtr_OK,
+                     crwOut_WOLF_smr_NE, crwOut_WOLF_wtr_NE, crwOut_BOB_smr_OK, crwOut_BOB_wtr_OK,
+                     crwOut_BOB_smr_NE, crwOut_BOB_wtr_NE, crwOut_COY_smr_OK, crwOut_COY_wtr_OK,
+                     crwOut_COY_smr_NE, crwOut_COY_wtr_NE)
+  
   #'  Save list of crwOut datasets
   save(crwOut_ALL, file  = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_", Sys.Date(), ".RData"))
   
