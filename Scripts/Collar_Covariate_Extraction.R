@@ -273,7 +273,7 @@
         SDD2021_Date = as.character(as.Date(SnowOff2021, origin = "2020-10-01"))) 
       
     #'  Identify whether there was > 0% snow cover at each animal location
-    snow_cover <- snowon %>%
+    snowcover <- snowon %>%
       full_join(snowoff, by = "obs") %>%
       #'  Save only dates and arrange by snow on & disappearance dates per year
       dplyr::select(c(obs, SOD18_Date, SDD1819_Date, SOD19_Date, SDD1920_Date,
