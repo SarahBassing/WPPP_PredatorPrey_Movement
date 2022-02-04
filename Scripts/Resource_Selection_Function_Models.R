@@ -623,7 +623,9 @@
                                 coug_smr_rsf_sa, coug_wtr_rsf_sa, wolf_smr_rsf_sa, 
                                 wolf_wtr_rsf_sa, bob_smr_rsf_sa, bob_wtr_rsf_sa, 
                                 coy_smr_rsf_sa, coy_wtr_rsf_sa)
-  save(all_spp_RSF_predicted, file = paste0("./Outputs/RSF_output/all_spp_RSF_predicted_", Sys.Date(), ".RData"))
+  # save(all_spp_RSF_predicted, file = paste0("./Outputs/RSF_output/all_spp_RSF_predicted_", Sys.Date(), ".RData"))
+  
+  load("./Outputs/RSF_output/all_spp_RSF_predicted_2022-01-14.RData") #2022-01-29
   
   #'  Function to identify any outliers
   outliers <- function(predicted, title, covs_list) {
@@ -643,24 +645,6 @@
     outlier <- filter(outlier, !is.na(outlier))
     print(nrow(outlier))
 
-  #'   #' Summarize covariates associated with extreme values
-  #'   bigvalues <- full_join(predicted, covs_list, by = c("ID", "StudyArea", "x", "y"))
-  #'   #' print(summary(bigvalues)) 
-  #'   #' hist(bigvalues$Elev, breaks = 25, main = "Frequency of Elevation values", xlab = "Standardize Elevation")
-  #'   #' hist(bigvalues$Elev[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Elevation values", xlab = "Standardize Elevation")
-  #'   #' hist(bigvalues$Slope, breaks = 25, main = "Frequency of Slope values", xlab = "Standardize Slope")
-  #'   #' hist(bigvalues$Slope[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Slope values", xlab = "Standardize Slope")
-  #'   #' hist(bigvalues$RoadDen, breaks = 25, main = "Frequency of Road Density values", xlab = "Standardize Road Density")
-  #'   #' hist(bigvalues$RoadDen[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Road Density values", xlab = "Standardize Road Density")
-  #'   #' hist(bigvalues$Dist2Water, breaks = 25, main = "Frequency of Distance to Water values", xlab = "Standardize Dist. to Water")
-  #'   #' hist(bigvalues$Dist2Water[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Water values", xlab = "Standardize Dist. to Water")
-  #'   #' hist(bigvalues$HumanMod, breaks = 25, main = "Frequency of Human Modified Landscape values", xlab = "Standardize Human Mod")
-  #'   #' hist(bigvalues$HumanMod[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Human Modified Landscape values", xlab = "Standardize Human Mod")
-  #'   #' hist(bigvalues$CanopyCover, breaks = 25, main = "Frequency of Canopy Cover values", xlab = "Standardize Canopy Cover")
-  #'   #' hist(bigvalues$CanopyCover[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Canopy Cover values", xlab = "Standardize Canopy Cover")
-  #'   #' hist(bigvalues$Dist2Edge, breaks = 25, main = "Frequency of Distance to Edge values", xlab = "Standardize Dist. to Edge")
-  #'   #' hist(bigvalues$Dist2Edge[bigvalues$outlier == "outlier"], breaks = 25, main = "Frequency of Outlier Distance to Edge values", xlab = "Standardize Dist. to Edge")
-
     return(predicted)
   }
   #'  Identify outlier predictions and possible covariates associated with those
@@ -679,6 +663,8 @@
   bob_wtr_outliers <- lapply(bob_wtr_rsf_sa, outliers, title = "Bobcat Winter RSF Predictions", covs_list = bob_wtr_zcovs[[1]])
   coy_smr_outliers <- lapply(coy_smr_rsf_sa, outliers, title = "Coyote Summer RSF Predictions", covs_list = bob_smr_zcovs[[1]]) #' extreme road density, Dist2Water, & HumanMod values for some outliers but also for non-outliers
   coy_wtr_outliers <- lapply(coy_wtr_rsf_sa, outliers, title = "Coyote Winter RSF Predictions", covs_list = coy_wtr_zcovs[[1]]) #' extreme road density values associated w/ outliers (mask out pixels RoadDen >13)
+  
+  wolf_smr_outliers<- lapply(all_spp_RSF_predicted[[9]], outliers, title = "Wolf Summer RSF Predictions", covs_list = wolf_smr_zcovs[[1]])
   #' #'  After reviewing extreme RSF values and covaraite values associated with 
   #' #'  those locations I am masking pixels for:
   #' #'   1. Winter mule deer where SLOPE > 6
@@ -788,21 +774,23 @@
   coy_wtr_RSFraster <- lapply(coy_wtr_rescale_sa, rasterize_rsf)
 
   
-  #'  Bin RSF predictions consistent with K-fold cross-validation
+  #'  Equal area binning of RSF predictions consistent with K-fold cross-validation
   #'  https://stackoverflow.com/questions/57922248/r-version-of-esri-slice-tool
   bin_rsf <- function(rast, season, species) {
-    trained_rsf <- rast
+    rsf <- rast
     #'  Create 10 breaks for re-scaled RSF values ranging 0 to 1
     breaks <- seq(0, 1, 1/10)
     #'  Group re-scaled RSF values into bins based on cutoffs
-    quants <- quantile(sampleRegular(trained_rsf, ncell(trained_rsf)), breaks, na.rm = TRUE)
+    # quants <- quantile(sampleRegular(rsf, ncell(rsf)), breaks, na.rm = TRUE)
+    quants <- quantile(rsf, breaks, na.rm = TRUE)
     #'  Create new raster of binned RSF values
-    binned_rsf <- cut(trained_rsf, quants)
+    binned_rsf <- cut(rsf, quants)
     plot(binned_rsf, legend = T, main = paste(season, species, "Predicted RSF Bins"))
     plot(NE.SA, add = T)
     plot(OK.SA, add = T)
     
     return(binned_rsf)
+    # return(quants)
   }
   #'  Bin RSF predictions
   md_smr_RSFbinned <- lapply(md_smr_RSFraster, bin_rsf, season = "Summer", species = "Mule Deer")
