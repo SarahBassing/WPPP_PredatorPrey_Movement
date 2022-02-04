@@ -774,39 +774,39 @@
   coy_wtr_RSFraster <- lapply(coy_wtr_rescale_sa, rasterize_rsf)
 
   
-  #'  Equal area binning of RSF predictions consistent with K-fold cross-validation
-  #'  https://stackoverflow.com/questions/57922248/r-version-of-esri-slice-tool
-  bin_rsf <- function(rast, season, species) {
-    rsf <- rast
-    #'  Create 10 breaks for re-scaled RSF values ranging 0 to 1
-    breaks <- seq(0, 1, 1/10)
-    #'  Group re-scaled RSF values into bins based on cutoffs
-    # quants <- quantile(sampleRegular(rsf, ncell(rsf)), breaks, na.rm = TRUE)
-    quants <- quantile(rsf, breaks, na.rm = TRUE)
-    #'  Create new raster of binned RSF values
-    binned_rsf <- cut(rsf, quants)
-    plot(binned_rsf, legend = T, main = paste(season, species, "Predicted RSF Bins"))
-    plot(NE.SA, add = T)
-    plot(OK.SA, add = T)
-    
-    return(binned_rsf)
-    # return(quants)
-  }
-  #'  Bin RSF predictions
-  md_smr_RSFbinned <- lapply(md_smr_RSFraster, bin_rsf, season = "Summer", species = "Mule Deer")
-  md_wtr_RSFbinned <- lapply(md_wtr_RSFraster, bin_rsf, season = "Winter", species = "Mule Deer")
-  elk_smr_RSFbinned <- lapply(elk_smr_RSFraster, bin_rsf, season = "Summer", species = "Elk")
-  elk_wtr_RSFbinned <- lapply(elk_wtr_RSFraster, bin_rsf, season = "Winter", species = "Elk")
-  wtd_smr_RSFbinned <- lapply(wtd_smr_RSFraster, bin_rsf, season = "Summer", species = "White-taile Deer")
-  wtd_wtr_RSFbinned <- lapply(wtd_wtr_RSFraster, bin_rsf, season = "Winter", species = "White-tailed Deer")
-  coug_smr_RSFbinned <- lapply(coug_smr_RSFraster, bin_rsf, season = "Summer", species = "Cougar")
-  coug_wtr_RSFbinned <- lapply(coug_wtr_RSFraster, bin_rsf, season = "Winter", species = "Cougar")
-  wolf_smr_RSFbinned <- lapply(wolf_smr_RSFraster, bin_rsf, season = "Summer", species = "Wolf")
-  wolf_wtr_RSFbinned <- lapply(wolf_wtr_RSFraster, bin_rsf, season = "Winter", species = "Wolf")
-  bob_smr_RSFbinned <- lapply(bob_smr_RSFraster, bin_rsf, season = "Summer", species = "Bobcat")
-  bob_wtr_RSFbinned <- lapply(bob_wtr_RSFraster, bin_rsf, season = "Winter", species = "Bobcat")
-  coy_smr_RSFbinned <- lapply(coy_smr_RSFraster, bin_rsf, season = "Summer", species = "Coyote")
-  coy_wtr_RSFbinned <- lapply(coy_wtr_RSFraster, bin_rsf, season = "Winter", species = "Coyote")
+  #' #'  Equal area binning of RSF predictions consistent with K-fold cross-validation
+  #' #'  https://stackoverflow.com/questions/57922248/r-version-of-esri-slice-tool
+  #' bin_rsf <- function(rast, season, species) {
+  #'   rsf <- rast
+  #'   #'  Create 10 breaks for re-scaled RSF values ranging 0 to 1
+  #'   breaks <- seq(0, 1, 1/10)
+  #'   #'  Group re-scaled RSF values into bins based on cutoffs
+  #'   # quants <- quantile(sampleRegular(rsf, ncell(rsf)), breaks, na.rm = TRUE)
+  #'   quants <- quantile(rsf, breaks, na.rm = TRUE)
+  #'   #'  Create new raster of binned RSF values
+  #'   binned_rsf <- cut(rsf, quants)
+  #'   plot(binned_rsf, legend = T, main = paste(season, species, "Predicted RSF Bins"))
+  #'   plot(NE.SA, add = T)
+  #'   plot(OK.SA, add = T)
+  #'   
+  #'   return(binned_rsf)
+  #'   # return(quants)
+  #' }
+  #' #'  Bin RSF predictions
+  #' md_smr_RSFbinned <- lapply(md_smr_RSFraster, bin_rsf, season = "Summer", species = "Mule Deer")
+  #' md_wtr_RSFbinned <- lapply(md_wtr_RSFraster, bin_rsf, season = "Winter", species = "Mule Deer")
+  #' elk_smr_RSFbinned <- lapply(elk_smr_RSFraster, bin_rsf, season = "Summer", species = "Elk")
+  #' elk_wtr_RSFbinned <- lapply(elk_wtr_RSFraster, bin_rsf, season = "Winter", species = "Elk")
+  #' wtd_smr_RSFbinned <- lapply(wtd_smr_RSFraster, bin_rsf, season = "Summer", species = "White-taile Deer")
+  #' wtd_wtr_RSFbinned <- lapply(wtd_wtr_RSFraster, bin_rsf, season = "Winter", species = "White-tailed Deer")
+  #' coug_smr_RSFbinned <- lapply(coug_smr_RSFraster, bin_rsf, season = "Summer", species = "Cougar")
+  #' coug_wtr_RSFbinned <- lapply(coug_wtr_RSFraster, bin_rsf, season = "Winter", species = "Cougar")
+  #' wolf_smr_RSFbinned <- lapply(wolf_smr_RSFraster, bin_rsf, season = "Summer", species = "Wolf")
+  #' wolf_wtr_RSFbinned <- lapply(wolf_wtr_RSFraster, bin_rsf, season = "Winter", species = "Wolf")
+  #' bob_smr_RSFbinned <- lapply(bob_smr_RSFraster, bin_rsf, season = "Summer", species = "Bobcat")
+  #' bob_wtr_RSFbinned <- lapply(bob_wtr_RSFraster, bin_rsf, season = "Winter", species = "Bobcat")
+  #' coy_smr_RSFbinned <- lapply(coy_smr_RSFraster, bin_rsf, season = "Summer", species = "Coyote")
+  #' coy_wtr_RSFbinned <- lapply(coy_wtr_RSFraster, bin_rsf, season = "Winter", species = "Coyote")
   
   #'  Rename rasters
   rename_raster <- function(raster_list) {
@@ -814,24 +814,24 @@
     S <- stack(L)
     return(S)
   }
-  md_smr_RSFstack <- rename_raster(md_smr_RSFbinned)
-  md_wtr_RSFstack <- rename_raster(md_wtr_RSFbinned)
-  elk_smr_RSFstack <- rename_raster(elk_smr_RSFbinned)
-  elk_wtr_RSFstack <- rename_raster(elk_wtr_RSFbinned)
-  wtd_smr_RSFstack <- rename_raster(wtd_smr_RSFbinned)
-  wtd_wtr_RSFstack <- rename_raster(wtd_wtr_RSFbinned)
-  coug_smr_RSFstack <- rename_raster(coug_smr_RSFbinned)
-  coug_wtr_RSFstack <- rename_raster(coug_wtr_RSFbinned)
-  wolf_smr_RSFstack <- rename_raster(wolf_smr_RSFbinned)
-  wolf_wtr_RSFstack <- rename_raster(wolf_wtr_RSFbinned)
-  bob_smr_RSFstack <- rename_raster(bob_smr_RSFbinned)
-  bob_wtr_RSFstack <- rename_raster(bob_wtr_RSFbinned)
-  coy_smr_RSFstack <- rename_raster(coy_smr_RSFbinned)
-  coy_wtr_RSFstack <- rename_raster(coy_wtr_RSFbinned)
+  md_smr_RSFstack <- rename_raster(md_smr_RSFraster)
+  md_wtr_RSFstack <- rename_raster(md_wtr_RSFraster)
+  elk_smr_RSFstack <- rename_raster(elk_smr_RSFraster)
+  elk_wtr_RSFstack <- rename_raster(elk_wtr_RSFraster)
+  wtd_smr_RSFstack <- rename_raster(wtd_smr_RSFraster)
+  wtd_wtr_RSFstack <- rename_raster(wtd_wtr_RSFraster)
+  coug_smr_RSFstack <- rename_raster(coug_smr_RSFraster)
+  coug_wtr_RSFstack <- rename_raster(coug_wtr_RSFraster)
+  wolf_smr_RSFstack <- rename_raster(wolf_smr_RSFraster)
+  wolf_wtr_RSFstack <- rename_raster(wolf_wtr_RSFraster)
+  bob_smr_RSFstack <- rename_raster(bob_smr_RSFraster)
+  bob_wtr_RSFstack <- rename_raster(bob_wtr_RSFraster)
+  coy_smr_RSFstack <- rename_raster(coy_smr_RSFraster)
+  coy_wtr_RSFstack <- rename_raster(coy_wtr_RSFraster)
 
   
   #'  Plot & Save
-  pdf(file = "./Outputs/RSF_Maps.pdf")
+  pdf(file = "./Outputs/RSF_Maps_nonbinned.pdf")
   plot(md_smr_RSFstack[[1]], main = "Summer Mule Deer Predicted RSF (2018)"); plot(OK.SA, add = T)
   plot(md_wtr_RSFstack[[1]], main = "Winter Mule Deer Predicted RSF (2018)"); plot(OK.SA, add = T)
   plot(elk_smr_RSFstack[[1]], main = "Summer Elk Predicted RSF (2018)"); plot(NE.SA, add = T)
