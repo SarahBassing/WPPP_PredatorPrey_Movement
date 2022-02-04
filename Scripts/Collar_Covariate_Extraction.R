@@ -46,7 +46,7 @@
   library(tidyverse)
   
   #'  Load crwOut animal location data for each species (takes a hot minute)
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2021-12-08.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-03.RData") #2021-12-08
   
   #'  Read in previously extracted NDVI data from GEE
   #'  Note: NDVIsmr is for summer locs ONLY, NDVImax is for winter locs ONLY
@@ -135,6 +135,7 @@
   #' tst_wgs84 <- sf_locs_wgs84[[10]]
   
   #'  Reformat NDVI data so they have matching columns
+  #'  Summer NDVI values
   NDVIsmr <- function(NDVIsmr) {
     NDVIsmr <- transmute(NDVIsmr, obs = ID, AnimalID = AnimalID, Season = Season, 
                          StudyArea = StudyArea, time = times, NDVI = NDVI) %>%
@@ -142,6 +143,7 @@
     return(NDVIsmr)
   }
   NDVIsmr <- lapply(ee_NDVIsmr_list, NDVIsmr)
+  #'  Max NDVI  values at winter locations
   NDVImax <- function(NDVImax) {
     NDVImax <- transmute(NDVImax, obs = ID, AnimalID = AnimalID, Season = Season, 
                          StudyArea = StudyArea, time = times, NDVI = maxNDVI) %>%
@@ -150,6 +152,22 @@
   }
   NDVImax <- lapply(ee_NDVImax_list, NDVImax)
   
+  #'  Split seasonal NDVI data by study area
+  #'  NOTE: ELK & WTD lists will be empty after NDVI_OK & MD lists will be empty after NDVI_NE
+  #'  Okanogan summer & max NDVI values
+  NDVI_OK <- function(ndvi){
+    OK_only <- ndvi[ndvi$StudyArea == "OK",]
+    return(OK_only)
+  }
+  NDVIsmr_OK <- lapply(NDVIsmr, NDVI_OK)
+  NDVImax_OK <- lapply(NDVImax, NDVI_OK)
+  #'  Northeast summer & max NDVI values
+  NDVI_NE <- function(ndvi){
+    NE_only <- ndvi[ndvi$StudyArea == "NE",]
+    return(NE_only)
+  }
+  NDVIsmr_NE <- lapply(NDVIsmr, NDVI_NE)
+  NDVImax_NE <- lapply(NDVImax, NDVI_NE)
   
   
   #'  -------------------------------------------
@@ -438,21 +456,25 @@
   difftime(end.time, start.time, units = "hours")
 
   
-  #'  Clean up summer and winter datasets-
-  #'  Drop snow data from summer datasets; drop summer/winter RSF values from 
-  #'  winter/summer datasets, respectively.
+  #'  List covariate data sets by season and study area (for predators)
+  #'  Note the order: 1) MD smr, 2) MD wtr, 3) ELK smr, 4) ELK wtr, 5) WTD smr, 
+  #'  6) WTD wtr, 7) COUG smr OK, 8) COUG wtr OK, 9) COUG smr NE, 10) COUG wtr NE, 
+  #'  11) WOLF smr OK, 12) WOLF wtr OK, 13) WOLF smr NE, 14) WOLF wtr NE, 
+  #'  15) BOB smr OK, 16) BOB wtr OK, 17) BOB smr NE, 18) BOB wtr NE, 19) COY smr OK, 
+  #'  20) COY wtr OK, 21) COY smr NE, 22) COY wtr NE
+  smr_covs <- list(spp_telem_covs[[1]], spp_telem_covs[[3]], spp_telem_covs[[5]], 
+                   spp_telem_covs[[7]], spp_telem_covs[[9]], spp_telem_covs[[11]], 
+                   spp_telem_covs[[13]], spp_telem_covs[[15]], spp_telem_covs[[17]], 
+                   spp_telem_covs[[19]], spp_telem_covs[[21]])
+  wtr_covs <- list(spp_telem_covs[[2]], spp_telem_covs[[4]], spp_telem_covs[[6]], 
+                   spp_telem_covs[[8]], spp_telem_covs[[10]], spp_telem_covs[[12]], 
+                   spp_telem_covs[[14]], spp_telem_covs[[16]], spp_telem_covs[[18]], 
+                   spp_telem_covs[[20]], spp_telem_covs[[22]])
+  
+  #'  Remove summer/winter RSF values from winter/summer data sets, respectively.
   #'  Be aware there are some locations where landscape covariates were extracted
   #'  but missing RSF values b/c those locations were masked in the RSF analyses,
   #'  producing NAs for all RSF values at these locations
-  #'  List covariate datasets by season
-  smr_covs <- list(spp_telem_covs[[1]], spp_telem_covs[[3]], spp_telem_covs[[5]], 
-                         spp_telem_covs[[7]], spp_telem_covs[[9]], spp_telem_covs[[11]], 
-                         spp_telem_covs[[13]])
-  wtr_covs <- list(spp_telem_covs[[2]], spp_telem_covs[[4]], spp_telem_covs[[6]], 
-                         spp_telem_covs[[8]], spp_telem_covs[[10]], spp_telem_covs[[12]], 
-                         spp_telem_covs[[14]])
-  
-  #'  Functions to remove unnecessary columns and rename
   remove_wtr_covs <- function(covs) {
     smr_data <- dplyr::select(covs, -c("MD_wtr", "ELK_wtr", "WTD_wtr", "COUG_wtr", 
                                            "WOLF_wtr", "BOB_wtr", "COY_wtr")) 
@@ -473,28 +495,81 @@
   }
   wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
   
+  #'  Reorder NDVI lists to match species, season, & study area-specific covariate 
+  #'  lists --- KEEP TRACK OF THIS ORDER!!!!
+  #'  NDVI_smr list order: 1) MD smr, 2) ELK smr, 3) WTD smr, 4) COUG smr OK,  
+  #'  5) COUG smr NE, 6) WOLF smr OK, 7) WOLF smr NE, 8) BOB smr OK, 9) BOB smr NE, 
+  #'  10) COY smr OK, 11) COY smr NE
+  #'  NDVI_max list order: 1) MD wtr, 2) ELK wtr, 3) WTD wtr, 4) COUG wtr OK,  
+  #'  5) COUG wtr NE, 6) WOLF wtr OK, 7) WOLF wtr NE, 8) BOB wtr OK, 9) BOB wtr NE, 
+  #'  10) COY wtr OK, 11) COY wtr NE
+  NDVI_smr <- list(NDVIsmr_OK[[1]], NDVIsmr_NE[[2]], NDVIsmr_NE[[3]], NDVIsmr_OK[[4]],
+                   NDVIsmr_NE[[4]], NDVIsmr_OK[[5]], NDVIsmr_NE[[5]], NDVIsmr_OK[[6]], 
+                   NDVIsmr_NE[[6]], NDVIsmr_OK[[7]], NDVIsmr_NE[[7]])
+  
+  NDVI_max <- list(NDVImax_OK[[1]], NDVImax_NE[[2]], NDVImax_NE[[3]], NDVImax_OK[[4]],
+                   NDVImax_NE[[4]], NDVImax_OK[[5]], NDVImax_NE[[5]], NDVImax_OK[[6]],
+                   NDVImax_NE[[6]], NDVImax_OK[[7]], NDVImax_NE[[7]])
+  
   #'  Add NDVI data to covariate data frames based on species and season
   #'  Remember: NDVIsmr are the spatio-temporally matched NDVI values for summer locs
   #'  NDVImax are the maximum NDVI value from previous growing season for each winter loc
   add_ndvi <- function(covs, ndvi) {
-    full_covs <- full_join(covs, ndvi, by = c("obs", "AnimalID", "Season", "StudyArea", "time")) %>%
-      relocate(NDVI, .after = Dist2Road)
+    full_covs <- full_join(covs, ndvi, by = c("AnimalID", "Season", "StudyArea", "time")) %>% 
+      relocate(NDVI, .after = Dist2Road) %>%
+      dplyr::select(-obs.y)
+    names(full_covs)[names(full_covs) == "obs.x"] <- "obs"
+    return(full_covs)
   }
   #'  Append species and season specific NDVI data to covariate datasets
   #'  FYI: mapply allows each call of the add_ndvi function to get the 1st, 2nd, 
   #'  3rd, etc. element of BOTH lists, SIMPLIFY keeps output in list format
-  smr_cov_data <- mapply(add_ndvi, smr_telem_data, NDVIsmr, SIMPLIFY = FALSE)
-  wtr_cov_data <- mapply(add_ndvi, wtr_telem_data, NDVImax, SIMPLIFY = FALSE)
+  smr_cov_data <- mapply(add_ndvi, smr_telem_data, NDVI_smr, SIMPLIFY = FALSE)
+  wtr_cov_data <- mapply(add_ndvi, wtr_telem_data, NDVI_max, SIMPLIFY = FALSE)
   
-  #'  Merge back into one giant list
-  spp_telem_covs <- list(smr_cov_data[[1]], wtr_cov_data[[1]], smr_cov_data[[2]], 
-                         wtr_cov_data[[2]], smr_cov_data[[3]], wtr_cov_data[[3]], 
-                         smr_cov_data[[4]], wtr_cov_data[[4]], smr_cov_data[[5]], 
-                         wtr_cov_data[[5]], smr_cov_data[[6]], wtr_cov_data[[6]], 
-                         smr_cov_data[[7]], wtr_cov_data[[7]])
+  #'  List covariates by study area
+  #'  Include only species collared in respective study area
+  #'  Okanogan: 1:2) MD, 3:4) COUG, 5:6) WOLF, 7:8) BOB, 9:10) COY
+  OK_covs <- list(smr_cov_data[[1]], wtr_cov_data[[1]], smr_cov_data[[4]], wtr_cov_data[[4]],
+                  smr_cov_data[[6]], wtr_cov_data[[6]], smr_cov_data[[8]], wtr_cov_data[[8]],
+                  smr_cov_data[[10]], wtr_cov_data[[10]])
+  #'  Northeast: 1:2) ELK, 3:4) WTD, 5:6) COUG, 7:8) WOLF, 9:10) BOB, 11:12) COY
+  NE_covs <- list(smr_cov_data[[2]], wtr_cov_data[[2]], smr_cov_data[[3]], wtr_cov_data[[3]],
+                  smr_cov_data[[5]], wtr_cov_data[[5]], smr_cov_data[[7]], wtr_cov_data[[7]],
+                  smr_cov_data[[9]], wtr_cov_data[[9]], smr_cov_data[[11]], wtr_cov_data[[11]])
+  
+  #'  Remove MD & ELK/WTD data from NE & OK covariates, respectively
+  #'  These columns of pure NAs will cause problems when merging covariate data
+  #'  with crwOut data in HMM script
+  #'  Remove RSF data for species collared only in NE from OK data sets
+  nix_ELK_WTD <- function(OK_covs) {
+    no_ELK_WTD <- dplyr::select(OK_covs, -c(ELK_RSF, WTD_RSF))
+    return(no_ELK_WTD)
+  }
+  skinny_OK <- lapply(OK_covs, nix_ELK_WTD)
+  #'  Remove RSF data for species collared only in OK from NE data sets
+  nix_MD <- function(NE_covs) {
+    no_MD <- dplyr::select(NE_covs, -c(MD_RSF))
+    return(no_MD)
+  }
+  skinny_NE <- lapply(NE_covs, nix_MD)
+  
+  
+  #'  Merge back into one giant list keeping track of list order!
+  #'  1) MD smr OK,    2) MD wtr OK,    3) ELK smr NE,   4) ELK wtr NE,   5) WTD smr NE, 
+  #'  6) WTD wtr NE,   7) COUG smr OK,  8) COUG wtr OK,  9) COUG smr NE,  10) COUG wtr NE, 
+  #'  11) WOLF smr OK, 12) WOLF wtr OK, 13) WOLF smr NE, 14) WOLF wtr NE, 15) BOB smr OK,  
+  #'  16) BOB wtr OK,  17) BOB smr NE,  18) BOB smr NE,  19) COY smr OK,  20) COY wtr OK, 
+  #'  21) COY smr NE,  22) COY wtr NE
+  spp_telem_covs <- list(skinny_OK[[1]], skinny_OK[[2]], skinny_NE[[1]], skinny_NE[[2]],
+                         skinny_NE[[3]], skinny_NE[[4]], skinny_OK[[3]], skinny_OK[[4]], 
+                         skinny_NE[[5]], skinny_NE[[6]], skinny_OK[[5]], skinny_OK[[6]],
+                         skinny_NE[[7]], skinny_NE[[8]], skinny_OK[[7]], skinny_OK[[8]],
+                         skinny_NE[[9]], skinny_NE[[10]], skinny_OK[[9]], skinny_OK[[10]],
+                         skinny_NE[[11]], skinny_NE[[12]])
 
   
-  #'  Save and hope you never have to run this again!
+  #'  Save!
   save(spp_telem_covs, file = paste0("./Outputs/Telemetry_covs/spp_telem_covs_", Sys.Date(), ".RData"))
 
 
