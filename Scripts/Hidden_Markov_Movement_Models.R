@@ -25,19 +25,15 @@
   library(tidyverse)
 
   #'  Load crwOut & covaraite data
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2021-12-08.RData") 
-  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-01-31.RData") #update with snow data
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-03.RData") 
+  load("./Outputs/Telemetry_covs/spp_telem_covs_noNDVI_2022-02-07.RData") 
   
-  smr_covs <- list(spp_telem_covs[[1]], spp_telem_covs[[3]], spp_telem_covs[[5]], 
-                   spp_telem_covs[[7]], spp_telem_covs[[9]], spp_telem_covs[[11]], 
-                   spp_telem_covs[[13]])
   
-  wtr_covs <- list(spp_telem_covs[[2]], spp_telem_covs[[4]], spp_telem_covs[[6]], 
-                   spp_telem_covs[[8]], spp_telem_covs[[10]], spp_telem_covs[[12]], 
-                   spp_telem_covs[[14]])
-  
-
   #'  Merge datasets and create momentuHMMData object
+  #'  Data merged and scaled by study area separately b/c different species collared
+  #'  in each study area- can't test effect of study area-specific species
+  #'  across both study areas.
+  #'  OKANOGAN data sets
   spp_dataPrep <- function(crwOut, telem_covs){
     #'  Merge crawlOut data with extracted covariate data
     crwlMerge <- crawlMerge(crwOut, telem_covs, Time.name = "time")
@@ -45,57 +41,129 @@
     crwlMerge$crwPredict$StudyArea <- as.factor(crwlMerge$crwPredict$StudyArea)
     crwlMerge$crwPredict$Sex <- as.factor(crwlMerge$crwPredict$Sex)
     crwlMerge$crwPredict$Season <- as.factor(crwlMerge$crwPredict$Season)
+    crwlMerge$crwPredict$SnowCover <- as.factor(crwlMerge$crwPredict$SnowCover)
     #'  Standardize continuous variables
     crwlMerge$crwPredict$Dist2Road <- scale(crwlMerge$crwPredict$Dist2Road)
-    crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
+    # crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
     crwlMerge$crwPredict$PercOpen <- scale(crwlMerge$crwPredict$PercOpen)
-    crwlMerge$crwPredict$SDD <- scale(crwlMerge$crwPredict$SDD)
     crwlMerge$crwPredict$TRI <- scale(crwlMerge$crwPredict$TRI)
-    crwlMerge$crwPredict$MD_RSF <- scale(crwlMerge$crwPredict$MD_RSF)   
+    crwlMerge$crwPredict$MD_RSF <- scale(crwlMerge$crwPredict$MD_RSF)
+    #' crwlMerge$crwPredict$ELK_RSF <- scale(crwlMerge$crwPredict$ELK_RSF)   # not in OK data sets
+    #' crwlMerge$crwPredict$WTD_RSF <- scale(crwlMerge$crwPredict$WTD_RSF)   # not in OK data sets
+    crwlMerge$crwPredict$COUG_RSF <- scale(crwlMerge$crwPredict$COUG_RSF)
+    crwlMerge$crwPredict$WOLF_RSF <- scale(crwlMerge$crwPredict$WOLF_RSF)
+    crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
+    crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
+    crwlMerge$crwPredict$hour <- as.integer(strftime(crwlMerge$crwPredict$time, format = "%H", tz="Etc/GMT+8"))
+    #'  Prep crwlMerge data for fitHMM function
+    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", #"NDVI", 
+                                                    "SnowCover", "TRI", "MD_RSF", 
+                                                    "COUG_RSF", "WOLF_RSF", "BOB_RSF", 
+                                                    "COY_RSF", "hour", "Sex", 
+                                                    "StudyArea", "Season"))  # "ELK_RSF", "WTD_RSF", 
+    return(Data)
+  }
+  #'  Run season & species-specific data from the Okanogan through prep function
+  #'  Warnings are due to missing data for interpolated locations. prepData 
+  #'  command automatically fills in values with closest following value.
+  mdData_smr <- spp_dataPrep(crwOut_ALL[[1]], spp_telem_covs[[1]])      # HUGE data set- need lab computer
+  mdData_wtr <- spp_dataPrep(crwOut_ALL[[2]], spp_telem_covs[[2]])      # HUGE data set- need lab computer
+  cougData_smr_OK <- spp_dataPrep(crwOut_ALL[[7]], spp_telem_covs[[7]]) 
+  cougData_wtr_OK <- spp_dataPrep(crwOut_ALL[[8]], spp_telem_covs[[8]])
+  wolfData_smr_OK <- spp_dataPrep(crwOut_ALL[[11]], spp_telem_covs[[11]])
+  wolfData_wtr_OK <- spp_dataPrep(crwOut_ALL[[12]], spp_telem_covs[[12]])
+  bobData_smr_OK <- spp_dataPrep(crwOut_ALL[[15]], spp_telem_covs[[15]])
+  bobData_wtr_OK <- spp_dataPrep(crwOut_ALL[[16]], spp_telem_covs[[16]])
+  coyData_smr_OK <- spp_dataPrep(crwOut_ALL[[19]], spp_telem_covs[[19]])
+  coyData_wtr_OK <- spp_dataPrep(crwOut_ALL[[20]], spp_telem_covs[[20]])
+  
+  
+  #'  NORTHEAST data sets
+  spp_dataPrep <- function(crwOut, telem_covs){
+    #'  Merge crawlOut data with extracted covariate data
+    crwlMerge <- crawlMerge(crwOut, telem_covs, Time.name = "time")
+    #'  Make categorical variables factors
+    crwlMerge$crwPredict$StudyArea <- as.factor(crwlMerge$crwPredict$StudyArea)
+    crwlMerge$crwPredict$Sex <- as.factor(crwlMerge$crwPredict$Sex)
+    crwlMerge$crwPredict$Season <- as.factor(crwlMerge$crwPredict$Season)
+    crwlMerge$crwPredict$SnowCover <- as.factor(crwlMerge$crwPredict$SnowCover)
+    #' #'  Standardize continuous variables
+    crwlMerge$crwPredict$Dist2Road <- scale(crwlMerge$crwPredict$Dist2Road)
+    # crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
+    crwlMerge$crwPredict$PercOpen <- scale(crwlMerge$crwPredict$PercOpen)
+    crwlMerge$crwPredict$TRI <- scale(crwlMerge$crwPredict$TRI)
+    #' crwlMerge$crwPredict$MD_RSF <- scale(crwlMerge$crwPredict$MD_RSF)   # Not in NE data set  
     crwlMerge$crwPredict$ELK_RSF <- scale(crwlMerge$crwPredict$ELK_RSF)
     crwlMerge$crwPredict$WTD_RSF <- scale(crwlMerge$crwPredict$WTD_RSF)
     crwlMerge$crwPredict$COUG_RSF <- scale(crwlMerge$crwPredict$COUG_RSF)
     crwlMerge$crwPredict$WOLF_RSF <- scale(crwlMerge$crwPredict$WOLF_RSF)
     crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
     crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
+    crwlMerge$crwPredict$hour <- as.integer(strftime(crwlMerge$crwPredict$time, format = "%H", tz="Etc/GMT+8"))
     #'  Prep crwlMerge data for fitHMM function
-    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "NDVI", "PercOpen", "SDD", 
-                                                   "TRI", "MD_RSF", "ELK_RSF", "WTD_RSF",
-                                                   "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF",
-                                                   "Sex", "StudyArea", "Season")) 
+    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", #"NDVI", 
+                                                    "SnowCover", "TRI", "ELK_RSF", 
+                                                    "WTD_RSF", "COUG_RSF", "WOLF_RSF",
+                                                    "BOB_RSF", "COY_RSF", "hour",
+                                                    "Sex", "StudyArea", "Season")) # "MD_RSF",
     return(Data)
   }
-  #'  Run season & species-specific data through prep function
-  #'  WARNING-------
-  #'  Warnings are due to missing data for interpolated locations and NAs
-  #'  in the ungulate RSFs for the respective study areas. NOTE: prepData function
-  #'  automatically fills in values for MD in the NE and ELK/WTD in the OK even
-  #'  though NO RSFs were run for these species in these study areas. 
-  #'  DO NOT use these values in the HMMs!!!!!!!!
-  mdData_smr <- spp_dataPrep(crwOut_ALL[[1]], spp_telem_covs[[1]])
-  mdData_wtr <- spp_dataPrep(crwOut_ALL[[2]], spp_telem_covs[[2]])
-  elkData_smr <- spp_dataPrep(crwOut_ALL[[3]], spp_telem_covs[[3]])
+  #'  Run season & species-specific data from the Northeast through prep function
+  #'  Warnings are due to missing data for interpolated locations. prepData 
+  #'  command automatically fills in values with closest following value.
+  elkData_smr <- spp_dataPrep(crwOut_ALL[[3]], spp_telem_covs[[3]])       # HUGE data set- need lab computer
   elkData_wtr <- spp_dataPrep(crwOut_ALL[[4]], spp_telem_covs[[4]])
   wtdData_smr <- spp_dataPrep(crwOut_ALL[[5]], spp_telem_covs[[5]])
   wtdData_wtr <- spp_dataPrep(crwOut_ALL[[6]], spp_telem_covs[[6]])
-  cougData_smr <- spp_dataPrep(crwOut_ALL[[7]], spp_telem_covs[[7]])
-  cougData_wtr <- spp_dataPrep(crwOut_ALL[[8]], spp_telem_covs[[8]])
-  wolfData_smr <- spp_dataPrep(crwOut_ALL[[9]], spp_telem_covs[[9]])
-  wolfData_wtr <- spp_dataPrep(crwOut_ALL[[10]], spp_telem_covs[[10]])
-  bobData_smr <- spp_dataPrep(crwOut_ALL[[11]], spp_telem_covs[[11]])
-  bobData_wtr <- spp_dataPrep(crwOut_ALL[[12]], spp_telem_covs[[12]])
-  coyData_smr <- spp_dataPrep(crwOut_ALL[[13]], spp_telem_covs[[13]])
-  coyData_wtr <- spp_dataPrep(crwOut_ALL[[14]], spp_telem_covs[[14]])
+  cougData_smr_NE <- spp_dataPrep(crwOut_ALL[[9]], spp_telem_covs[[9]])
+  cougData_wtr_NE <- spp_dataPrep(crwOut_ALL[[10]], spp_telem_covs[[10]])
+  wolfData_smr_NE <- spp_dataPrep(crwOut_ALL[[13]], spp_telem_covs[[13]])
+  wolfData_wtr_NE <- spp_dataPrep(crwOut_ALL[[14]], spp_telem_covs[[14]])
+  bobData_smr_NE <- spp_dataPrep(crwOut_ALL[[17]], spp_telem_covs[[17]])
+  bobData_wtr_NE <- spp_dataPrep(crwOut_ALL[[18]], spp_telem_covs[[18]])
+  coyData_smr_NE <- spp_dataPrep(crwOut_ALL[[21]], spp_telem_covs[[21]])
+  coyData_wtr_NE <- spp_dataPrep(crwOut_ALL[[22]], spp_telem_covs[[22]])
+  
   
   
   #' #'  Visualize data to inform initial parameter specifications
   #' plot(mdData_smr)  #250, 500, 250, 500
   #' plot(elkData_smr)  #500, 1000, 500, 1000
   #' plot(wtdData_smr)  #100, 500, 100, 500
-  #' plot(cougData_smr)  #500, 1500, 500, 1500
-  #' plot(wolfData_smr)  #500, 3000, 500, 3000
-  #' plot(bobData_smr)  #500, 1000, 500, 1000
-  #' plot(coyData_smr)  #500, 2000, 500, 2000
+  #' plot(cougData_smr_OK)  #500, 1500, 500, 1500
+  #' plot(cougData_smr_NE)  #500, 1500, 500, 1500
+  #' plot(wolfData_smr_OK)  #500, 3000, 500, 3000
+  #' plot(wolfData_smr_NE)  #500, 3000, 500, 3000
+  #' plot(bobData_smr_OK)  #500, 1000, 500, 1000
+  #' plot(bobData_smr_NE)  #500, 1000, 500, 1000
+  #' plot(coyData_smr_OK)  #500, 2000, 500, 2000
+  #' plot(coyData_smr_NE)  #500, 2000, 500, 2000
+  
+  
+  #'  Visualize data to identify potential temporal autocorrelation
+  #'  lag.max is measured in hours
+  acf(mdData_smr$step[!is.na(mdData_smr$step)],lag.max=100)
+  acf(mdData_wtr$step[!is.na(mdData_wtr$step)],lag.max=100)
+  acf(elkData_smr$step[!is.na(elkData_smr$step)],lag.max=100)
+  acf(elkData_wtr$step[!is.na(elkData_wtr$step)],lag.max=100)
+  acf(wtdData_smr$step[!is.na(wtdData_smr$step)],lag.max=100)
+  acf(wtdData_wtr$step[!is.na(wtdData_wtr$step)],lag.max=100)
+  acf(cougData_smr_OK$step[!is.na(cougData_smr_OK$step)],lag.max=100)
+  acf(cougData_wtr_OK$step[!is.na(cougData_wtr_OK$step)],lag.max=100)
+  acf(cougData_smr_NE$step[!is.na(cougData_smr_NE$step)],lag.max=100)
+  acf(cougData_wtr_NE$step[!is.na(cougData_wtr_NE$step)],lag.max=100)
+  acf(wolfData_smr_OK$step[!is.na(wolfData_smr_OK$step)],lag.max=100)
+  acf(wolfData_wtr_OK$step[!is.na(wolfData_wtr_OK$step)],lag.max=100)
+  acf(wolfData_smr_NE$step[!is.na(wolfData_smr_NE$step)],lag.max=100)
+  acf(wolfData_wtr_NE$step[!is.na(wolfData_wtr_NE$step)],lag.max=100)
+  acf(bobData_smr_OK$step[!is.na(bobData_smr_OK$step)],lag.max=100)
+  acf(bobData_wtr_OK$step[!is.na(bobData_wtr_OK$step)],lag.max=100)
+  acf(bobData_smr_NE$step[!is.na(bobData_smr_NE$step)],lag.max=100)
+  acf(bobData_wtr_NE$step[!is.na(bobData_wtr_NE$step)],lag.max=100)
+  acf(coyData_smr_OK$step[!is.na(coyData_smr_OK$step)],lag.max=100)
+  acf(coyData_wtr_OK$step[!is.na(coyData_wtr_OK$step)],lag.max=100)
+  acf(coyData_smr_NE$step[!is.na(coyData_smr_NE$step)],lag.max=100)
+  acf(coyData_wtr_NE$step[!is.na(coyData_wtr_NE$step)],lag.max=100)
   
   
   
@@ -132,45 +200,52 @@
   #'  Covariates affecting probability of transitioning from one state to another
   #'  FOR ALL SPECIES
   trans_formula_null <- ~1
-  trans_formula_habitat <- ~tri + open
+  trans_formula_time <- ~cosinor(hour, period = 24)
+  trans_formula_Shab <- ~TRI + PercOpen + cosinor(hour, period = 24)
+  trans_formula_Whab <- ~TRI + PercOpen + SnowCover + cosinor(hour, period = 24)
+  trans_formula_rd <- ~Dist2Road + cosinor(hour, period = 24)
+  
   #'  FOR PREY MODELS ONLY
-  trans_formula_predpres <- ~coug_rsf + wolf_rsf + bob_rsf + coy_rsf
-  trans_formula_hab_pred <- ~tri + open + coug_rsf + wolf_rsf + bob_rsf + coy_rsf
-  trans_formula_triXpred <- ~tri + open + coug_rsf + wolf_rsf + bob_rsf + coy_rsf + tri*coug_rsf + tri*wolf_rsf + tri*bob_rsf + tri*coy_rsf
-  trans_formula_openXpred <- ~tri + open + coug_rsf + wolf_rsf + bob_rsf + coy_rsf + open*coug_rsf + open*wolf_rsf + open*bob_rsf + open*coy_rsf
+  trans_formula_pred <- ~COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF
+  trans_formula_Shab_pred <- ~TRI + PercOpen + coug_rsf + WOLF_RSF + BOB_RSF + COY_RSF
+  trans_formula_Whab_pred <- ~TRI + PercOpen + coug_rsf + WOLF_RSF + BOB_RSF + COY_RSF + SnowCover
+  trans_formula_StriXpred <- ~TRI*COUG_RSF + TRI*WOLF_RSF + TRI*BOB_RSF + TRI*COY_RSF
+  trans_formula_WtriXpred <- ~TRI*COUG_RSF + TRI*WOLF_RSF + TRI*BOB_RSF + TRI*COY_RSF + SnowCover
+  trans_formula_SopenXpred <- ~PercOpen*COUG_RSF + PercOpen*WOLF_RSF + PercOpen*BOB_RSF + PercOpen*COY_RSF
+  trans_formula_WopenXpred <- ~PercOpen*COUG_RSF + PercOpen*WOLF_RSF + PercOpen*BOB_RSF + PercOpen*COY_RSF + SnowCover
+  
   #'  FOR PREDATOR MODELS ONLY
-  trans_formula_ndvi <- ~ndvi
-  trans_formula_mdpres <- ~md_rsf
-  trans_formula_elkwtdpres <- ~elk_rsf + wtd_rsf
-  trans_formula_triXmd_rsf <- ~tri + md_rsf + tri*md_rsf
-  trans_formula_triXelkwtdpres <- ~tri + elk_rsf + wtd_rsf + tri*elk_rsf + tri*wtd_rsf
-  trans_formula_triXndvi <- ~tri + ndvi + tri*ndvi
-  trans_formula_openXmd_rsf <- ~open + md_rsf + open*md_rsf
-  trans_formula_openXelkwtdpres <- ~open + elk_rsf + wtd_rsf + open*elk_rsf + open*wtd_rsf
-  trans_formula_openXndvi <- ~open + ndvi + open*ndvi
+  # trans_formula_ndvi <- ~NDVI
+  # trans_formula_triXndvi <- ~TRI*NDVI
+  # trans_formula_openXndvi <- ~OPEN*NDVI
+  #'  Okanogan predators only
+  trans_formula_md <- ~MD_RSF
+  trans_formula_StriXmd_rsf <- ~TRI*MD_RSF
+  trans_formula_WtriXmd_rsf <- ~TRI*MD_RSF + SnowCover
+  trans_formula_SopenXmd_rsf <- ~PercOpen*MD_RSF
+  trans_formula_WopenXmd_rsf <- ~PercOpen*MD_RSF + SnowCover
+  #'  Northeast predators only
+  trans_formula_elkwtd <- ~ELK_RSF + WTD_RSF
+  trans_formula_StriXelkwtd <- ~TRI*ELK_RSF + TRI*WTD_RSF
+  trans_formula_WtriXelkwtd <- ~TRI*ELK_RSF + TRI*WTD_RSF + SnowCover
+  trans_formula_SopenXelkwtd <- ~PercOpen*ELK_RSF + PercOpen*WTD_RSF
+  trans_formula_WopenXelkwtd <- ~PercOpen*ELK_RSF + PercOpen*WTD_RSF + SnowCover
+  
   
   #'  Define formula(s) to be applied to state-dependent distributions
   #'  Covariates that help describe movement patterns of a given state
   #'  Add zeromass = formula for species that need zeromass parameters above
   DM_formula_null <- ~1
   # DM_formula_sex <- ~sex
-  DM_formula_terrain <- ~tri 
-  DM_formula_wtr_terrain <- ~tri + snow
-  DM_formula_permiable <- ~dist2rd + tri
-  DM_formula_wtr_permiable <- ~dist2rd + tri + snow
-  DM_formula_all <- ~dist2rd + tri
-  # DM_formula_wtr_all <- ~dist2rd + tri + snow + sex
   
   #### NEED TO GET THE TRANSFORMED TIME-OF-DAY AND DAY-OF-YEAR IN HERE ####
   
   
   #'  Create pseudo-design matices for state-dependent distributions
   #'  Null DM (predators & prey) and DM with sex & study area (predators only)
-  DM_nullpred <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
-  DM_nullprey <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
-  DM_pred <- list(step = list(mean = DM_formula_sexSA, sd = DM_formula_sexSA), angle = list(concentration = ~1))
-  DM_coug <- list(step = list(mean = DM_formula_sexSA, sd = DM_formula_sexSA, zeromass = DM_formula_sexSA), angle = list(concentration = ~1)) # includes zeromass parameters
-  #make more based on the resto fhte DM formulas above...........
+  DM_null <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
+  DM_null_ZeroMass <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
+  # DM_pred <- list(step = list(mean = DM_formula_sexSA, sd = DM_formula_sexSA), angle = list(concentration = ~1))
   
   
   #'  DM with habitat covariates- don't use
@@ -242,6 +317,29 @@
   #'  Run species-specific data through function
   #'  Switch between trans_formula & trans_formula_NULL for covariates on or off 
   #'  transition probabilities
+  
+  ####  COUGAR HMMS  ####
+  #'  Okanoga Summer
+  coug_HMM_smr_OK1 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_time)
+  coug_HMM_smr_OK2 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Shab)
+  coug_HMM_smr_OK3 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_md)
+  coug_HMM_smr_OK4 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_StriXmd_rsf)
+  coug_HMM_smr_OK5 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_SopenXmd_rsf)
+  AIC(coug_HMM_smr_OK1, coug_HMM_smr_OK5)
+  #'  Okanogan Winter
+  coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Whab)
+  #'  Northeast Summer
+  coug_HMM_smr_NE <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Shab)
+  #'  Northeast Winter
+  coug_HMM_wtr_NE <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Whab)
+  
+  ####  WOLF HMMS  ####
+  wolf_HMM_smr_OK <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_null, trans_formula_md)
+  wolf_HMM_wtr_OK <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_null, trans_formula_md)
+  wolf_HMM_smr_NE <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_null, trans_formula_elkwtd)
+  wolf_HMM_wtr_NE <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_null, trans_formula_elkwtd)
+  
+  
   md_HMM_smr <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_nullprey, trans_formula_null)
   md_HMM_wtr <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_nullprey, trans_formula_null) 
   elk_HMM_smr <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_nullprey, trans_formula_null) 
@@ -267,6 +365,14 @@
   
   # load("./Outputs/spp_HMM_output_2021-05-18.RData")
   load("./Outputs/spp_HMM_output_NULLtrans_2021-05-25.RData")
+  
+  
+  # compare fitted models (pg. 23 of vignette)
+  AIC(m1,m2,m3)
+  # compute pseudo-residuals for the steps and the angles 
+  pr <- pseudoRes(m3)
+  # plot the ACF of step pseudo-residuals
+  acf(pr$stepRes[!is.na(pr$stepRes)],lag.max = 300)
   
   
   #'  Function to extract most likely state sequence for all locations based on
