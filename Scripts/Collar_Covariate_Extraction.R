@@ -478,7 +478,7 @@
   remove_wtr_covs <- function(covs) {
     smr_data <- dplyr::select(covs, -c("MD_wtr", "ELK_wtr", "WTD_wtr", "COUG_wtr", 
                                            "WOLF_wtr", "BOB_wtr", "COY_wtr")) 
-    names(covs) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
+    names(smr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
                      "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")
     return(smr_data)
@@ -488,41 +488,41 @@
   remove_smr_covs <- function(covs) {
     wtr_data <- dplyr::select(covs, -c("MD_smr", "ELK_smr", "WTD_smr", "COUG_smr",  
                                            "WOLF_smr", "BOB_smr", "COY_smr"))
-    names(covs) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
+    names(wtr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
                      "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")
     return(wtr_data)
   }
   wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
   
-  #'  Reorder NDVI lists to match species, season, & study area-specific covariate 
+  #'  Reorder NDVI lists to match species, season, & study area-specific covariate
   #'  lists --- KEEP TRACK OF THIS ORDER!!!!
-  #'  NDVI_smr list order: 1) MD smr, 2) ELK smr, 3) WTD smr, 4) COUG smr OK,  
-  #'  5) COUG smr NE, 6) WOLF smr OK, 7) WOLF smr NE, 8) BOB smr OK, 9) BOB smr NE, 
+  #'  NDVI_smr list order: 1) MD smr, 2) ELK smr, 3) WTD smr, 4) COUG smr OK,
+  #'  5) COUG smr NE, 6) WOLF smr OK, 7) WOLF smr NE, 8) BOB smr OK, 9) BOB smr NE,
   #'  10) COY smr OK, 11) COY smr NE
-  #'  NDVI_max list order: 1) MD wtr, 2) ELK wtr, 3) WTD wtr, 4) COUG wtr OK,  
-  #'  5) COUG wtr NE, 6) WOLF wtr OK, 7) WOLF wtr NE, 8) BOB wtr OK, 9) BOB wtr NE, 
+  #'  NDVI_max list order: 1) MD wtr, 2) ELK wtr, 3) WTD wtr, 4) COUG wtr OK,
+  #'  5) COUG wtr NE, 6) WOLF wtr OK, 7) WOLF wtr NE, 8) BOB wtr OK, 9) BOB wtr NE,
   #'  10) COY wtr OK, 11) COY wtr NE
   NDVI_smr <- list(NDVIsmr_OK[[1]], NDVIsmr_NE[[2]], NDVIsmr_NE[[3]], NDVIsmr_OK[[4]],
-                   NDVIsmr_NE[[4]], NDVIsmr_OK[[5]], NDVIsmr_NE[[5]], NDVIsmr_OK[[6]], 
+                   NDVIsmr_NE[[4]], NDVIsmr_OK[[5]], NDVIsmr_NE[[5]], NDVIsmr_OK[[6]],
                    NDVIsmr_NE[[6]], NDVIsmr_OK[[7]], NDVIsmr_NE[[7]])
-  
+
   NDVI_max <- list(NDVImax_OK[[1]], NDVImax_NE[[2]], NDVImax_NE[[3]], NDVImax_OK[[4]],
                    NDVImax_NE[[4]], NDVImax_OK[[5]], NDVImax_NE[[5]], NDVImax_OK[[6]],
                    NDVImax_NE[[6]], NDVImax_OK[[7]], NDVImax_NE[[7]])
-  
+
   #'  Add NDVI data to covariate data frames based on species and season
   #'  Remember: NDVIsmr are the spatio-temporally matched NDVI values for summer locs
   #'  NDVImax are the maximum NDVI value from previous growing season for each winter loc
   add_ndvi <- function(covs, ndvi) {
-    full_covs <- full_join(covs, ndvi, by = c("AnimalID", "Season", "StudyArea", "time")) %>% 
+    full_covs <- full_join(covs, ndvi, by = c("AnimalID", "Season", "StudyArea", "time")) %>%
       relocate(NDVI, .after = Dist2Road) %>%
       dplyr::select(-obs.y)
     names(full_covs)[names(full_covs) == "obs.x"] <- "obs"
     return(full_covs)
   }
   #'  Append species and season specific NDVI data to covariate datasets
-  #'  FYI: mapply allows each call of the add_ndvi function to get the 1st, 2nd, 
+  #'  FYI: mapply allows each call of the add_ndvi function to get the 1st, 2nd,
   #'  3rd, etc. element of BOTH lists, SIMPLIFY keeps output in list format
   smr_cov_data <- mapply(add_ndvi, smr_telem_data, NDVI_smr, SIMPLIFY = FALSE)
   wtr_cov_data <- mapply(add_ndvi, wtr_telem_data, NDVI_max, SIMPLIFY = FALSE)
