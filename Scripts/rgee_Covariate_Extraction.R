@@ -32,7 +32,7 @@
   rgee::ee_Initialize(drive = T)  # ignore the Welcome to the Earth Engine client blurb
 
   #'  Load crwOut processed movement data
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2021-12-08.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-03.RData") #2021-12-08
 
   
   #'  Prepare telemetry data for ee
@@ -204,11 +204,15 @@
   ee_NDVI_md_smr <- match_ee_data(data_ee_list[[1]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
   ee_NDVI_elk_smr <- match_ee_data(data_ee_list[[3]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
   ee_NDVI_wtd_smr <- match_ee_data(data_ee_list[[5]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
-  ee_NDVI_coug_smr <- match_ee_data(data_ee_list[[7]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
-  ee_NDVI_wolf_smr <- match_ee_data(data_ee_list[[9]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
-  ee_NDVI_bob_smr <- match_ee_data(data_ee_list[[11]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
-  ee_NDVI_coy_smr <- match_ee_data(data_ee_list[[13]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
-  
+  ee_NDVI_coug_smr_OK <- match_ee_data(data_ee_list[[7]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_coug_smr_NE <- match_ee_data(data_ee_list[[9]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_wolf_smr_OK <- match_ee_data(data_ee_list[[11]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_wolf_smr_NE <- match_ee_data(data_ee_list[[13]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_bob_smr_OK <- match_ee_data(data_ee_list[[15]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_bob_smr_NE <- match_ee_data(data_ee_list[[17]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_coy_smr_OK <- match_ee_data(data_ee_list[[19]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+  ee_NDVI_coy_smr_NE <- match_ee_data(data_ee_list[[21]], imagecoll = imageNDVI, tempwin = 16, band = "NDVI", sp.res = 250, tmp.res = 16)
+
   #'  List together for safe keeping
   ee_smr_NDVI_list <- list(ee_NDVI_md_smr, ee_NDVI_elk_smr, ee_NDVI_wtd_smr, 
                            ee_NDVI_coug_smr, ee_NDVI_wolf_smr, ee_NDVI_bob_smr, 
@@ -350,9 +354,11 @@
   short.list <- lapply(crwOut_ALL, drop_list)
   
   #'  Re-ogranize short list by year, not species
+  #'  Note: Summer lists should be all 0; Winter lists that are all 0 mean no 
+  #'  collars deployed during that time period (e.g. bobcat wtr 1819, wolf wtr 1920)
   filter_wtr1819 <- function(mylist){
     df <- as.data.frame(mylist) %>%
-      filter(time < "2019-03-01 00:00:00") %>%
+      filter(time > "2018-11-30 00:00:00" & time < "2019-03-01 00:00:00") %>%
       mutate(Season = "Winter1819") # Pay attention to this!!!!
     return(df)
   }
@@ -373,10 +379,10 @@
   wtr2021 <- lapply(short.list, filter_wtr2021)
   
   #'  List data for each species per season (winter observations only)
-  wtr_list1819 <- list(wtr1819[[2]], wtr1819[[4]], wtr1819[[6]], wtr1819[[8]], wtr1819[[10]], wtr1819[[12]], wtr1819[[14]])
-  wtr_list1920 <- list(wtr1920[[2]], wtr1920[[4]], wtr1920[[6]], wtr1920[[8]], wtr1920[[10]], wtr1920[[12]], wtr1920[[14]])
-  wtr_list2021 <- list(wtr2021[[2]], wtr2021[[4]], wtr2021[[6]], wtr2021[[8]], wtr2021[[10]], wtr2021[[12]], wtr2021[[14]])
-  #'  New list order: mule deer [1], elk [2], white-tailed deer [3], cougar [4], wolf [5], bobcat [6], coyote [7]
+  wtr_list1819 <- list(wtr1819[[2]], wtr1819[[4]], wtr1819[[6]], wtr1819[[8]], wtr1819[[10]], wtr1819[[12]], wtr1819[[14]], wtr1819[[16]], wtr1819[[18]], wtr1819[[20]], wtr1819[[22]])
+  wtr_list1920 <- list(wtr1920[[2]], wtr1920[[4]], wtr1920[[6]], wtr1920[[8]], wtr1920[[10]], wtr1920[[12]], wtr1920[[14]], wtr1920[[16]], wtr1920[[18]], wtr1920[[20]], wtr1920[[22]])
+  wtr_list2021 <- list(wtr2021[[2]], wtr2021[[4]], wtr2021[[6]], wtr2021[[8]], wtr2021[[10]], wtr2021[[12]], wtr2021[[14]], wtr2021[[16]], wtr2021[[18]], wtr2021[[20]], wtr2021[[22]])
+  #'  New list order: mule deer [1], elk [2], white-tailed deer [3], cougar OK [4], cougar NE [5], wolf OK [6], wolf NE [7], bobcat OK [8], bobcat NE [9], coyote OK [10], coyote NE [11] 
   
   #'  Define start and end dates for EE imageColleciton
   #'  Starting date: beginning of growing season of first year of study (April)
@@ -399,8 +405,9 @@
   #'  EE images that need to be extract from for each species - takes forever 
   #'  otherwise and hits data limits!
   #'  
-  #'  List order: mule deer [1], elk [2], white-tailed deer [3], cougar [4], 
-  #'              wolf [5], bobcat [6], coyote [7]
+  #'  List order: mule deer [1], elk [2], white-tailed deer [3], cougar OK [4], 
+  #'  cougar NE [5], wolf OK [6], wolf NE [7], bobcat OK [8], bobcat NE [9], 
+  #'  coyote OK [10], coyote NE [11]
   #'              
   #'  Split md_wtr1819 data even more because it's apparently too large?!?!
   nrow(wtr_list1819[[1]])
