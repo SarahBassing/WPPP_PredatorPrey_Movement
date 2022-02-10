@@ -394,17 +394,10 @@
   md_HMM_smr_WOLF <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_wolf)
   md_HMM_smr_BOB <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_bob)
   md_HMM_smr_COY <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_coy)
-  #'  Global model   ##### COY & TRI highly correlated (-0.75)
+  #'  COY & TRI highly correlated (-0.75) so identify which is more supported
+  AIC(md_HMM_smr_TRI, md_HMM_smr_Open, md_HMM_smr_COY)
+  #'  Global model   
   md_HMM_smr <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_smr_hab_pred)
-  #' #'  Hypothesis testing
-  #' md_HMM_smr0 <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_null)
-  #' md_HMM_smr1 <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_time)
-  #' md_HMM_smr2 <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_Shab)
-  #' md_HMM_smr3 <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_pred)
-  #' md_HMM_smr4 <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_Shab_pred)
-  #' md_HMM_smr5 <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_StriXpred)
-  #' md_HMM_smr6 <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_SopenXpred)
-  #' AIC(md_HMM_smr0, md_HMM_smr1, md_HMM_smr2, md_HMM_smr3, md_HMM_smr4, md_HMM_smr5, md_HMM_smr6)
   
   #'  Winter
   #'  Univariate models
@@ -419,16 +412,7 @@
   md_HMM_wtr_COY <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_coy)
   #'  Global model
   md_HMM_wtr <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_wtr_hab_pred)
-  #' #'  Hypothesis testing
-  #' md_HMM_wtr0 <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_null)
-  #' md_HMM_wtr1 <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_time)
-  #' md_HMM_wtr2 <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_Whab)
-  #' md_HMM_wtr3 <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_pred)
-  #' md_HMM_wtr4 <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_Whab_pred)
-  #' md_HMM_wtr5 <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_WtriXpred)
-  #' md_HMM_wtr6 <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_WopenXpred)
-  #' AIC(md_HMM_wtr0, md_HMM_wtr1, md_HMM_wtr2, md_HMM_wtr3, md_HMM_wtr4, md_HMM_wtr5, md_HMM_wtr6)
-  
+   
   
   ####  ELK HMMS  ####
   #'  Summer
@@ -443,15 +427,6 @@
   elk_HMM_smr_COY <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_coy)
   #'  Global model
   elk_HMM_smr <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_smr_hab_pred)
-  #' #'  Hypothesis testing
-  #' elk_HMM_smr0 <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_null)
-  #' elk_HMM_smr1 <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_time)
-  #' elk_HMM_smr2 <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_Shab)
-  #' elk_HMM_smr3 <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_pred)
-  #' elk_HMM_smr4 <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_Shab_pred)
-  #' elk_HMM_smr5 <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_StriXpred)
-  #' elk_HMM_smr6 <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_SopenXpred)
-  #' AIC(elk_HMM_smr0, elk_HMM_smr1, elk_HMM_smr2, elk_HMM_smr3, elk_HMM_smr4, elk_HMM_smr5, elk_HMM_smr6)
   pr <- pseudoRes(elk_HMM_smr)
   plotPR(elk_HMM_smr, lag.max = NULL, ncores = 4)
   acf(pr$stepRes[!is.na(pr$stepRes)],lag.max = 100)
@@ -469,15 +444,6 @@
   elk_HMM_wtr_COY <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_coy)
   #'  Global model
   elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_wtr_hab_pred)
-  #' #'  Hypothesis testing
-  #' elk_HMM_wtr0 <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_null)
-  #' elk_HMM_wtr1 <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_time)
-  #' elk_HMM_wtr2 <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_Whab)
-  #' elk_HMM_wtr3 <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_pred)
-  #' elk_HMM_wtr4 <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_Whab_pred)
-  #' elk_HMM_wtr5 <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_WtriXpred)
-  #' elk_HMM_wtr6 <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_null_ZeroMass, trans_formula_WopenXpred)
-  #' AIC(elk_HMM_wtr0, elk_HMM_wtr1, elk_HMM_wtr2, elk_HMM_wtr3, elk_HMM_wtr4, elk_HMM_wtr5, elk_HMM_wtr6)
   
   
   ####  WHITE-TAILED DEER HMMS  ####
@@ -493,14 +459,6 @@
   wtd_HMM_smr_COY <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_coy)
   #'  Global model
   wtd_HMM_smr <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_smr_hab_pred)
-  #' #'  Hypothesis testing
-  #' wtd_HMM_smr0 <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_null)
-  #' wtd_HMM_smr1 <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_time)
-  #' wtd_HMM_smr2 <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_Shab)
-  #' wtd_HMM_smr3 <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_pred)
-  #' wtd_HMM_smr4 <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_Shab_pred)
-  #' wtd_HMM_smr5 <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_StriXpred)
-  #' wtd_HMM_smr6 <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_SopenXpred)
   
   #'  Winter
   #'  Univariate models
@@ -515,14 +473,6 @@
   wtd_HMM_wtr_COY <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_coy)
   #'  Global model
   wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_wtr_hab_pred)
-  #' #'  Hypothesis testing
-  #' wtd_HMM_wtr0 <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_null)
-  #' wtd_HMM_wtr1 <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_time)
-  #' wtd_HMM_wtr2 <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_Whab)
-  #' wtd_HMM_wtr3 <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_pred)
-  #' wtd_HMM_wtr4 <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_Whab_pred)
-  #' wtd_HMM_wtr5 <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_WtriXpred)
-  #' wtd_HMM_wtr6 <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_WopenXpred)
   
   
   ####  COUGAR HMMS  ####       #think about the high colinearity issue
@@ -535,15 +485,6 @@
   coug_HMM_smr_OK_MD <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_md)
   #'  Global model
   coug_HMM_smr_OK <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_smr_OK)
-  #' #'  Hypothesis testing
-  #' coug_HMM_smr_OK0 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_null)
-  #' coug_HMM_smr_OK1 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_time)
-  #' coug_HMM_smr_OK2 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Shab)
-  #' coug_HMM_smr_OK3 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_md)
-  #' coug_HMM_smr_OK4 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Shab_md)
-  #' coug_HMM_smr_OK5 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_StriXmd)
-  #' coug_HMM_smr_OK6 <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_SopenXmd)
-  #' AIC(coug_HMM_smr_OK0, coug_HMM_smr_OK1, coug_HMM_smr_OK2, coug_HMM_smr_OK3, coug_HMM_smr_OK4, coug_HMM_smr_OK5, coug_HMM_smr_OK6)
   
   #'  Okanogan Winter
   #'  Univariate models
@@ -553,17 +494,10 @@
   coug_HMM_wtr_OK_Road <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Road)
   coug_HMM_wtr_OK_Snow <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Snow)
   coug_HMM_wtr_OK_MD <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_md)
-  #'  Global model   #### MD & TRI highly correlated (0.76)
+  #'  MD & TRI highly correlated (0.76) so identify which is more supported
+  AIC(coug_HMM_wtr_OK_TRI, coug_HMM_wtr_OK_Open, coug_HMM_wtr_OK_MD)
+  #'  Global model   
   coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_wtr_OK)
-  #' #'  Hypothesis testing
-  #' coug_HMM_smr_OK0 <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_null)
-  #' coug_HMM_wtr_OK1 <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_time)
-  #' coug_HMM_wtr_OK2 <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Whab)
-  #' coug_HMM_wtr_OK3 <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_md)
-  #' coug_HMM_wtr_OK4 <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Whab_md)
-  #' coug_HMM_wtr_OK5 <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_WtriXmd)
-  #' coug_HMM_wtr_OK6 <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_WopenXmd)
-  #' AIC(coug_HMM_wtr_OK0, coug_HMM_wtr_OK1, coug_HMM_wtr_OK2, coug_HMM_wtr_OK3, coug_HMM_wtr_OK4, coug_HMM_wtr_OK5, coug_HMM_wtr_OK6)
   
   #'  Northeast Summer
   #'  Univariate models
@@ -575,16 +509,7 @@
   coug_HMM_smr_NE_WTD <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_wtd)
   #'  Global model
   coug_HMM_smr_NE <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_smr_NE)
-  #' #'  Hypothesis testing
-  #' coug_HMM_smr_NE0 <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_null)
-  #' coug_HMM_smr_NE1 <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_time)
-  #' coug_HMM_smr_NE2 <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Shab)
-  #' coug_HMM_smr_NE3 <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_elkwtd)
-  #' coug_HMM_smr_NE4 <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Shab_elkdwtd)
-  #' coug_HMM_smr_NE5 <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_StriXelkwtd)
-  #' coug_HMM_smr_NE6 <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_SopenXelkwtd)
-  #' AIC(coug_HMM_smr_NE0, coug_HMM_smr_NE1, coug_HMM_smr_NE2, coug_HMM_smr_NE3, coug_HMM_smr_NE4, coug_HMM_smr_NE5, coug_HMM_smr_NE6)
-  
+  #
   #'  Northeast Winter
   #'  Univariate models
   coug_HMM_wtr_time <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_time)
@@ -596,15 +521,6 @@
   coug_HMM_wtr_WTD <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_wtd)
   #'  Global model
   coug_HMM_wtr_NE <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_wtr_NE)
-  #' #'  Hypothesis testing
-  #' coug_HMM_wtr_NE0 <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_null)
-  #' coug_HMM_wtr_NE1 <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_time)
-  #' coug_HMM_wtr_NE2 <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Whab)
-  #' coug_HMM_wtr_NE3 <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_elkwtd)
-  #' coug_HMM_wtr_NE4 <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_Whab_elkdwtd)
-  #' coug_HMM_wtr_NE5 <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_WtriXelkwtd)
-  #' coug_HMM_wtr_NE6 <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_WopenXelkwtd)
-  #' AIC(coug_HMM_wtr_NE0, coug_HMM_wtr_NE1, coug_HMM_wtr_NE2, coug_HMM_wtr_NE3, coug_HMM_wtr_NE4, coug_HMM_wtr_NE5, coug_HMM_wtr_NE6)
   
   
   ####  WOLF HMMS  ####
@@ -718,7 +634,9 @@
   coy_HMM_wtr_OK_Road <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_null, trans_formula_Road)
   coy_HMM_wtr_OK_Snow <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_null, trans_formula_Snow)
   coy_HMM_wtr_OK_MD <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_null, trans_formula_md)
-  #'  Global model   #### MD & TRI highly correlated (0.71)
+  #'  MD & TRI highly correlated (0.71) so identify which is more supported
+  AIC(coy_HMM_wtr_OK_TRI, coy_HMM_wtr_OK_Open, coy_HMM_wtr_OK_MD)
+  #'  Global model   
   coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_null, trans_formula_wtr_OK)
   
   #'  Northeast Summer
