@@ -124,6 +124,17 @@
   coyData_smr_NE <- spp_dataPrep_NE(crwOut_ALL[[21]], spp_telem_covs[[21]])
   coyData_wtr_NE <- spp_dataPrep_NE(crwOut_ALL[[22]], spp_telem_covs[[22]])
   
+  #'  Save data prepped for HMMs
+  hmm_data <- list(mdData_smr, mdData_wtr, elkData_smr, elkData_wtr, wtdData_smr, 
+                   wtdData_wtr, cougData_smr_OK, cougData_wtr_OK, cougData_smr_NE, 
+                   cougData_wtr_NE, wolfData_smr_OK, wolfData_wtr_OK, wolfData_smr_NE, 
+                   wolfData_wtr_NE, bobData_smr_OK, bobData_wtr_OK, bobData_smr_NE, 
+                   bobData_wtr_NE, coyData_smr_OK, coyData_wtr_OK, coyData_smr_NE, 
+                   coyData_wtr_NE)
+  save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_", Sys.Date(), ".RData"))
+  
+  
+  
   #'  Correlation Matrix
   #'  ==================
   #'  Function to create correlation matrix for all continuous covariates at once
@@ -277,6 +288,8 @@
   #'  For prey species
   trans_formula_smr_hab_pred <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF + cosinor(hour, period = 24)
   trans_formula_wtr_hab_pred <- ~TRI + PercOpen + Dist2Road + SnowCover + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF + cosinor(hour, period = 24)
+  trans_formula_smr_hab_pred_noCoy <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF + cosinor(hour, period = 24)
+  trans_formula_wtr_hab_pred_noTime <- ~TRI + PercOpen + Dist2Road + SnowCover + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF
   #'  For predator species
   trans_formula_smr_OK <- ~TRI + PercOpen + Dist2Road + MD_RSF + cosinor(hour, period = 24)
   trans_formula_wtr_OK <- ~TRI + PercOpen + Dist2Road + SnowCover + MD_RSF + cosinor(hour, period = 24)
@@ -383,7 +396,7 @@
   #'  Switch between trans_formula & trans_formula_NULL for covariates on or off 
   #'  transition probabilities
    
-  ####  MULE DEER HMMS  ####     #think about the high colinearity issue
+  ####  MULE DEER HMMS  ####     
   #'  Summer
   #'  Univariate models   
   md_HMM_smr_time <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_time)
@@ -395,12 +408,21 @@
   md_HMM_smr_BOB <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_bob)
   md_HMM_smr_COY <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_coy)
   #'  COY & TRI highly correlated (-0.75) so identify which is more supported
-  AIC(md_HMM_smr_TRI, md_HMM_smr_Open, md_HMM_smr_COY)
-  #'  Global model   
-  md_HMM_smr <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_smr_hab_pred)
+  AIC(md_HMM_smr_TRI, md_HMM_smr_COY)
+  #'  Global model 
+  #'  Excluding COY_RSF from md_HMM_smr based on univariate TRI model having lower AIC than COY model
+  #'  Including cosinor parameters on DM step length to help with autocorrelation  
+  md_HMM_smr <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_null_Zerotime, trans_formula_smr_hab_pred_noCoy)  
+  #'  QQplot of residuals
+  plotPR(md_HMM_smr, lag.max = NULL, ncores = 4)
+  #'  Does temporal autocorrelation look any better? NOPE looks real bad on step length
+  pr_md_HMM_smr <- pseudoRes(md_HMM_smr)
+  acf(pr_md_HMM_smr$stepRes[is.finite(pr_md_HMM_smr$stepRes)], lag.max = 300)
+  plot(md_HMM_smr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
   #'  Winter
   #'  Univariate models
+  #'  SE, 95% CI on Sin effect on Pr(2 -> 1) in time model is NA
   md_HMM_wtr_time <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_time)
   md_HMM_wtr_TRI <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_TRI)
   md_HMM_wtr_Open <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_Open)
@@ -411,8 +433,17 @@
   md_HMM_wtr_BOB <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_bob)
   md_HMM_wtr_COY <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_coy)
   #'  Global model
-  md_HMM_wtr <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_ZeroMass, trans_formula_wtr_hab_pred)
-   
+  #'  Including cosinor parameters on DM step length to help with autocorrelation
+  #'  Removed cosinor parameters on trans prob. due to poor convergence of SE and 
+  #'  95% CI on Sin effect on Pr(2 -> 1) in univariate time model
+  md_HMM_wtr <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_null_Zerotime, trans_formula_wtr_hab_pred)
+  #'  QQplot of residuals
+  plotPR(md_HMM_wtr, lag.max = NULL, ncores = 4)
+  #'  Does temporal autocorrelation look any better?
+  pr_md_HMM_wtr <- pseudoRes(md_HMM_wtr)
+  acf(pr_md_HMM_wtr$stepRes[is.finite(pr_md_HMM_wtr$stepRes)], lag.max = 300)
+  plot(md_HMM_wtr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
+  
   
   ####  ELK HMMS  ####
   #'  Summer
@@ -475,7 +506,7 @@
   wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_null_ZeroMass, trans_formula_wtr_hab_pred)
   
   
-  ####  COUGAR HMMS  ####       #think about the high colinearity issue
+  ####  COUGAR HMMS  ####       
   #'  Okanogan Summer
   #'  Univariate models
   coug_HMM_smr_OK_time <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_time)
@@ -497,6 +528,7 @@
   #'  MD & TRI highly correlated (0.76) so identify which is more supported
   AIC(coug_HMM_wtr_OK_TRI, coug_HMM_wtr_OK_Open, coug_HMM_wtr_OK_MD)
   #'  Global model   
+  #'  Exluding XXX from coug_HMM_wtr_OK model based on univariate XXX model having lower AIC than XXX model
   coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_null_ZeroMass, trans_formula_wtr_OK)
   
   #'  Northeast Summer
@@ -615,7 +647,7 @@
   bob_HMM_wtr_NE <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_null, trans_formula_wtr_NE)
   
   
-  ####  COYOTE HMMS  ####   #think about the high colinearity issue!
+  ####  COYOTE HMMS  ####   
   #'  Okanogan Summer
   #'  Univariate models
   coy_HMM_smr_OK_time <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_null, trans_formula_time)
@@ -636,7 +668,8 @@
   coy_HMM_wtr_OK_MD <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_null, trans_formula_md)
   #'  MD & TRI highly correlated (0.71) so identify which is more supported
   AIC(coy_HMM_wtr_OK_TRI, coy_HMM_wtr_OK_Open, coy_HMM_wtr_OK_MD)
-  #'  Global model   
+  #'  Global model 
+  #'  Exluding XXX from coy_HMM_wtr_OK model based on univariate XXX model having lower AIC than XXX model  
   coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_null, trans_formula_wtr_OK)
   
   #'  Northeast Summer
@@ -675,62 +708,57 @@
   
   #'  Save model results
   spp_HMM_output <- list(md_HMM_smr, md_HMM_wtr, elk_HMM_smr, elk_HMM_wtr, wtd_HMM_smr, 
-                         wtd_HMM_wtr, coug_HMM_smr, coug_HMM_wtr, wolf_HMM_smr, 
-                         wolf_HMM_wtr, bob_HMM_smr, bob_HMM_wtr, coy_HMM_smr, coy_HMM_wtr)
+                         wtd_HMM_wtr, coug_HMM_smr_OK, coug_HMM_wtr_OK, coug_HMM_smr_NE, 
+                         coug_HMM_wtr_NE, wolf_HMM_smr_OK, wolf_HMM_wtr_OK, 
+                         wolf_HMM_smr_NE, wolf_HMM_wtr_NE, bob_HMM_smr_OK, 
+                         bob_HMM_wtr_OK, bob_HMM_smr_NE, bob_HMM_wtr_NE, 
+                         coy_HMM_smr_OK, coy_HMM_wtr_OK, coy_HMM_smr_NE, coy_HMM_wtr_NE)
   #'  Make sure to note whether covariates were included on transition probabilities
-  # save(spp_HMM_output, file = paste0("./Outputs/spp_HMM_output_", Sys.Date(), ".RData"))
-  save(spp_HMM_output, file = paste0("./Outputs/spp_HMM_output_NULLtrans_", Sys.Date(), ".RData"))
+  save(spp_HMM_output, file = paste0("./Outputs/spp_HMM_output_", Sys.Date(), ".RData"))
   
-  # load("./Outputs/spp_HMM_output_2021-05-18.RData")
-  load("./Outputs/spp_HMM_output_NULLtrans_2021-05-25.RData")
+  load("./Outputs/spp_HMM_output_2021-05-18.RData")
+
   
+ 
   
-  # compare fitted models (pg. 23 of vignette)
-  AIC(m1,m2,m3)
-  # compute pseudo-residuals for the steps and the angles 
-  pr <- pseudoRes(m3)
-  # plot the ACF of step pseudo-residuals
-  acf(pr$stepRes[!is.na(pr$stepRes)],lag.max = 300)
-  
-  
-  #'  Function to extract most likely state sequence for all locations based on
-  #'  the Viterbi algorithm and the fitted HMM
-  #'  MAKE SURE YOU KNOW WHICH TRANSITION FORMULA INFORMED THESE CLASSIFICATIONS
-  loc_states <- function(mod, locs) {
-    #'  Decode most likely state for each observation
-    states <- viterbi(mod)
-    #'  Append state classification to location data
-    dat <- cbind(locs, states)
-    
-    #'  Print derived percentage of time spent in each state
-    print(table(states)/nrow(locs))
-    
-    return(dat)
-  }
-  #'  Run fitted HMMs and location data through function
-  md_state_smr <- loc_states(md_HMM_smr, mdData_smr)
-  md_state_wtr <- loc_states(md_HMM_wtr, mdData_wtr)
-  elk_state_smr <- loc_states(elk_HMM_smr, elkData_smr)
-  elk_state_wtr <- loc_states(elk_HMM_wtr, elkData_wtr)
-  wtd_state_smr <- loc_states(wtd_HMM_smr, wtdData_smr)
-  wtd_state_wtr <- loc_states(wtd_HMM_wtr, wtdData_wtr)
-  coug_state_smr <- loc_states(coug_HMM_smr, cougData_smr)
-  coug_state_wtr <- loc_states(coug_HMM_wtr, cougData_wtr)
-  wolf_state_smr <- loc_states(wolf_HMM_smr, wolfData_smr)
-  wolf_state_wtr <- loc_states(wolf_HMM_wtr, wolfData_wtr)
-  bob_state_smr <- loc_states(bob_HMM_smr, bobData_smr)
-  bob_state_wtr <- loc_states(bob_HMM_wtr, bobData_wtr)
-  coy_state_smr <- loc_states(coy_HMM_smr, coyData_smr)
-  coy_state_wtr <- loc_states(coy_HMM_wtr, coyData_wtr)
-  
-  #'  Save state sequences for external analyses
-  spp_state_output <- list(md_state_smr, md_state_wtr, elk_state_smr, elk_state_wtr, 
-                           wtd_state_smr, wtd_state_wtr, coug_state_smr, coug_state_wtr, 
-                           wolf_state_smr, wolf_state_wtr, bob_state_smr, 
-                           bob_state_wtr, coy_state_smr, coy_state_wtr)
-  #'  Make sure to note whether covariates were included on transition probabilities
-  # save(spp_state_output, file = paste0("./Outputs/spp_state_output_", Sys.Date(), ".RData"))
-  save(spp_state_output, file = paste0("./Outputs/spp_state_output_NULLtrans_", Sys.Date(), ".RData"))
+  #' #'  Function to extract most likely state sequence for all locations based on
+  #' #'  the Viterbi algorithm and the fitted HMM
+  #' #'  MAKE SURE YOU KNOW WHICH TRANSITION FORMULA INFORMED THESE CLASSIFICATIONS
+  #' loc_states <- function(mod, locs) {
+  #'   #'  Decode most likely state for each observation
+  #'   states <- viterbi(mod)
+  #'   #'  Append state classification to location data
+  #'   dat <- cbind(locs, states)
+  #'   
+  #'   #'  Print derived percentage of time spent in each state
+  #'   print(table(states)/nrow(locs))
+  #'   
+  #'   return(dat)
+  #' }
+  #' #'  Run fitted HMMs and location data through function
+  #' md_state_smr <- loc_states(md_HMM_smr, mdData_smr)
+  #' md_state_wtr <- loc_states(md_HMM_wtr, mdData_wtr)
+  #' elk_state_smr <- loc_states(elk_HMM_smr, elkData_smr)
+  #' elk_state_wtr <- loc_states(elk_HMM_wtr, elkData_wtr)
+  #' wtd_state_smr <- loc_states(wtd_HMM_smr, wtdData_smr)
+  #' wtd_state_wtr <- loc_states(wtd_HMM_wtr, wtdData_wtr)
+  #' coug_state_smr <- loc_states(coug_HMM_smr, cougData_smr)
+  #' coug_state_wtr <- loc_states(coug_HMM_wtr, cougData_wtr)
+  #' wolf_state_smr <- loc_states(wolf_HMM_smr, wolfData_smr)
+  #' wolf_state_wtr <- loc_states(wolf_HMM_wtr, wolfData_wtr)
+  #' bob_state_smr <- loc_states(bob_HMM_smr, bobData_smr)
+  #' bob_state_wtr <- loc_states(bob_HMM_wtr, bobData_wtr)
+  #' coy_state_smr <- loc_states(coy_HMM_smr, coyData_smr)
+  #' coy_state_wtr <- loc_states(coy_HMM_wtr, coyData_wtr)
+  #' 
+  #' #'  Save state sequences for external analyses
+  #' spp_state_output <- list(md_state_smr, md_state_wtr, elk_state_smr, elk_state_wtr, 
+  #'                          wtd_state_smr, wtd_state_wtr, coug_state_smr, coug_state_wtr, 
+  #'                          wolf_state_smr, wolf_state_wtr, bob_state_smr, 
+  #'                          bob_state_wtr, coy_state_smr, coy_state_wtr)
+  #' #'  Make sure to note whether covariates were included on transition probabilities
+  #' # save(spp_state_output, file = paste0("./Outputs/spp_state_output_", Sys.Date(), ".RData"))
+  #' save(spp_state_output, file = paste0("./Outputs/spp_state_output_NULLtrans_", Sys.Date(), ".RData"))
   
 
 
@@ -763,14 +791,22 @@
   stay_elk_wtr <- stay_probs(elk_HMM_wtr)
   stay_wtd_smr <- stay_probs(wtd_HMM_smr)
   stay_wtd_wtr <- stay_probs(wtd_HMM_wtr)
-  stay_coug_smr <- stay_probs(coug_HMM_smr)
-  stay_coug_wtr <- stay_probs(coug_HMM_wtr)
-  stay_wolf_smr <- stay_probs(wolf_HMM_smr)
-  stay_wolf_wtr <- stay_probs(wolf_HMM_wtr)
-  stay_bob_smr <- stay_probs(bob_HMM_smr)
-  stay_bob_wtr <- stay_probs(bob_HMM_wtr)
-  stay_coy_smr <- stay_probs(coy_HMM_smr)
-  stay_coy_wtr <- stay_probs(coy_HMM_wtr)
+  stay_coug_smr_OK <- stay_probs(coug_HMM_smr_OK)
+  stay_coug_wtr_OK <- stay_probs(coug_HMM_wtr_OK)
+  stay_coug_smr_NE <- stay_probs(coug_HMM_smr_NE)
+  stay_coug_wtr_NE <- stay_probs(coug_HMM_wtr_NE)
+  stay_wolf_smr_OK <- stay_probs(wolf_HMM_smr_OK)
+  stay_wolf_wtr_OK <- stay_probs(wolf_HMM_wtr_OK)
+  stay_wolf_smr_NE <- stay_probs(wolf_HMM_smr_NE)
+  stay_wolf_wtr_NE <- stay_probs(wolf_HMM_wtr_NE)
+  stay_bob_smr_OK <- stay_probs(bob_HMM_smr_OK)
+  stay_bob_wtr_OK <- stay_probs(bob_HMM_wtr_OK)
+  stay_bob_smr_NE <- stay_probs(bob_HMM_smr_NE)
+  stay_bob_wtr_NE <- stay_probs(bob_HMM_wtr_NE)
+  stay_coy_smr_OK <- stay_probs(coy_HMM_smr_OK)
+  stay_coy_wtr_OK <- stay_probs(coy_HMM_wtr_OK)
+  stay_coy_smr_NE <- stay_probs(coy_HMM_smr_NE)
+  stay_coy_wtr_NE <- stay_probs(coy_HMM_wtr_NE)
   
   #'  Make panel of figures
   #'  https://www.benjaminbell.co.uk/2018/02/creating-multi-panel-plots-and-figures.html
