@@ -260,7 +260,7 @@
   DM_null <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
   DM_null_ZeroMass <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
   DM_time <- list(step = list(mean = ~cosinor(hour, period = 24), sd = ~cosinor(hour, period = 24)), angle = list(concentration = ~1))
-  DM_null_Zerotime <- list(step = list(mean = ~cosinor(hour, period = 24), sd = ~cosinor(hour, period = 24), zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
+  DM_null_Zerotime <- list(step = list(mean = ~cosinor(hour, period = 24), sd = ~cosinor(hour, period = 24), zeromass = ~cosinor(hour, period = 24)), angle = list(concentration = ~1)) # includes zeromass parameters
   
     
   ####  Models describing Transition Probabilities  ####
