@@ -204,13 +204,7 @@
   save(bob_available, file = paste0("./Outputs/RSF_pts/bob_available_3rd_", Sys.Date(), ".RData"))
   save(coy_available, file = paste0("./Outputs/RSF_pts/coy_available_3rd_", Sys.Date(), ".RData"))
  
-  
-  
-
-  
-  #### CURRENTLY STRUGGLING TO FIGURE OUT HOW TO DO THIS WITH THE 1:1, 1:10, AND 1:20 RATIOS I CREATED  ####
-  
-
+ 
   
   #'  Extract covariate data for each available location
   #'  ==================================================
