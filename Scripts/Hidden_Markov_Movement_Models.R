@@ -243,12 +243,11 @@
   
   ####  Models describing State-Dependent Distributions  ####
   #' Distributions for observation processes
-  dists_wc <- list(step = "gamma", angle = "wrpcauchy")  
-  dists_vm <- list(step = "gamma", angle = "vm")
-  #' Can test out different distributions 
   #' Step length: gamma or Weibull; Turning angle: von Mises or wrapped Cauchy
   #' State dwell time: geometric distribution
   #' Weibull = "weibull"; von Mises = "vm"
+  dists_wc <- list(step = "gamma", angle = "wrpcauchy")  
+  dists_vm <- list(step = "gamma", angle = "vm")
   
   #'  Define formula(s) to be applied to state-dependent distributions
   #'  Covariates that help describe movement patterns of a given state
@@ -256,13 +255,12 @@
   #'  Note that factor-level covariates must be individually specified 
   #'  (e.g., 'sexF', 'sexM') when using pseudo-design matrix (harbourSealExample)
   DM_formula_null <- ~1
-  # DM_formula_time <- ~cosinor(hour, period = 24)
-  
+
   #'  Create pseudo-design matrices for state-dependent distributions
   DM_null <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
   DM_null_ZeroMass <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
-  # DM_time <- list(step = list(mean = DM_formula_time, sd = DM_formula_time), angle = list(concentration = ~1))
-  # DM_null_Zerotime <- list(step = list(mean = ~DM_formula_time, sd = ~DM_formula_time, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
+  DM_time <- list(step = list(mean = ~cosinor(hour, period = 24), sd = ~cosinor(hour, period = 24)), angle = list(concentration = ~1))
+  DM_null_Zerotime <- list(step = list(mean = ~cosinor(hour, period = 24), sd = ~cosinor(hour, period = 24), zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
   
     
   ####  Models describing Transition Probabilities  ####
@@ -296,53 +294,8 @@
   trans_formula_smr_NE <- ~TRI + PercOpen + Dist2Road + ELK_RSF + WTD_RSF + cosinor(hour, period = 24)
   trans_formula_wtr_NE <- ~TRI + PercOpen + Dist2Road + SnowCover + ELK_RSF + WTD_RSF + cosinor(hour, period = 24)
   
-  #' #'  FOR ALL SPECIES
-  #' trans_formula_null <- ~1
-  #' trans_formula_time <- ~cosinor(hour, period = 24)
-  #' trans_formula_TRI <- ~TRI
-  #' trans_formula_Open <- ~PercOpen
-  #' trans_formula_Snow <- ~SnowCover
-  #' trans_formula_rd <- ~Dist2Road 
-  #' trans_formula_Shab <- ~TRI + PercOpen + cosinor(hour, period = 24)
-  #' trans_formula_Whab <- ~TRI + PercOpen + SnowCover + cosinor(hour, period = 24)
-  #' 
-  #' #'  FOR PREY MODELS ONLY
-  #' trans_formula_coug <- ~COUG_RSF
-  #' trans_formula_wolf <- ~WOLF_RSF
-  #' trans_formula_bob <- ~BOB_RSF
-  #' trans_formula_coy <- ~COY_RSF
-  #' trans_formula_pred <- ~COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF + cosinor(hour, period = 24)
-  #' trans_formula_Shab_pred <- ~TRI + PercOpen + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF + cosinor(hour, period = 24)
-  #' trans_formula_Whab_pred <- ~TRI + PercOpen + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF + SnowCover + cosinor(hour, period = 24)
-  #' trans_formula_StriXpred <- ~TRI*COUG_RSF + TRI*WOLF_RSF + TRI*BOB_RSF + TRI*COY_RSF + cosinor(hour, period = 24)
-  #' trans_formula_WtriXpred <- ~TRI*COUG_RSF + TRI*WOLF_RSF + TRI*BOB_RSF + TRI*COY_RSF + SnowCover + cosinor(hour, period = 24)
-  #' trans_formula_SopenXpred <- ~PercOpen*COUG_RSF + PercOpen*WOLF_RSF + PercOpen*BOB_RSF + PercOpen*COY_RSF + cosinor(hour, period = 24)
-  #' trans_formula_WopenXpred <- ~PercOpen*COUG_RSF + PercOpen*WOLF_RSF + PercOpen*BOB_RSF + PercOpen*COY_RSF + SnowCover + cosinor(hour, period = 24)
-  #' 
-  #' #'  FOR PREDATOR MODELS ONLY
-  #' # trans_formula_ndvi <- ~NDVI
-  #' # trans_formula_triXndvi <- ~TRI*NDVI
-  #' # trans_formula_openXndvi <- ~OPEN*NDVI
-  #' #'  Okanogan predators only
-  #' trans_formula_md <- ~MD_RSF + cosinor(hour, period = 24)
-  #' trans_formula_Shab_md <- ~TRI + PercOpen + MD_RSF + cosinor(hour, period = 24)
-  #' trans_formula_Whab_md <- ~TRI + PercOpen + MD_RSF + SnowCover + cosinor(hour, period = 24)
-  #' trans_formula_StriXmd <- ~TRI*MD_RSF + cosinor(hour, period = 24)
-  #' trans_formula_WtriXmd <- ~TRI*MD_RSF + SnowCover + cosinor(hour, period = 24)
-  #' trans_formula_SopenXmd <- ~PercOpen*MD_RSF + cosinor(hour, period = 24)
-  #' trans_formula_WopenXmd <- ~PercOpen*MD_RSF + SnowCover + cosinor(hour, period = 24)
-  #' #'  Northeast predators only
-  #' trans_formula_elk <- ~ELK_RSF
-  #' trans_formula_wtd <- ~WTD_RSF
-  #' trans_formula_elkwtd <- ~ELK_RSF + WTD_RSF + cosinor(hour, period = 24)
-  #' trans_formula_Shab_elkwtd <- ~TRI + PercOpen + ELK_RSF + WTD_RSF + cosinor(hour, period = 24)
-  #' trans_formula_Whab_elkwtd <- ~TRI + PercOpen + SnowCover + ELK_RSF + WTD_RSF + cosinor(hour, period = 24)
-  #' trans_formula_StriXelkwtd <- ~TRI*ELK_RSF + TRI*WTD_RSF + cosinor(hour, period = 24)
-  #' trans_formula_WtriXelkwtd <- ~TRI*ELK_RSF + TRI*WTD_RSF + SnowCover + cosinor(hour, period = 24)
-  #' trans_formula_SopenXelkwtd <- ~PercOpen*ELK_RSF + PercOpen*WTD_RSF + cosinor(hour, period = 24)
-  #' trans_formula_WopenXelkwtd <- ~PercOpen*ELK_RSF + PercOpen*WTD_RSF + SnowCover + cosinor(hour, period = 24)
   
-
+  
   
   ####  It's H[a]MM[er] Time!  ####
   #'  =============================
@@ -391,11 +344,6 @@
     return(m2)
     
   }
-  
-  #'  Run species-specific data through function
-  #'  Switch between trans_formula & trans_formula_NULL for covariates on or off 
-  #'  transition probabilities
-   
   ####  MULE DEER HMMS  ####     
   #'  Summer
   #'  Univariate models   
