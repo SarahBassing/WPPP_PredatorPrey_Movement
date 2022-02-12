@@ -215,8 +215,9 @@
 
   #'  List together for safe keeping
   ee_smr_NDVI_list <- list(ee_NDVI_md_smr, ee_NDVI_elk_smr, ee_NDVI_wtd_smr, 
-                           ee_NDVI_coug_smr, ee_NDVI_wolf_smr, ee_NDVI_bob_smr, 
-                           ee_NDVI_coy_smr)
+                           ee_NDVI_coug_smr_OK, ee_NDVI_coug_smr_NE, ee_NDVI_wolf_smr_OK, 
+                           ee_NDVI_wolf_smr_NE, ee_NDVI_bob_smr_OK, ee_NDVI_bob_smr_NE,
+                           ee_NDVI_coy_smr_OK, ee_NDVI_coy_smr_NE)
   
   save(ee_smr_NDVI_list, file = paste0("./Outputs/Telemetry_covs/ee_smr_NDVI_list_", Sys.Date(), ".RData"))
   
@@ -427,50 +428,70 @@
   wtd_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[3]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
   wtd_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[3]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
   
-  coug_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[4]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
-  coug_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[4]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
-  coug_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[4]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  coug_wtr1819_NDVImax_OK <- find_maxNDVI(wtr_list1819[[4]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  coug_wtr1920_NDVImax_OK <- find_maxNDVI(wtr_list1920[[4]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  coug_wtr2021_NDVImax_OK <- find_maxNDVI(wtr_list2021[[4]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  coug_wtr1819_NDVImax_NE <- find_maxNDVI(wtr_list1819[[5]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  coug_wtr1920_NDVImax_NE <- find_maxNDVI(wtr_list1920[[5]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  coug_wtr2021_NDVImax_NE <- find_maxNDVI(wtr_list2021[[5]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
   
-  wolf_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[5]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
-  wolf_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[5]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
-  wolf_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[5]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  wolf_wtr1819_NDVImax_OK <- find_maxNDVI(wtr_list1819[[6]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  wolf_wtr1920_NDVImax_OK <- find_maxNDVI(wtr_list1920[[6]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  wolf_wtr2021_NDVImax_OK <- find_maxNDVI(wtr_list2021[[6]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  wolf_wtr1819_NDVImax_NE <- find_maxNDVI(wtr_list1819[[7]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  wolf_wtr1920_NDVImax_NE <- find_maxNDVI(wtr_list1920[[7]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  wolf_wtr2021_NDVImax_NE <- find_maxNDVI(wtr_list2021[[7]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
   
-  bob_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[6]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
-  bob_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[6]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
-  bob_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[6]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  bob_wtr1819_NDVImax_OK <- find_maxNDVI(wtr_list1819[[8]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  bob_wtr1920_NDVImax_OK <- find_maxNDVI(wtr_list1920[[8]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  bob_wtr2021_NDVImax_OK <- find_maxNDVI(wtr_list2021[[8]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  bob_wtr1819_NDVImax_NE <- find_maxNDVI(wtr_list1819[[9]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  bob_wtr1920_NDVImax_NE <- find_maxNDVI(wtr_list1920[[9]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  bob_wtr2021_NDVImax_NE <- find_maxNDVI(wtr_list2021[[9]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
   
-  coy_wtr1819_NDVImax <- find_maxNDVI(wtr_list1819[[7]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
-  coy_wtr1920_NDVImax <- find_maxNDVI(wtr_list1920[[7]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
-  coy_wtr2021_NDVImax <- find_maxNDVI(wtr_list2021[[7]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  coy_wtr1819_NDVImax_OK <- find_maxNDVI(wtr_list1819[[10]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  coy_wtr1920_NDVImax_OK <- find_maxNDVI(wtr_list1920[[10]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  coy_wtr2021_NDVImax_OK <- find_maxNDVI(wtr_list2021[[10]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
+  coy_wtr1819_NDVImax_NE <- find_maxNDVI(wtr_list1819[[11]], eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
+  coy_wtr1920_NDVImax_NE <- find_maxNDVI(wtr_list1920[[11]], eeimage = eeimage, start.date = start19, end.date = end19, band.name = band.name, band = band, ee.scale = ee.scale)
+  coy_wtr2021_NDVImax_NE <- find_maxNDVI(wtr_list2021[[11]], eeimage = eeimage, start.date = start20, end.date = end20, band.name = band.name, band = band, ee.scale = ee.scale)
   
   #'  Bind annual max NDVI data together for each species
   md_NDVImax <- rbind(md_wtr1819_NDVImax, md_wtr1920_NDVImax, md_wtr2021_NDVImax)
   elk_NDVImax <- rbind(elk_wtr1819_NDVImax, elk_wtr1920_NDVImax, elk_wtr2021_NDVImax)
   wtd_NDVImax <- rbind(wtd_wtr1819_NDVImax, wtd_wtr1920_NDVImax, wtd_wtr2021_NDVImax)
-  coug_NDVImax <- rbind(coug_wtr1819_NDVImax, coug_wtr1920_NDVImax, coug_wtr2021_NDVImax)
-  wolf_NDVImax <- rbind(wolf_wtr1819_NDVImax, wolf_wtr1920_NDVImax, wolf_wtr2021_NDVImax)
-  bob_NDVImax <- rbind(bob_wtr1819_NDVImax, bob_wtr1920_NDVImax, bob_wtr2021_NDVImax)
-  coy_NDVImax <- rbind(coy_wtr1819_NDVImax, coy_wtr1920_NDVImax, coy_wtr2021_NDVImax)
+  coug_NDVImax_OK <- rbind(coug_wtr1819_NDVImax_OK, coug_wtr1920_NDVImax_OK, coug_wtr2021_NDVImax_OK)
+  coug_NDVImax_NE <- rbind(coug_wtr1819_NDVImax_NE, coug_wtr1920_NDVImax_NE, coug_wtr2021_NDVImax_NE)
+  wolf_NDVImax_OK <- rbind(wolf_wtr1819_NDVImax_OK, wolf_wtr1920_NDVImax_OK, wolf_wtr2021_NDVImax_OK)
+  wolf_NDVImax_NE <- rbind(wolf_wtr1819_NDVImax_NE, wolf_wtr2021_NDVImax_NE) # pay attention to what happens here with no wolf_wtr1920_NDVImax_NE data
+  bob_NDVImax_OK <- rbind(bob_wtr1819_NDVImax_OK, bob_wtr1920_NDVImax_OK, bob_wtr2021_NDVImax_OK)
+  bob_NDVImax_NE <- rbind(bob_wtr1920_NDVImax_NE, bob_wtr2021_NDVImax_NE) # pay attention to what happens here with no bob_wtr1819_NDVImax_NE data
+  coy_NDVImax_OK <- rbind(coy_wtr1819_NDVImax_OK, coy_wtr1920_NDVImax_OK, coy_wtr2021_NDVImax_OK)
+  coy_NDVImax_NE <- rbind(coy_wtr1819_NDVImax_NE, coy_wtr1920_NDVImax_NE, coy_wtr2021_NDVImax_NE)
   
-  ee_NDVImax_list <- list(md_NDVImax, elk_NDVImax, wtd_NDVImax, coug_NDVImax, wolf_NDVImax, bob_NDVImax, coy_NDVImax)
+  ee_NDVImax_list <- list(md_NDVImax, elk_NDVImax, wtd_NDVImax, coug_NDVImax_OK, 
+                          coug_NDVImax_NE, wolf_NDVImax_OK, wolf_NDVImax_NE, 
+                          bob_NDVImax_OK, bob_NDVImax_NE, coy_NDVImax_OK, coy_NDVImax_NE)
   
   save(md_NDVImax, file = paste0("./Outputs/Telemetry_covs/md_NDVImax_", Sys.Date(), ".RData"))
   save(elk_NDVImax, file = paste0("./Outputs/Telemetry_covs/elk_NDVImax_", Sys.Date(), ".RData"))
   save(wtd_NDVImax, file = paste0("./Outputs/Telemetry_covs/wtd_NDVImax_", Sys.Date(), ".RData"))
-  save(coug_NDVImax, file = paste0("./Outputs/Telemetry_covs/coug_NDVImax_", Sys.Date(), ".RData"))
-  save(wolf_NDVImax, file = paste0("./Outputs/Telemetry_covs/wolf_NDVImax_", Sys.Date(), ".RData"))
-  save(bob_NDVImax, file = paste0("./Outputs/Telemetry_covs/bob_NDVImax_", Sys.Date(), ".RData"))
-  save(coy_NDVImax, file = paste0("./Outputs/Telemetry_covs/coy_NDVImax_", Sys.Date(), ".RData"))
+  save(coug_NDVImax_OK, file = paste0("./Outputs/Telemetry_covs/coug_NDVImax_OK_", Sys.Date(), ".RData"))
+  save(coug_NDVImax_NE, file = paste0("./Outputs/Telemetry_covs/coug_NDVImax_NE_", Sys.Date(), ".RData"))
+  save(wolf_NDVImax_OK, file = paste0("./Outputs/Telemetry_covs/wolf_NDVImax_OK_", Sys.Date(), ".RData"))
+  save(wolf_NDVImax_NE, file = paste0("./Outputs/Telemetry_covs/wolf_NDVImax_NE_", Sys.Date(), ".RData"))
+  save(bob_NDVImax_OK, file = paste0("./Outputs/Telemetry_covs/bob_NDVImax_OK_", Sys.Date(), ".RData"))
+  save(bob_NDVImax_NE, file = paste0("./Outputs/Telemetry_covs/bob_NDVImax_NE_", Sys.Date(), ".RData"))
+  save(coy_NDVImax_OK, file = paste0("./Outputs/Telemetry_covs/coy_NDVImax_OK_", Sys.Date(), ".RData"))
+  save(coy_NDVImax_NE, file = paste0("./Outputs/Telemetry_covs/coy_NDVImax_NE_", Sys.Date(), ".RData"))
   
   
   save(ee_NDVImax_list, file = paste0("./Outputs/Telemetry_covs/ee_NDVImax_list_", Sys.Date(), ".RData"))
   
   
   ####  Join Datasets  ####
-  
-  # load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_covs_list_2021-12-28.RData")
-  load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_smr_NDVI_list_2021-12-30.RData")
-  load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_NDVImax_list_2022-01-08.RData")
+  # load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_smr_NDVI_list_2022-02-11.RData")
+  # load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_NDVImax_list_2022-02-12.RData")
   
   #'  Join spatially & temporally matched NDVI data to each summer location
   join_NDVI <- function(crwOut_data, ndvi) { 
@@ -510,15 +531,20 @@
   md_eeNDVI_smr <- join_NDVI(crwOut_ALL[[1]], ee_NDVI[[1]]) 
   elk_eeNDVI_smr <- join_NDVI(crwOut_ALL[[3]], ee_NDVI[[2]]) 
   wtd_eeNDVI_smr <- join_NDVI(crwOut_ALL[[5]], ee_NDVI[[3]]) 
-  coug_eeNDVI_smr <- join_NDVI(crwOut_ALL[[7]], ee_NDVI[[4]]) 
-  wolf_eeNDVI_smr <- join_NDVI(crwOut_ALL[[9]], ee_NDVI[[5]]) 
-  bob_eeNDVI_smr <- join_NDVI(crwOut_ALL[[11]], ee_NDVI[[6]]) 
-  coy_eeNDVI_smr <- join_NDVI(crwOut_ALL[[13]], ee_NDVI[[7]])
+  coug_eeNDVI_smr_OK <- join_NDVI(crwOut_ALL[[7]], ee_NDVI[[4]]) 
+  coug_eeNDVI_smr_NE <- join_NDVI(crwOut_ALL[[9]], ee_NDVI[[5]])
+  wolf_eeNDVI_smr_OK <- join_NDVI(crwOut_ALL[[11]], ee_NDVI[[6]]) 
+  wolf_eeNDVI_smr_NE <- join_NDVI(crwOut_ALL[[13]], ee_NDVI[[7]]) 
+  bob_eeNDVI_smr_OK <- join_NDVI(crwOut_ALL[[15]], ee_NDVI[[8]]) 
+  bob_eeNDVI_smr_NE <- join_NDVI(crwOut_ALL[[17]], ee_NDVI[[9]])
+  coy_eeNDVI_smr_OK <- join_NDVI(crwOut_ALL[[19]], ee_NDVI[[10]])
+  coy_eeNDVI_smr_NE <- join_NDVI(crwOut_ALL[[21]], ee_NDVI[[11]])
   
   #'  List all data together
   ee_NDVIsmr_list <- list(md_eeNDVI_smr, elk_eeNDVI_smr, wtd_eeNDVI_smr, 
-                          coug_eeNDVI_smr, wolf_eeNDVI_smr, bob_eeNDVI_smr, 
-                          coy_eeNDVI_smr)
+                          coug_eeNDVI_smr_OK, coug_eeNDVI_smr_NE, wolf_eeNDVI_smr_OK, 
+                          wolf_eeNDVI_smr_NE, bob_eeNDVI_smr_OK, bob_eeNDVI_smr_NE, 
+                          coy_eeNDVI_smr_OK, coy_eeNDVI_smr_NE)
  
   #'  Join spatially matched MAXIMUM NDVI from previous growing season with winter locations
   join_NDVImax <- function(crwOut_data, ndvimax) { 
@@ -556,15 +582,20 @@
   md_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[2]], ee_NDVImax_list[[1]]) 
   elk_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[4]], ee_NDVImax_list[[2]]) 
   wtd_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[6]], ee_NDVImax_list[[3]]) 
-  coug_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[8]], ee_NDVImax_list[[4]]) 
-  wolf_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[10]], ee_NDVImax_list[[5]]) 
-  bob_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[12]], ee_NDVImax_list[[6]]) 
-  coy_eeNDVImax_wtr <- join_NDVImax(crwOut_ALL[[14]], ee_NDVImax_list[[7]]) 
+  coug_eeNDVImax_wtr_OK <- join_NDVImax(crwOut_ALL[[8]], ee_NDVImax_list[[4]]) 
+  coug_eeNDVImax_wtr_NE <- join_NDVImax(crwOut_ALL[[10]], ee_NDVImax_list[[5]]) 
+  wolf_eeNDVImax_wtr_OK <- join_NDVImax(crwOut_ALL[[12]], ee_NDVImax_list[[6]]) 
+  wolf_eeNDVImax_wtr_NE <- join_NDVImax(crwOut_ALL[[14]], ee_NDVImax_list[[7]]) 
+  bob_eeNDVImax_wtr_OK <- join_NDVImax(crwOut_ALL[[16]], ee_NDVImax_list[[8]]) 
+  bob_eeNDVImax_wtr_NE <- join_NDVImax(crwOut_ALL[[18]], ee_NDVImax_list[[9]]) 
+  coy_eeNDVImax_wtr_OK <- join_NDVImax(crwOut_ALL[[20]], ee_NDVImax_list[[10]]) 
+  coy_eeNDVImax_wtr_NE <- join_NDVImax(crwOut_ALL[[22]], ee_NDVImax_list[[11]]) 
   
   #'  List all data together
   ee_NDVImax_list <- list(md_eeNDVImax_wtr, elk_eeNDVImax_wtr, wtd_eeNDVImax_wtr, 
-                       coug_eeNDVImax_wtr, wolf_eeNDVImax_wtr, bob_eeNDVImax_wtr, 
-                       coy_eeNDVImax_wtr)
+                       coug_eeNDVImax_wtr_OK, coug_eeNDVImax_wtr_NE, wolf_eeNDVImax_wtr_OK, 
+                       wolf_eeNDVImax_wtr_NE, bob_eeNDVImax_wtr_OK, bob_eeNDVImax_wtr_NE, 
+                       coy_eeNDVImax_wtr_OK, coy_eeNDVImax_wtr_NE)
   
   #'  Save extracted EE data
   save(ee_NDVIsmr_list, file = paste0("./Outputs/Telemetry_covs/ee_NDVIsmr_list_", Sys.Date(), ".RData"))
