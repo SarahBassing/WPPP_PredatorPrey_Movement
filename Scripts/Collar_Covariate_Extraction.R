@@ -50,8 +50,8 @@
   
   #'  Read in previously extracted NDVI data from GEE
   #'  Note: NDVIsmr is for summer locs ONLY, NDVImax is for winter locs ONLY
-  load("./Outputs/Telemetry_covs/ee_NDVIsmr_list_2022-01-08.RData")
-  load("./Outputs/Telemetry_covs/ee_NDVImax_list_2022-01-08.RData")
+  load("./Outputs/Telemetry_covs/ee_NDVIsmr_list_2022-02-14.RData")
+  load("./Outputs/Telemetry_covs/ee_NDVImax_list_2022-02-14.RData")
   
   #'  Read in spatial data
   TRI <- rast("./Shapefiles/WA DEM rasters/WPPP_TRI.tif")
@@ -136,21 +136,21 @@
   
   #'  Reformat NDVI data so they have matching columns
   #'  Summer NDVI values
-  NDVIsmr <- function(NDVIsmr) {
-    NDVIsmr <- transmute(NDVIsmr, obs = ID, AnimalID = AnimalID, Season = Season, 
+  NDVI_smr <- function(ee_NDVI_summer) {
+    NDVIsmr <- transmute(ee_NDVI_summer, obs = ID, AnimalID = AnimalID, Season = Season, 
                          StudyArea = StudyArea, time = times, NDVI = NDVI) %>%
-      mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8"))
+      mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8")) #NDVIsmr
     return(NDVIsmr)
   }
-  NDVIsmr <- lapply(ee_NDVIsmr_list, NDVIsmr)
+  NDVIsmr <- lapply(ee_NDVIsmr_list, NDVI_smr)
   #'  Max NDVI  values at winter locations
-  NDVImax <- function(NDVImax) {
-    NDVImax <- transmute(NDVImax, obs = ID, AnimalID = AnimalID, Season = Season, 
+  NDVI_max <- function(ee_NDVI_max) {
+    NDVImax <- transmute(ee_NDVI_max, obs = ID, AnimalID = AnimalID, Season = Season, 
                          StudyArea = StudyArea, time = times, NDVI = maxNDVI) %>%
       mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8"))
     return(NDVImax)
   }
-  NDVImax <- lapply(ee_NDVImax_list, NDVImax)
+  NDVImax <- lapply(ee_NDVImax_list, NDVI_max)
   
   #'  Split seasonal NDVI data by study area
   #'  NOTE: ELK & WTD lists will be empty after NDVI_OK & MD lists will be empty after NDVI_NE
@@ -504,12 +504,12 @@
   #'  5) COUG wtr NE, 6) WOLF wtr OK, 7) WOLF wtr NE, 8) BOB wtr OK, 9) BOB wtr NE,
   #'  10) COY wtr OK, 11) COY wtr NE
   NDVI_smr <- list(NDVIsmr_OK[[1]], NDVIsmr_NE[[2]], NDVIsmr_NE[[3]], NDVIsmr_OK[[4]],
-                   NDVIsmr_NE[[4]], NDVIsmr_OK[[5]], NDVIsmr_NE[[5]], NDVIsmr_OK[[6]],
-                   NDVIsmr_NE[[6]], NDVIsmr_OK[[7]], NDVIsmr_NE[[7]])
+                   NDVIsmr_NE[[5]], NDVIsmr_OK[[6]], NDVIsmr_NE[[7]], NDVIsmr_OK[[8]],
+                   NDVIsmr_NE[[9]], NDVIsmr_OK[[10]], NDVIsmr_NE[[11]])
 
   NDVI_max <- list(NDVImax_OK[[1]], NDVImax_NE[[2]], NDVImax_NE[[3]], NDVImax_OK[[4]],
-                   NDVImax_NE[[4]], NDVImax_OK[[5]], NDVImax_NE[[5]], NDVImax_OK[[6]],
-                   NDVImax_NE[[6]], NDVImax_OK[[7]], NDVImax_NE[[7]])
+                   NDVImax_NE[[5]], NDVImax_OK[[6]], NDVImax_NE[[7]], NDVImax_OK[[8]],
+                   NDVImax_NE[[9]], NDVImax_OK[[10]], NDVImax_NE[[11]])
 
   #'  Add NDVI data to covariate data frames based on species and season
   #'  Remember: NDVIsmr are the spatio-temporally matched NDVI values for summer locs
