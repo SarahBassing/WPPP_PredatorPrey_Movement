@@ -308,7 +308,7 @@
     ee_allNDVI <- as.data.frame(EE_allndvi) %>% 
       relocate(geometry, .after = NAME) 
     #'  apply max function row-wise (1 = across each row), excluding 1st 2 columns of df
-    ee_allNDVI$maxNDVI <- apply(ee_allNDVI[-c(1:2)], 1, max)
+    ee_allNDVI$maxNDVI <- apply(ee_allNDVI[-c(1:2)], 1, max, na.rm = T)
     ee_allNDVI <- ee_allNDVI %>%
       mutate(
         maxNDVI_scale = maxNDVI*0.0001,
@@ -413,7 +413,7 @@
   #'  Split md_wtr1819 data even more because it's apparently too large?!?!
   nrow(wtr_list1819[[1]])
   md_wtr1819a <- wtr_list1819[[1]][1:20000,]
-  md_wtr1819b <- wtr_list1819[[1]][20001:39327,]
+  md_wtr1819b <- wtr_list1819[[1]][20001:45872,]
   md_wtr1819a_NDVImax <- find_maxNDVI(md_wtr1819a, eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
   md_wtr1819b_NDVImax <- find_maxNDVI(md_wtr1819b, eeimage = eeimage, start.date = start18, end.date = end18, band.name = band.name, band = band, ee.scale = ee.scale)
   md_wtr1819_NDVImax <- rbind(md_wtr1819a_NDVImax, md_wtr1819b_NDVImax)
@@ -491,7 +491,7 @@
   
   ####  Join Datasets  ####
   # load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_smr_NDVI_list_2022-02-11.RData")
-  # load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_NDVImax_list_2022-02-12.RData")
+  load("G:/My Drive/1_Repositories/WPPP_PredatorPrey_Movement/Outputs/Telemetry_covs/ee_NDVImax_list_2022-02-14.RData")
   
   #'  Join spatially & temporally matched NDVI data to each summer location
   join_NDVI <- function(crwOut_data, ndvi) { 
