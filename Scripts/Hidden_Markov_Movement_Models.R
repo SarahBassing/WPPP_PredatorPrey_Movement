@@ -836,8 +836,88 @@
   
   load("./Outputs/spp_HMM_output_2021-05-18.RData")
 
+
+
+  #'  Functions to extract stationary state probabilities & plot predicted responses
+  stay_probs_prey <- function(hmmm) {
+    stay_pr <- stationary(hmmm)
+    stay_pr <- stay_pr[[1]]
+    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0, 
+                                                   SnowCover = 0, TRI = 0, 
+                                                   COUG_RSF = 0, WOLF_RSF = 0,
+                                                   BOB_RSF = 0, COY_RSF = 0))
+    print(stay_mu0)
+    #'  Plot stationary state probabilities and extract predicted estimates
+    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
+                                                  SnowCover = 0, TRI = 0, 
+                                                  COUG_RSF = 0, WOLF_RSF = 0,
+                                                  BOB_RSF = 0, COY_RSF = 0),
+                          col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE) 
+    stationary_probs <- list(stay_pr, fig)
+    
+    return(stationary_probs)
+  }
+  #'  Extract stationary state probabilities for deer and elk
+  stay_md_smr <- stay_probs_prey(md_HMM_smr)
+  stay_md_wtr <- stay_probs_prey(md_HMM_wtr)
+  stay_elk_smr <- stay_probs_prey(elk_HMM_smr)
+  stay_elk_wtr <- stay_probs_prey(elk_HMM_wtr)
+  stay_wtd_smr <- stay_probs_prey(wtd_HMM_smr)
+  stay_wtd_wtr <- stay_probs_prey(wtd_HMM_wtr)
   
- 
+  #'  Stationary probabilities for predators in the Okanogan
+  stay_probs_pred_OK <- function(hmmm) {
+    stay_pr <- stationary(hmmm)
+    stay_pr <- stay_pr[[1]]
+    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
+                                                   SnowCover = 0, TRI = 0, MD_RSF = 0)) 
+    print(stay_mu0) 
+    #'  Plot stationary state probabilities and extract predicted estimates
+    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
+                                                  SnowCover = 0, TRI = 0, MD_RSF = 0),  
+                          col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE) 
+    stationary_probs <- list(stay_pr, fig)
+    
+    return(stationary_probs)
+  }
+  #'  Extract stationary state probabilities
+  stay_coug_smr_OK <- stay_probs_pred_OK(coug_HMM_smr_OK)
+  stay_coug_wtr_OK <- stay_probs_pred_OK(coug_HMM_wtr_OK)
+  stay_wolf_smr_OK <- stay_probs_pred_OK(wolf_HMM_smr_OK)
+  stay_wolf_wtr_OK <- stay_probs_pred_OK(wolf_HMM_wtr_OK)
+  stay_bob_smr_OK <- stay_probs_pred_OK(bob_HMM_smr_OK)
+  stay_bob_wtr_OK <- stay_probs_pred_OK(bob_HMM_wtr_OK)
+  stay_coy_smr_OK <- stay_probs_pred_OK(coy_HMM_smr_OK)
+  stay_coy_wtr_OK <- stay_probs_pred_OK(coy_HMM_wtr_OK)
+  
+  #'  Stationary state probabilities for predators in the Northeast
+  stay_probs_pred_NE <- function(hmmm) {
+    stay_pr <- stationary(hmmm)
+    stay_pr <- stay_pr[[1]]
+    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
+                                                   SnowCover = 0, TRI = 0, 
+                                                   ELK_RSF = 0, WTD_RSF = 0))
+    print(stay_mu0) 
+    #'  Plot stationary state probabilities and extract predicted estimates
+    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
+                                                  SnowCover = 0, TRI = 0, 
+                                                  ELK_RSF = 0, WTD_RSF = 0),    
+                          col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE)
+    stationary_probs <- list(stay_pr, fig)
+    
+    return(stationary_probs)
+  }
+  #'  Extract stationary state probabilities
+  stay_coug_smr_NE <- stay_probs_pred_NE(coug_HMM_smr_NE)
+  stay_coug_wtr_NE <- stay_probs_pred_NE(coug_HMM_wtr_NE)
+  stay_wolf_smr_NE <- stay_probs_pred_NE(wolf_HMM_smr_NE)
+  stay_wolf_wtr_NE <- stay_probs_pred_NE(wolf_HMM_wtr_NE)
+  stay_bob_smr_NE <- stay_probs_pred_NE(bob_HMM_smr_NE)
+  stay_bob_wtr_NE <- stay_probs_pred_NE(bob_HMM_wtr_NE)
+  stay_coy_smr_NE <- stay_probs_pred_NE(coy_HMM_smr_NE)
+  stay_coy_wtr_NE <- stay_probs_pred_NE(coy_HMM_wtr_NE)
+  
+  
   
   #' #'  Function to extract most likely state sequence for all locations based on
   #' #'  the Viterbi algorithm and the fitted HMM
@@ -878,53 +958,9 @@
   #' # save(spp_state_output, file = paste0("./Outputs/spp_state_output_", Sys.Date(), ".RData"))
   #' save(spp_state_output, file = paste0("./Outputs/spp_state_output_NULLtrans_", Sys.Date(), ".RData"))
   
-
-
-  #'  Function to extract stationary state probabilities & plot predicted responses
-  stay_probs <- function(hmmm) {
-    stay_pr <- stationary(hmmm)
-    stay_pr <- stay_pr[[1]]
-    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0, 
-                                                   SnowCover = 0, TRI = 0, MD_RSF = 0, 
-                                                   ELK_RSF = 0, WTD_RSF = 0, 
-                                                   COUG_RSF = 0, WOLF_RSF = 0,
-                                                   BOB_RSF = 0, COY_RSF = 0))
-    print(stay_mu0)
-    
-    #'  Plot stationary state probabilities and extract predicted estimates
-    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0, 
-                                                  SnowCover = 0, TRI = 0, MD_RSF = 0, 
-                                                  ELK_RSF = 0, WTD_RSF = 0, 
-                                                  COUG_RSF = 0, WOLF_RSF = 0,
-                                                  BOB_RSF = 0, COY_RSF = 0),
-                          col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE)
-    stationary_probs <- list(stay_pr, fig)
-    
-    return(stationary_probs)
-  }
-  #'  Extract stationary state probabilities
-  stay_md_smr <- stay_probs(md_HMM_smr)
-  stay_md_wtr <- stay_probs(md_HMM_wtr)
-  stay_elk_smr <- stay_probs(elk_HMM_smr)
-  stay_elk_wtr <- stay_probs(elk_HMM_wtr)
-  stay_wtd_smr <- stay_probs(wtd_HMM_smr)
-  stay_wtd_wtr <- stay_probs(wtd_HMM_wtr)
-  stay_coug_smr_OK <- stay_probs(coug_HMM_smr_OK)
-  stay_coug_wtr_OK <- stay_probs(coug_HMM_wtr_OK)
-  stay_coug_smr_NE <- stay_probs(coug_HMM_smr_NE)
-  stay_coug_wtr_NE <- stay_probs(coug_HMM_wtr_NE)
-  stay_wolf_smr_OK <- stay_probs(wolf_HMM_smr_OK)
-  stay_wolf_wtr_OK <- stay_probs(wolf_HMM_wtr_OK)
-  stay_wolf_smr_NE <- stay_probs(wolf_HMM_smr_NE)
-  stay_wolf_wtr_NE <- stay_probs(wolf_HMM_wtr_NE)
-  stay_bob_smr_OK <- stay_probs(bob_HMM_smr_OK)
-  stay_bob_wtr_OK <- stay_probs(bob_HMM_wtr_OK)
-  stay_bob_smr_NE <- stay_probs(bob_HMM_smr_NE)
-  stay_bob_wtr_NE <- stay_probs(bob_HMM_wtr_NE)
-  stay_coy_smr_OK <- stay_probs(coy_HMM_smr_OK)
-  stay_coy_wtr_OK <- stay_probs(coy_HMM_wtr_OK)
-  stay_coy_smr_NE <- stay_probs(coy_HMM_smr_NE)
-  stay_coy_wtr_NE <- stay_probs(coy_HMM_wtr_NE)
+  
+  
+  
   
   #'  Make panel of figures
   #'  https://www.benjaminbell.co.uk/2018/02/creating-multi-panel-plots-and-figures.html
