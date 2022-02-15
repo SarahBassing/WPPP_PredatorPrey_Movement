@@ -26,7 +26,7 @@
 
   #'  Load crwOut & covaraite data
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-03.RData") 
-  load("./Outputs/Telemetry_covs/spp_telem_covs_noNDVI_2022-02-07.RData") 
+  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-02-14.RData") 
   
   
   #'  Merge datasets and create momentuHMMData object
@@ -44,7 +44,7 @@
     crwlMerge$crwPredict$SnowCover <- as.factor(crwlMerge$crwPredict$SnowCover)
     #'  Standardize continuous variables
     crwlMerge$crwPredict$Dist2Road <- scale(crwlMerge$crwPredict$Dist2Road)
-    # crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
+    crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
     crwlMerge$crwPredict$PercOpen <- scale(crwlMerge$crwPredict$PercOpen)
     crwlMerge$crwPredict$TRI <- scale(crwlMerge$crwPredict$TRI)
     crwlMerge$crwPredict$MD_RSF <- scale(crwlMerge$crwPredict$MD_RSF)
@@ -56,7 +56,7 @@
     crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
     crwlMerge$crwPredict$hour <- as.integer(strftime(crwlMerge$crwPredict$time, format = "%H", tz="Etc/GMT+8"))
     #'  Prep crwlMerge data for fitHMM function
-    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", #"NDVI", 
+    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", "NDVI", 
                                                     "SnowCover", "TRI", "MD_RSF", 
                                                     "COUG_RSF", "WOLF_RSF", "BOB_RSF", 
                                                     "COY_RSF", "hour", "Sex", 
@@ -89,7 +89,7 @@
     crwlMerge$crwPredict$SnowCover <- as.factor(crwlMerge$crwPredict$SnowCover)
     #' #'  Standardize continuous variables
     crwlMerge$crwPredict$Dist2Road <- scale(crwlMerge$crwPredict$Dist2Road)
-    # crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
+    crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
     crwlMerge$crwPredict$PercOpen <- scale(crwlMerge$crwPredict$PercOpen)
     crwlMerge$crwPredict$TRI <- scale(crwlMerge$crwPredict$TRI)
     #' crwlMerge$crwPredict$MD_RSF <- scale(crwlMerge$crwPredict$MD_RSF)   # Not in NE data set  
@@ -101,7 +101,7 @@
     crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
     crwlMerge$crwPredict$hour <- as.integer(strftime(crwlMerge$crwPredict$time, format = "%H", tz="Etc/GMT+8"))
     #'  Prep crwlMerge data for fitHMM function
-    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", #"NDVI", 
+    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", "NDVI", 
                                                     "SnowCover", "TRI", "ELK_RSF", 
                                                     "WTD_RSF", "COUG_RSF", "WOLF_RSF",
                                                     "BOB_RSF", "COY_RSF", "hour",
@@ -834,10 +834,163 @@
                          coy_HMM_smr_OK, coy_HMM_wtr_OK, coy_HMM_smr_NE, coy_HMM_wtr_NE)
   save(spp_HMM_output, file = paste0("./Outputs/spp_HMM_output_", Sys.Date(), ".RData"))
   
-  load("./Outputs/spp_HMM_output_2021-05-18.RData")
 
+  ####  Summarize Results  ####
+  load("./Outputs/spp_HMM_output_2022-02-13.RData")
 
-
+  
+  #'  Function to report transition probability coefficients in a table
+  rounddig <- 2
+  hmm_out <- function(mod, spp, season, area) {
+    #'  Extract estimates, standard error, and 95% Confidence Intervals for effect
+    #'  of each covariate on transition probabilities
+    est_out <- CIbeta(mod, alpha = 0.95)
+    beta1.2 <- formatC(round(est_out[[3]]$est[,1], rounddig), rounddig, format="f")
+    beta2.1 <- formatC(round(est_out[[3]]$est[,2], rounddig), rounddig, format="f")
+    se1.2 <- formatC(round(est_out[[3]]$se[,1], rounddig), rounddig, format="f")
+    se2.1 <- formatC(round(est_out[[3]]$se[,2], rounddig), rounddig, format="f")
+    lci1.2 <- formatC(round(est_out[[3]]$lower[,1], rounddig), rounddig, format="f")
+    lci2.1 <- formatC(round(est_out[[3]]$lower[,2], rounddig), rounddig, format="f")
+    uci1.2 <- formatC(round(est_out[[3]]$upper[,1], rounddig), rounddig, format="f")
+    uci2.1 <- formatC(round(est_out[[3]]$upper[,2], rounddig), rounddig, format="f")
+    #'  Merge into a data frame and organize
+    out1.2 <- as.data.frame(cbind(beta1.2, se1.2, lci1.2, uci1.2)) %>%
+      mutate(
+        Parameter = row.names(est_out[[3]]$est),
+        Species = rep(spp, nrow(.)),
+        Season = rep(season, nrow(.)),
+        StudyArea = rep(area, nrow(.)),
+        Transition = rep("Trans.1->2", nrow(.))
+      ) %>%
+      relocate(Parameter, .before = beta1.2) %>%
+      relocate(Species, .before = Parameter) %>%
+      relocate(Season, .before = Parameter) %>%
+      relocate(StudyArea, .before = Parameter) %>%
+      relocate(Transition, .before = Parameter)
+    colnames(out1.2) <- c("Species", "Season", "Study Area", "Transition", "Parameter", "Estimate", "SE", "Lower", "Upper")
+    out2.1 <- as.data.frame(cbind(beta2.1, se2.1, lci2.1, uci2.1)) %>%
+      mutate(
+        Parameter = row.names(est_out[[3]]$est),
+        Species = rep(spp, nrow(.)),
+        Season = rep(season, nrow(.)),
+        StudyArea = rep(area, nrow(.)),
+        Transition = rep("Trans.2->1", nrow(.))
+      ) %>%
+      relocate(Parameter, .before = beta2.1) %>%
+      relocate(Species, .before = Parameter) %>%
+      relocate(Season, .before = Parameter) %>%
+      relocate(StudyArea, .before = Parameter) %>%
+      relocate(Transition, .before = Parameter)
+    colnames(out2.1) <- c("Species", "Season", "Study Area", "Transition", "Parameter", "Estimate", "SE", "Lower", "Upper")
+    out <- as.data.frame(rbind(out1.2, out2.1))
+    return(out)
+  }
+  #'  Run each season and species-specific model through function
+  md_smr_hmm <- hmm_out(spp_HMM_output[[1]], "Mule Deer", "Summer", "Okanogan") #md_HMM_smr
+  md_wtr_hmm <- hmm_out(spp_HMM_output[[2]], "Mule Deer", "Winter", "Okanogan") #md_HMM_wtr
+  elk_smr_hmm <- hmm_out(spp_HMM_output[[3]], "Elk", "Summer", "Northeast") #elk_HMM_smr
+  elk_wtr_hmm <- hmm_out(spp_HMM_output[[4]], "Elk", "Winter", "Northeast") #elk_HMM_wtr
+  wtd_smr_hmm <- hmm_out(spp_HMM_output[[5]], "White-tailed Deer", "Summer", "Northeast") #wtd_HMM_smr
+  wtd_wtr_hmm <- hmm_out(spp_HMM_output[[6]], "White-tailed Deer", "Winter", "Northeast") #wtd_HMM_wtr
+  coug_smr_hmm_OK <- hmm_out(spp_HMM_output[[7]], "Cougar", "Summer", "Okanogan") #coug_HMM_smr_OK
+  coug_wtr_hmm_OK <- hmm_out(spp_HMM_output[[8]], "Cougar", "Winter", "Okanogan") #coug_HMM_wtr_OK
+  coug_smr_hmm_NE <- hmm_out(spp_HMM_output[[9]], "Cougar", "Summer", "Northeast") #coug_HMM_smr_NE
+  coug_wtr_hmm_NE <- hmm_out(spp_HMM_output[[10]], "Cougar", "Winter", "Northeast") #coug_HMM_wtr_NE
+  wolf_smr_hmm_OK <- hmm_out(spp_HMM_output[[11]], "Wolf", "Summer", "Okanogan") #wolf_HMM_smr_OK
+  wolf_wtr_hmm_OK <- hmm_out(spp_HMM_output[[12]], "Wolf", "Winter", "Okanogan") #wolf_HMM_wtr_OK
+  wolf_smr_hmm_NE <- hmm_out(spp_HMM_output[[13]], "Wolf", "Summer", "Northeast") #wolf_HMM_smr_NE
+  wolf_wtr_hmm_NE <- hmm_out(spp_HMM_output[[14]], "Wolf", "Winter", "Northeast") #wolf_HMM_wtr_NE
+  bob_smr_hmm_OK <- hmm_out(spp_HMM_output[[15]], "Bobcat", "Summer", "Okanogan") #bob_HMM_smr_OK
+  bob_wtr_hmm_OK <- hmm_out(spp_HMM_output[[16]], "Bobcat", "Winter", "Okanogan") #bob_HMM_wtr_OK
+  bob_smr_hmm_NE <- hmm_out(spp_HMM_output[[17]], "Bobcat", "Summer", "Northeast") #bob_HMM_smr_NE
+  bob_wtr_hmm_NE <- hmm_out(spp_HMM_output[[18]], "Bobcat", "Winter", "Northeast") #bob_HMM_wtr_NE
+  coy_smr_hmm_OK <- hmm_out(spp_HMM_output[[19]], "Coyote", "Summer", "Okanogan") #coy_HMM_smr_OK
+  coy_wtr_hmm_OK <- hmm_out(spp_HMM_output[[20]], "Coyote", "Winter", "Okanogan") #coy_HMM_wtr_OK
+  coy_smr_hmm_NE <- hmm_out(spp_HMM_output[[21]], "Coyote", "Summer", "Northeast") #coy_HMM_smr_NE
+  coy_wtr_hmm_NE <- hmm_out(spp_HMM_output[[22]], "Coyote", "Winter", "Northeast") #coy_HMM_wtr_NE
+  
+  #'  Gather prey and predator results to put into a single results table
+  results_hmm_TransPr <- rbind(md_smr_hmm, md_wtr_hmm, elk_smr_hmm, elk_wtr_hmm, 
+                               wtd_smr_hmm, wtd_wtr_hmm, coug_smr_hmm_OK, coug_wtr_hmm_OK, 
+                               coug_smr_hmm_NE, coug_wtr_hmm_NE, wolf_smr_hmm_OK, 
+                               wolf_wtr_hmm_OK, wolf_smr_hmm_NE, wolf_wtr_hmm_NE, 
+                               bob_smr_hmm_OK, bob_wtr_hmm_OK, bob_smr_hmm_NE, 
+                               bob_wtr_hmm_NE, coy_smr_hmm_OK, coy_wtr_hmm_OK, 
+                               coy_smr_hmm_NE, coy_wtr_hmm_NE)
+  results_hmm_TransPr_prey <- rbind(md_smr_hmm, md_wtr_hmm, elk_smr_hmm, elk_wtr_hmm, 
+                                    wtd_smr_hmm, wtd_wtr_hmm)
+  results_hmm_TransPr_pred <- rbind(coug_smr_hmm_OK, coug_wtr_hmm_OK, coug_smr_hmm_NE, 
+                                    coug_wtr_hmm_NE, wolf_smr_hmm_OK, wolf_wtr_hmm_OK, 
+                                    wolf_smr_hmm_NE, wolf_wtr_hmm_NE, bob_smr_hmm_OK, 
+                                    bob_wtr_hmm_OK, bob_smr_hmm_NE, bob_wtr_hmm_NE, 
+                                    coy_smr_hmm_OK, coy_wtr_hmm_OK, coy_smr_hmm_NE, 
+                                    coy_wtr_hmm_NE)
+  
+  #'  Spread results so the coefficient effects are easier to compare between 
+  #'  transition probabilities and across species
+  #'  Prey HMM results
+  results_hmm_wide_trpr <- results_hmm_trpr %>%  
+    # dplyr::select(-z) %>%
+    mutate(
+      # SE = round(SE, 2),
+      SE = paste0("(", SE, ")"),
+    ) %>%
+    #'  Bold significant variables- doesn't work if continue manipulating data frame
+    # condformat(.) %>%
+    # rule_text_bold(c(Estimate, SE, Pval), expression = Pval <= 0.05) %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(CI95, Lower, Upper, sep = ", ") %>%
+    unite(Est_SE_CI, Est_SE, CI95, sep = "_") %>%
+    spread(Parameter, Est_SE_CI) %>%
+    separate("(Intercept)", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
+    separate("TRI", c("TRI (SE)", "TRI 95% CI"), sep = "_") %>%
+    separate("PercOpen", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
+    separate("Dist2Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
+    separate("SnowCover1", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
+    separate("COUG_RSF", c("Pr(Cougar) (SE)", "Pr(Cougar) 95% CI"), sep = "_") %>%
+    separate("WOLF_RSF", c("Pr(Wolf) (SE)", "Pr(Wolf) 95% CI"), sep = "_") %>%
+    separate("BOB_RSF", c("Pr(Bobcat) (SE)", "Pr(Bobcat) 95% CI"), sep = "_") %>%
+    separate("COY_RSF", c("Pr(Coyote) (SE)", "Pr(Coyote) 95% CI"), sep = "_") %>%
+    # mutate(
+    #   AreaOK = rep("NA", nrow(.)),
+    #   AreaCI = rep("NA", nrow(.))
+    # ) %>%
+    # relocate(AreaOK, .before = "Elev (SE)") %>%
+    # relocate(AreaCI, .before = "Elev (SE)") %>%
+    arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer")))
+  # names(results_hmm_wide)[names(results_hmm_wide) == "AreaOK"] <- "AreaOK (SE)"
+  # names(results_hmm_wide)[names(results_hmm_wide) == "AreaCI"] <- "AreaOK 95% CI"
+  write.csv(results_hmm_wide_TransPr_prey, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_wide", Sys.Date(), ".csv"))
+  
+  #'  Predators HMM results
+  results_hmm_wide_pred <- results_hmm_pred %>% 
+    # dplyr::select(-z) %>%
+    mutate(
+      # SE = round(SE, 2),
+      SE = paste0("(", SE, ")"),
+    ) %>%
+    #'  Bold significant variables- doesn't work if continue manipulating data frame
+    # condformat(.) %>%
+    # rule_text_bold(c(Estimate, SE, Pval), expression = Pval <= 0.05) %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(CI95, Lower, Upper, sep = ", ") %>%
+    unite(Est_SE_CI, Est_SE, CI95, sep = "_") %>%
+    spread(Parameter, Est_SE_CI) %>%
+    separate("(Intercept)", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
+    separate("TRI", c("TRI (SE)", "TRI 95% CI"), sep = "_") %>%
+    separate("PercOpen", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
+    separate("Dist2Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
+    separate("SnowCover1", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
+    separate("MD_RSF", c("Pr(Mule Deer) (SE)", "Pr(Mule Deer) 95% CI"), sep = "_") %>%
+    separate("ELK_RSF", c("Pr(Elk) (SE)", "Pr(Elk) 95% CI"), sep = "_") %>%
+    separate("WTD_RSF", c("Pr(White-tailed Deer) (SE)", "Pr(White-tailed Deer) 95% CI"), sep = "_") %>%
+    arrange(match(Species, c("Bobcat", "Cougar", "Coyote", "Wolf"))) 
+  # arrange(match(Season, c("Summer", "Winter")))
+  
+  write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
+  
+  
+  ####  Plot Stationary-State Probabilities  ####
   #'  Functions to extract stationary state probabilities & plot predicted responses
   stay_probs_prey <- function(hmmm) {
     stay_pr <- stationary(hmmm)
@@ -858,12 +1011,12 @@
     return(stationary_probs)
   }
   #'  Extract stationary state probabilities for deer and elk
-  stay_md_smr <- stay_probs_prey(md_HMM_smr)
-  stay_md_wtr <- stay_probs_prey(md_HMM_wtr)
-  stay_elk_smr <- stay_probs_prey(elk_HMM_smr)
-  stay_elk_wtr <- stay_probs_prey(elk_HMM_wtr)
-  stay_wtd_smr <- stay_probs_prey(wtd_HMM_smr)
-  stay_wtd_wtr <- stay_probs_prey(wtd_HMM_wtr)
+  stay_md_smr <- stay_probs_prey(spp_HMM_output[[1]])
+  stay_md_wtr <- stay_probs_prey(spp_HMM_output[[2]])
+  stay_elk_smr <- stay_probs_prey(spp_HMM_output[[3]])
+  stay_elk_wtr <- stay_probs_prey(spp_HMM_output[[4]])
+  stay_wtd_smr <- stay_probs_prey(spp_HMM_output[[5]])
+  stay_wtd_wtr <- stay_probs_prey(spp_HMM_output[[6]])
   
   #'  Stationary probabilities for predators in the Okanogan
   stay_probs_pred_OK <- function(hmmm) {
@@ -881,14 +1034,14 @@
     return(stationary_probs)
   }
   #'  Extract stationary state probabilities
-  stay_coug_smr_OK <- stay_probs_pred_OK(coug_HMM_smr_OK)
-  stay_coug_wtr_OK <- stay_probs_pred_OK(coug_HMM_wtr_OK)
-  stay_wolf_smr_OK <- stay_probs_pred_OK(wolf_HMM_smr_OK)
-  stay_wolf_wtr_OK <- stay_probs_pred_OK(wolf_HMM_wtr_OK)
-  stay_bob_smr_OK <- stay_probs_pred_OK(bob_HMM_smr_OK)
-  stay_bob_wtr_OK <- stay_probs_pred_OK(bob_HMM_wtr_OK)
-  stay_coy_smr_OK <- stay_probs_pred_OK(coy_HMM_smr_OK)
-  stay_coy_wtr_OK <- stay_probs_pred_OK(coy_HMM_wtr_OK)
+  stay_coug_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[7]])
+  stay_coug_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[8]])
+  stay_wolf_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[11]])
+  stay_wolf_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[12]])
+  stay_bob_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[15]])
+  stay_bob_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[16]])
+  stay_coy_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[19]])
+  stay_coy_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[20]])
   
   #'  Stationary state probabilities for predators in the Northeast
   stay_probs_pred_NE <- function(hmmm) {
@@ -908,14 +1061,14 @@
     return(stationary_probs)
   }
   #'  Extract stationary state probabilities
-  stay_coug_smr_NE <- stay_probs_pred_NE(coug_HMM_smr_NE)
-  stay_coug_wtr_NE <- stay_probs_pred_NE(coug_HMM_wtr_NE)
-  stay_wolf_smr_NE <- stay_probs_pred_NE(wolf_HMM_smr_NE)
-  stay_wolf_wtr_NE <- stay_probs_pred_NE(wolf_HMM_wtr_NE)
-  stay_bob_smr_NE <- stay_probs_pred_NE(bob_HMM_smr_NE)
-  stay_bob_wtr_NE <- stay_probs_pred_NE(bob_HMM_wtr_NE)
-  stay_coy_smr_NE <- stay_probs_pred_NE(coy_HMM_smr_NE)
-  stay_coy_wtr_NE <- stay_probs_pred_NE(coy_HMM_wtr_NE)
+  stay_coug_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[9]])
+  stay_coug_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[10]])
+  stay_wolf_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[13]])
+  stay_wolf_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[14]])
+  stay_bob_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[17]])
+  stay_bob_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[18]])
+  stay_coy_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[21]])
+  stay_coy_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[22]])
   
   
   
@@ -958,9 +1111,7 @@
   #' # save(spp_state_output, file = paste0("./Outputs/spp_state_output_", Sys.Date(), ".RData"))
   #' save(spp_state_output, file = paste0("./Outputs/spp_state_output_NULLtrans_", Sys.Date(), ".RData"))
   
-  
-  
-  
+ 
   
   #'  Make panel of figures
   #'  https://www.benjaminbell.co.uk/2018/02/creating-multi-panel-plots-and-figures.html
@@ -981,137 +1132,9 @@
   par(oma=c(4, 4, 4, 4), mar=c(4, 4, 4, 4))
   stay_coug_wtr <- stay_probs(spp_HMM_output[[8]])
   
-  #'  Function to extract covariate effects on transition-probabilities
-  rounddig <- 2
-  hmm_out <- function(mod, spp, season) {
-    #'  Extract estimates, standard error, and 95% Confidence Intervals for effect
-    #'  of each covariate on transition probabilities
-    est_out <- CIbeta(mod, alpha = 0.95)
-    beta1.2 <- formatC(round(est_out[[3]]$est[,1], rounddig), rounddig, format="f")
-    beta2.1 <- formatC(round(est_out[[3]]$est[,2], rounddig), rounddig, format="f")
-    se1.2 <- formatC(round(est_out[[3]]$se[,1], rounddig), rounddig, format="f")
-    se2.1 <- formatC(round(est_out[[3]]$se[,2], rounddig), rounddig, format="f")
-    lci1.2 <- formatC(round(est_out[[3]]$lower[,1], rounddig), rounddig, format="f")
-    lci2.1 <- formatC(round(est_out[[3]]$lower[,2], rounddig), rounddig, format="f")
-    uci1.2 <- formatC(round(est_out[[3]]$upper[,1], rounddig), rounddig, format="f")
-    uci2.1 <- formatC(round(est_out[[3]]$upper[,2], rounddig), rounddig, format="f")
-    #'  Merge into a data frame and organize
-    out1.2 <- as.data.frame(cbind(beta1.2, se1.2, lci1.2, uci1.2)) %>%
-      mutate(
-        Parameter = row.names(est_out[[3]]$est),
-        Species = rep(spp, nrow(.)),
-        Season = rep(season, nrow(.)),
-        Transition = rep("Trans.1->2", nrow(.))
-      ) %>%
-      relocate(Parameter, .before = beta1.2) %>%
-      relocate(Species, .before = Parameter) %>%
-      relocate(Season, .before = Parameter) %>%
-      relocate(Transition, .before = Parameter)
-    colnames(out1.2) <- c("Species", "Season", "Transition", "Parameter", "Estimate", "SE", "Lower", "Upper")
-    out2.1 <- as.data.frame(cbind(beta2.1, se2.1, lci2.1, uci2.1)) %>%
-      mutate(
-        Parameter = row.names(est_out[[3]]$est),
-        Species = rep(spp, nrow(.)),
-        Season = rep(season, nrow(.)),
-        Transition = rep("Trans.2->1", nrow(.))
-      ) %>%
-      relocate(Parameter, .before = beta2.1) %>%
-      relocate(Species, .before = Parameter) %>%
-      relocate(Season, .before = Parameter) %>%
-      relocate(Transition, .before = Parameter)
-    colnames(out2.1) <- c("Species", "Season", "Transition", "Parameter", "Estimate", "SE", "Lower", "Upper")
-    out <- as.data.frame(rbind(out1.2, out2.1))
-    return(out)
-  }
-  #'  Run each season and species-specific model through function
-  md_s1819_hmm <- hmm_out(md_HMM_smr, "Mule Deer", "Summer")
-  md_w1820_hmm <- hmm_out(md_HMM_wtr, "Mule Deer", "Winter")
-  elk_s1819_hmm <- hmm_out(elk_HMM_smr, "Elk", "Summer")
-  elk_w1820_hmm <- hmm_out(elk_HMM_wtr, "Elk", "Winter")
-  wtd_s1819_hmm <- hmm_out(wtd_HMM_smr, "White-tailed Deer", "Summer")
-  wtd_w1820_hmm <- hmm_out(wtd_HMM_wtr, "White-tailed Deer", "Winter")
-  coug_s1819_hmm <- hmm_out(coug_HMM_smr, "Cougar", "Summer")
-  coug_w1820_hmm <- hmm_out(coug_HMM_wtr, "Cougar", "Winter")
-  wolf_s1819_hmm <- hmm_out(wolf_HMM_smr, "Wolf", "Summer")
-  wolf_w1820_hmm <- hmm_out(wolf_HMM_wtr, "Wolf", "Winter")
-  bob_s1819_hmm <- hmm_out(bob_HMM_smr, "Bobcat", "Summer")
-  bob_w1820_hmm <- hmm_out(bob_HMM_wtr, "Bobcat", "Winter")
-  coy_s1819_hmm <- hmm_out(coy_HMM_smr, "Coyote", "Summer")
-  coy_w1820_hmm <- hmm_out(coy_HMM_wtr, "Coyote", "Winter")
   
-  #'  Gather prey and predator results to put into a single results table
-  results_hmm_trpr <- rbind(bob_s1819_hmm, bob_w1820_hmm, coug_s1819_hmm, coug_w1820_hmm, 
-                              coy_s1819_hmm, coy_w1820_hmm, md_s1819_hmm, md_w1820_hmm, 
-                              elk_s1819_hmm, elk_w1820_hmm, wtd_s1819_hmm, wtd_w1820_hmm,
-                              wolf_s1819_hmm, wolf_w1820_hmm)
-  results_hmm_trpr_prey <- rbind(md_s1819_hmm, md_w1820_hmm, elk_s1819_hmm, elk_w1820_hmm, 
-                            wtd_s1819_hmm, wtd_w1820_hmm)
-  results_hmm_trpr_pred <- rbind(bob_s1819_hmm, bob_w1820_hmm, coug_s1819_hmm, coug_w1820_hmm, 
-                            coy_s1819_hmm, coy_w1820_hmm, wolf_s1819_hmm, wolf_w1820_hmm)
   
-  #'  Spread results so the coefficient effects are easier to compare between 
-  #'  transition probabilities and across species
-  #'  Ungulates (no study area covariate included)
-  results_hmm_wide_trpr <- results_hmm_trpr %>%  #results_hmm_prey
-    # dplyr::select(-z) %>%
-    mutate(
-      # SE = round(SE, 2),
-      SE = paste0("(", SE, ")"),
-    ) %>%
-    #'  Bold significant variables- doesn't work if continue manipulating data frame
-    # condformat(.) %>%
-    # rule_text_bold(c(Estimate, SE, Pval), expression = Pval <= 0.05) %>%
-    unite(Est_SE, Estimate, SE, sep = " ") %>%
-    unite(CI95, Lower, Upper, sep = ", ") %>%
-    unite(Est_SE_CI, Est_SE, CI95, sep = "_") %>%
-    spread(Parameter, Est_SE_CI) %>%
-    separate("(Intercept)", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
-    separate("Elev", c("Elev (SE)", "Elev 95% CI"), sep = "_") %>%
-    separate("Slope", c("Slope (SE)", "Slope 95% CI"), sep = "_") %>%
-    separate("PercForMix", c("PercForMix (SE)", "PercForMix 95% CI"), sep = "_") %>%
-    separate("PercXGrass", c("PercXGrass (SE)", "PercXGrass 95% CI"), sep = "_") %>%
-    separate("PercXShrub", c("PercXShrub (SE)", "PercXShrub 95% CI"), sep = "_") %>%
-    separate("NearestRd", c("NearestRd (SE)", "NearestRd 95% CI"), sep = "_") %>%
-    separate("HumanMod", c("HumanMod (SE)", "HumanMod 95% CI"), sep = "_") %>%
-    # mutate(
-    #   AreaOK = rep("NA", nrow(.)),
-    #   AreaCI = rep("NA", nrow(.))
-    # ) %>%
-    # relocate(AreaOK, .before = "Elev (SE)") %>%
-    # relocate(AreaCI, .before = "Elev (SE)") %>%
-    arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer")))
-  # names(results_hmm_wide)[names(results_hmm_wide) == "AreaOK"] <- "AreaOK (SE)"
-  # names(results_hmm_wide)[names(results_hmm_wide) == "AreaCI"] <- "AreaOK 95% CI"
-
-  #'  Predators (study area covariate included)
-  results_hmm_wide_pred <- results_hmm_pred %>% 
-    # dplyr::select(-z) %>%
-    mutate(
-      # SE = round(SE, 2),
-      SE = paste0("(", SE, ")"),
-    ) %>%
-    #'  Bold significant variables- doesn't work if continue manipulating data frame
-    # condformat(.) %>%
-    # rule_text_bold(c(Estimate, SE, Pval), expression = Pval <= 0.05) %>%
-    unite(Est_SE, Estimate, SE, sep = " ") %>%
-    unite(CI95, Lower, Upper, sep = ", ") %>%
-    unite(Est_SE_CI, Est_SE, CI95, sep = "_") %>%
-    spread(Parameter, Est_SE_CI) %>%
-    separate("(Intercept)", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
-    separate("AreaOK", c("AreaOK (SE)", "AreaOK 95% CI"), sep = "_") %>%
-    separate("Elev", c("Elev (SE)", "Elev 95% CI"), sep = "_") %>%
-    separate("Slope", c("Slope (SE)", "Slope 95% CI"), sep = "_") %>%
-    separate("PercForMix", c("PercForMix (SE)", "PercForMix 95% CI"), sep = "_") %>%
-    separate("PercXGrass", c("PercXGrass (SE)", "PercXGrass 95% CI"), sep = "_") %>%
-    separate("PercXShrub", c("PercXShrub (SE)", "PercXShrub 95% CI"), sep = "_") %>%
-    separate("NearestRd", c("NearestRd (SE)", "NearestRd 95% CI"), sep = "_") %>%
-    separate("HumanMod", c("HumanMod (SE)", "HumanMod 95% CI"), sep = "_") %>%
-    arrange(match(Species, c("Bobcat", "Cougar", "Coyote", "Wolf"))) 
-  # arrange(match(Season, c("Summer", "Winter")))
   
-  results_hmm_wide <- rbind(results_hmm_wide_pred, results_hmm_wide_prey)
-  
-  write.csv(results_hmm_wide_trpr, paste0("./Outputs/HMM_Results_TrnsPrb_wide", Sys.Date(), ".csv"))
   
   #'  THIS ISN'T WORKING- CAN'T FIGURE OUT HOW TO EXTRACT BETA EFFECTS OF STUDY AREA & SEX ON STEP LENGTH
   #'  Function to extract 95%CI for covariate effects on state-dependent distributions
