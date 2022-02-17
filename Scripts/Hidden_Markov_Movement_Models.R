@@ -140,8 +140,8 @@
   #'  Function to create correlation matrix for all continuous covariates at once
   cov_correlation_OK <- function(dat) {
     covs <- dat %>%
-      dplyr::select(c("Dist2Road", "PercOpen", "TRI", "MD_RSF", "COUG_RSF", 
-                      "WOLF_RSF", "BOB_RSF", "COY_RSF")) #"NDVI",
+      dplyr::select(c("Dist2Road", "NDVI", "PercOpen", "TRI", "MD_RSF", "COUG_RSF", 
+                      "WOLF_RSF", "BOB_RSF", "COY_RSF")) 
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
@@ -159,8 +159,8 @@
   
   cov_correlation_NE <- function(dat) {
     covs <- dat %>%
-      dplyr::select(c("Dist2Road", "PercOpen", "TRI", "ELK_RSF", "WTD_RSF", 
-                      "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")) #"NDVI",
+      dplyr::select(c("Dist2Road", "NDVI", "PercOpen", "TRI", "ELK_RSF", "WTD_RSF", 
+                      "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")) 
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
@@ -202,17 +202,17 @@
   mean(coyData_wtr_OK$step, na.rm = T); sd(coyData_wtr_OK$step, na.rm = T)
   mean(coyData_smr_NE$step, na.rm = T); sd(coyData_smr_NE$step, na.rm = T)
   mean(coyData_wtr_NE$step, na.rm = T); sd(coyData_wtr_NE$step, na.rm = T)
-  #' plot(mdData_smr)  #250, 500, 250, 500
-  #' plot(elkData_smr)  #500, 1000, 500, 1000
-  #' plot(wtdData_smr)  #100, 500, 100, 500
-  #' plot(cougData_smr_OK)  #500, 1500, 500, 1500
-  #' plot(cougData_smr_NE)  #500, 1500, 500, 1500
-  #' plot(wolfData_smr_OK)  #500, 3000, 500, 3000
-  #' plot(wolfData_smr_NE)  #500, 3000, 500, 3000
-  #' plot(bobData_smr_OK)  #500, 1000, 500, 1000
-  #' plot(bobData_smr_NE)  #500, 1000, 500, 1000
-  #' plot(coyData_smr_OK)  #500, 2000, 500, 2000
-  #' plot(coyData_smr_NE)  #500, 2000, 500, 2000
+  #' plot(mdData_smr)  #250, 500, 250, 500 -- old values
+  #' plot(elkData_smr)  #500, 1000, 500, 1000 -- old values
+  #' plot(wtdData_smr)  #100, 500, 100, 500 -- old values
+  #' plot(cougData_smr_OK)  #500, 1500, 500, 1500 -- old values
+  #' plot(cougData_smr_NE)  #500, 1500, 500, 1500 -- old values
+  #' plot(wolfData_smr_OK)  #500, 3000, 500, 3000 -- old values
+  #' plot(wolfData_smr_NE)  #500, 3000, 500, 3000 -- old values
+  #' plot(bobData_smr_OK)  #500, 1000, 500, 1000 -- old values
+  #' plot(bobData_smr_NE)  #500, 1000, 500, 1000 -- old values
+  #' plot(coyData_smr_OK)  #500, 2000, 500, 2000 -- old values
+  #' plot(coyData_smr_NE)  #500, 2000, 500, 2000 -- old values
   
   
   #'  Visualize data to identify potential temporal autocorrelation
@@ -336,7 +336,8 @@
     
     #' Fit basic model with no covariates
     m1 <- fitHMM(data = Data, nbStates = 2, dist = dists, Par0 = Par0_m1,
-                 estAngleMean = list(angle = FALSE), stateNames = stateNames)
+                 estAngleMean = list(angle = FALSE), stateNames = stateNames,
+                 retryFits = 3)
 
     #' #'  Compute the most likely state sequence
     #' states <- viterbi(m1)
@@ -369,21 +370,22 @@
   ####  MULE DEER HMMS  ####     
   #'  Summer
   #'  Univariate models   
-  md_HMM_smr_null <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_null)
-  md_HMM_smr_time <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_time)
-  md_HMM_smr_TRI <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_TRI)
-  md_HMM_smr_Open <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_Open)
-  md_HMM_smr_Road <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_Road)
-  md_HMM_smr_COUG <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_coug)
-  md_HMM_smr_WOLF <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_wolf)
-  md_HMM_smr_BOB <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_bob)
-  md_HMM_smr_COY <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_coy)
+  md_HMM_smr_null <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_null)
+  md_HMM_smr_time <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_time)
+  md_HMM_smr_TRI <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_TRI)
+  md_HMM_smr_Open <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_Open)
+  md_HMM_smr_Road <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_Road)
+  md_HMM_smr_COUG <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_coug)
+  md_HMM_smr_WOLF <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_wolf)
+  md_HMM_smr_BOB <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_bob)
+  md_HMM_smr_COY <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_coy)
   #'  COY & TRI highly correlated (-0.75) so identify which is more supported
   AIC(md_HMM_smr_TRI, md_HMM_smr_COY)
   #'  Global model 
   #'  Excluding COY_RSF from md_HMM_smr based on univariate TRI model having lower AIC than COY model
   #'  Including cosinor parameters on DM step length to help with autocorrelation  
-  md_HMM_smr <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy)  
+  md_HMM_smr_wc <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy)
+  md_HMM_smr <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy)
   #'  QQplot of residuals
   plotPR(md_HMM_smr, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better? NOPE looks real bad on step length
@@ -394,20 +396,21 @@
   
   #'  Winter
   #'  Univariate models
-  md_HMM_wtr_time <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_time)
-  md_HMM_wtr_TRI <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_TRI)
-  md_HMM_wtr_Open <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_Open)
-  md_HMM_wtr_Road <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_Road)
-  md_HMM_wtr_Snow <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_Snow)
-  md_HMM_wtr_COUG <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_coug)
-  md_HMM_wtr_WOLF <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_wolf)
-  md_HMM_wtr_BOB <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_bob)
-  md_HMM_wtr_COY <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_coy)
+  md_HMM_wtr_time <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_time)
+  md_HMM_wtr_TRI <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_TRI)
+  md_HMM_wtr_Open <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_Open)
+  md_HMM_wtr_Road <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_Road)
+  md_HMM_wtr_Snow <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_Snow)
+  md_HMM_wtr_COUG <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_coug)
+  md_HMM_wtr_WOLF <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_wolf)
+  md_HMM_wtr_BOB <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_bob)
+  md_HMM_wtr_COY <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_coy)
   #'  Global model
   #'  Including cosinor parameters on DM step length to help with autocorrelation
   #'  Removed cosinor parameters on trans prob. due to poor convergence of SE and 
   #'  95% CI on Sin effect on Pr(2 -> 1) in univariate time model
-  md_HMM_wtr <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_wtr_all)
+  md_HMM_wtr_wc <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_wtr_all)
+  md_HMM_wtr <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_wtr_all)
   #'  QQplot of residuals
   plotPR(md_HMM_wtr, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -420,16 +423,17 @@
   ####  ELK HMMS  ####
   #'  Summer
   #'  Univariate models
-  elk_HMM_smr_time <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_time)
-  elk_HMM_smr_TRI <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_TRI)
-  elk_HMM_smr_Open <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_Open)
-  elk_HMM_smr_Road <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_Road)
-  elk_HMM_smr_COUG <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_coug)
-  elk_HMM_smr_WOLF <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_wolf)
-  elk_HMM_smr_BOB <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_bob)
-  elk_HMM_smr_COY <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_coy)
+  elk_HMM_smr_time <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_time)
+  elk_HMM_smr_TRI <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_TRI)
+  elk_HMM_smr_Open <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_Open)
+  elk_HMM_smr_Road <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_Road)
+  elk_HMM_smr_COUG <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coug)
+  elk_HMM_smr_WOLF <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_wolf)
+  elk_HMM_smr_BOB <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_bob)
+  elk_HMM_smr_COY <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy)
   #'  Global model
-  elk_HMM_smr <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all)
+  elk_HMM_smr_wc <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all)
+  elk_HMM_smr <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all)
   #'  QQplot of residuals
   plotPR(elk_HMM_smr, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -441,17 +445,18 @@
   
   #'  Winter
   #'  Univariate models
-  elk_HMM_wtr_time <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_time)
-  elk_HMM_wtr_TRI <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_TRI)
-  elk_HMM_wtr_Open <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_Open)
-  elk_HMM_wtr_Road <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_Road)
-  elk_HMM_wtr_Snow <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_Snow)
-  elk_HMM_wtr_COUG <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_coug)
-  elk_HMM_wtr_WOLF <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_wolf)
-  elk_HMM_wtr_BOB <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_bob)
-  elk_HMM_wtr_COY <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_coy)
+  elk_HMM_wtr_time <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_time)
+  elk_HMM_wtr_TRI <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_TRI)
+  elk_HMM_wtr_Open <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_Open)
+  elk_HMM_wtr_Road <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_Road)
+  elk_HMM_wtr_Snow <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_Snow)
+  elk_HMM_wtr_COUG <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coug)
+  elk_HMM_wtr_WOLF <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_wolf)
+  elk_HMM_wtr_BOB <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_bob)
+  elk_HMM_wtr_COY <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy)
   #'  Global model
-  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all)
+  elk_HMM_wtr_wc <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all)
+  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all)
   #'  QQplot of residuals
   plotPR(elk_HMM_wtr, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -465,16 +470,17 @@
   ####  WHITE-TAILED DEER HMMS  ####
   #'  Summer
   #'  Univariate models
-  wtd_HMM_smr_time <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_time)
-  wtd_HMM_smr_TRI <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_TRI)
-  wtd_HMM_smr_Open <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_Open)
-  wtd_HMM_smr_Road <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_Road)
-  wtd_HMM_smr_COUG <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_coug)
-  wtd_HMM_smr_WOLF <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_wolf)
-  wtd_HMM_smr_BOB <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_bob)
-  wtd_HMM_smr_COY <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_coy)
+  wtd_HMM_smr_time <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_time)
+  wtd_HMM_smr_TRI <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_TRI)
+  wtd_HMM_smr_Open <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_Open)
+  wtd_HMM_smr_Road <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_Road)
+  wtd_HMM_smr_COUG <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_coug)
+  wtd_HMM_smr_WOLF <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_wolf)
+  wtd_HMM_smr_BOB <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_bob)
+  wtd_HMM_smr_COY <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_coy)
   #'  Global model
-  wtd_HMM_smr <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_smr_all)
+  wtd_HMM_smr_wc <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_smr_all)
+  wtd_HMM_smr <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_smr_all)
   #'  QQplot of residuals
   plotPR(wtd_HMM_smr, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -486,17 +492,18 @@
   
   #'  Winter
   #'  Univariate models
-  wtd_HMM_wtr_time <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_time)
-  wtd_HMM_wtr_TRI <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_TRI)
-  wtd_HMM_wtr_Open <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_Open)
-  wtd_HMM_wtr_Road <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_Road)
-  wtd_HMM_wtr_Snow <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_Snow)
-  wtd_HMM_wtr_COUG <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_coug)
-  wtd_HMM_wtr_WOLF <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_wolf)
-  wtd_HMM_wtr_BOB <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_bob)
-  wtd_HMM_wtr_COY <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_coy)
+  wtd_HMM_wtr_time <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_time)
+  wtd_HMM_wtr_TRI <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_TRI)
+  wtd_HMM_wtr_Open <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_Open)
+  wtd_HMM_wtr_Road <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_Road)
+  wtd_HMM_wtr_Snow <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_Snow)
+  wtd_HMM_wtr_COUG <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_coug)
+  wtd_HMM_wtr_WOLF <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_wolf)
+  wtd_HMM_wtr_BOB <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_bob)
+  wtd_HMM_wtr_COY <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_coy)
   #'  Global model
   wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_wtr_all)
+  wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_wtr_all)
   #'  QQplot of residuals
   plotPR(wtd_HMM_wtr, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -510,13 +517,14 @@
   ####  COUGAR HMMS  ####       
   #'  Okanogan Summer
   #'  Univariate models
-  coug_HMM_smr_OK_time <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_time)
-  coug_HMM_smr_OK_TRI <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_TRI)
-  coug_HMM_smr_OK_Open <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Open)
-  coug_HMM_smr_OK_Road <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Road)
-  coug_HMM_smr_OK_MD <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_md)
+  coug_HMM_smr_OK_time <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_time)
+  coug_HMM_smr_OK_TRI <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_TRI)
+  coug_HMM_smr_OK_Open <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Open)
+  coug_HMM_smr_OK_Road <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Road)
+  coug_HMM_smr_OK_MD <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_md)
   #'  Global model
-  coug_HMM_smr_OK <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_smr_OK)
+  coug_HMM_smr_OK_wc <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_smr_OK)
+  coug_HMM_smr_OK <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_smr_OK)
   #'  QQplot of residuals
   plotPR(coug_HMM_smr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -528,17 +536,18 @@
   
   #'  Okanogan Winter
   #'  Univariate models
-  coug_HMM_wtr_OK_time <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_time)
-  coug_HMM_wtr_OK_TRI <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_TRI)
-  coug_HMM_wtr_OK_Open <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Open)
-  coug_HMM_wtr_OK_Road <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Road)
-  coug_HMM_wtr_OK_Snow <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Snow)
-  coug_HMM_wtr_OK_MD <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_md)
+  coug_HMM_wtr_OK_time <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_time)
+  coug_HMM_wtr_OK_TRI <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_TRI)
+  coug_HMM_wtr_OK_Open <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Open)
+  coug_HMM_wtr_OK_Road <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Road)
+  coug_HMM_wtr_OK_Snow <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Snow)
+  coug_HMM_wtr_OK_MD <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_md)
   #'  MD & TRI highly correlated (0.76) so identify which is more supported
   AIC(coug_HMM_wtr_OK_TRI, coug_HMM_wtr_OK_Open, coug_HMM_wtr_OK_MD)
   #'  Global model   
   #'  Exluding XXX from coug_HMM_wtr_OK model based on univariate XXX model having lower AIC than XXX model
-  coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK)
+  coug_HMM_wtr_OK_wc <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK)
+  coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK)
   #'  QQplot of residuals
   plotPR(coug_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -550,14 +559,15 @@
   
   #'  Northeast Summer
   #'  Univariate models
-  coug_HMM_smr_NE_time <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_time)
-  coug_HMM_smr_NE_TRI <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_TRI)
-  coug_HMM_smr_NE_Open <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Open)
-  coug_HMM_smr_NE_Road <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Road)
-  coug_HMM_smr_NE_ELK <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_elk)
-  coug_HMM_smr_NE_WTD <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtd)
+  coug_HMM_smr_NE_time <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_time)
+  coug_HMM_smr_NE_TRI <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_TRI)
+  coug_HMM_smr_NE_Open <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Open)
+  coug_HMM_smr_NE_Road <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Road)
+  coug_HMM_smr_NE_ELK <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_elk)
+  coug_HMM_smr_NE_WTD <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtd)
   #'  Global model
-  coug_HMM_smr_NE <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_smr_NE)
+  coug_HMM_smr_NE_wc <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_smr_NE)
+  coug_HMM_smr_NE <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_smr_NE)
   #'  QQplot of residuals
   plotPR(coug_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -569,15 +579,16 @@
   
   #'  Northeast Winter
   #'  Univariate models
-  coug_HMM_wtr_time <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_time)
-  coug_HMM_wtr_TRI <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_TRI)
-  coug_HMM_wtr_Open <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Open)
-  coug_HMM_wtr_Road <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Road)
-  coug_HMM_wtr_Snow <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_Snow)
-  coug_HMM_wtr_ELK <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_elk)
-  coug_HMM_wtr_WTD <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtd)
+  coug_HMM_wtr_time <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_time)
+  coug_HMM_wtr_TRI <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_TRI)
+  coug_HMM_wtr_Open <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Open)
+  coug_HMM_wtr_Road <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Road)
+  coug_HMM_wtr_Snow <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Snow)
+  coug_HMM_wtr_ELK <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_elk)
+  coug_HMM_wtr_WTD <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtd)
   #'  Global model
-  coug_HMM_wtr_NE <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_NE)
+  coug_HMM_wtr_NE_wc <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_NE)
+  coug_HMM_wtr_NE <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_NE)
   #'  QQplot of residuals
   plotPR(coug_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -591,13 +602,14 @@
   ####  WOLF HMMS  ####
   #'  Okanogan Summer
   #'  Univariate models
-  wolf_HMM_smr_OK_time <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_time)
-  wolf_HMM_smr_OK_TRI <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_TRI)
-  wolf_HMM_smr_OK_Open <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Open)
-  wolf_HMM_smr_OK_Road <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Road)
-  wolf_HMM_smr_OK_MD <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_md)
+  wolf_HMM_smr_OK_time <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time)
+  wolf_HMM_smr_OK_TRI <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI)
+  wolf_HMM_smr_OK_Open <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open)
+  wolf_HMM_smr_OK_Road <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road)
+  wolf_HMM_smr_OK_MD <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_md)
   #'  Global model
-  wolf_HMM_smr_OK <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_OK)
+  wolf_HMM_smr_OK_wc <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_OK)
+  wolf_HMM_smr_OK <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_smr_OK)
   #'  QQplot of residuals
   plotPR(wolf_HMM_smr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -609,14 +621,15 @@
   
   #'  Okanogan Winter
   #'  Univariate models
-  wolf_HMM_wtr_OK_time <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_time)
-  wolf_HMM_wtr_OK_TRI <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_TRI)
-  wolf_HMM_wtr_OK_Open <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Open)
-  wolf_HMM_wtr_OK_Road <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Road)
-  wolf_HMM_wtr_OK_Snow <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Snow)
-  wolf_HMM_wtr_OK_MD <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_md)
+  wolf_HMM_wtr_OK_time <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time)
+  wolf_HMM_wtr_OK_TRI <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI)
+  wolf_HMM_wtr_OK_Open <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open)
+  wolf_HMM_wtr_OK_Road <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road)
+  wolf_HMM_wtr_OK_Snow <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Snow)
+  wolf_HMM_wtr_OK_MD <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_md)
   #'  Global model
-  wolf_HMM_wtr_OK <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_OK)
+  wolf_HMM_wtr_OK_wc <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_OK)
+  wolf_HMM_wtr_OK <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_OK)
   #'  QQplot of residuals
   plotPR(wolf_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -628,14 +641,15 @@
   
   #'  Northeast Summer
   #'  Univariate models
-  wolf_HMM_smr_NE_time <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_time)
-  wolf_HMM_smr_NE_TRI <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_TRI)
-  wolf_HMM_smr_NE_Open <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Open)
-  wolf_HMM_smr_NE_Road <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Road)
-  wolf_HMM_smr_NE_ELK <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_elk)
-  wolf_HMM_smr_NE_WTD <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtd)
+  wolf_HMM_smr_NE_time <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time)
+  wolf_HMM_smr_NE_TRI <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI)
+  wolf_HMM_smr_NE_Open <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open)
+  wolf_HMM_smr_NE_Road <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road)
+  wolf_HMM_smr_NE_ELK <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_elk)
+  wolf_HMM_smr_NE_WTD <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd)
   #'  Global model
-  wolf_HMM_smr_NE <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_NE)
+  wolf_HMM_smr_NE_wc <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_NE)
+  wolf_HMM_smr_NE <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_smr_NE)
   #'  QQplot of residuals
   plotPR(wolf_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -647,15 +661,16 @@
   
   #'  Northeast Winter
   #'  Univariate models
-  wolf_HMM_wtr_NE_time <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_time)
-  wolf_HMM_wtr_NE_TRI <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_TRI)
-  wolf_HMM_wtr_NE_Open <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Open)
-  wolf_HMM_wtr_NE_Road <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Road)
-  wolf_HMM_wtr_NE_Snow <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_Snow)
-  wolf_HMM_wtr_NE_ELK <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_elk)
-  wolf_HMM_wtr_NE_WTD <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtd)
+  wolf_HMM_wtr_NE_time <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time)
+  wolf_HMM_wtr_NE_TRI <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI)
+  wolf_HMM_wtr_NE_Open <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open)
+  wolf_HMM_wtr_NE_Road <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road)
+  wolf_HMM_wtr_NE_Snow <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Snow)
+  wolf_HMM_wtr_NE_ELK <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_elk)
+  wolf_HMM_wtr_NE_WTD <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd)
   #'  Global model
-  wolf_HMM_wtr_NE <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_NE)
+  wolf_HMM_wtr_NE_wc <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_NE)
+  wolf_HMM_wtr_NE <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_NE)
   #'  QQplot of residuals
   plotPR(wolf_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -669,13 +684,14 @@
   ####  BOBCAT HMMS  ####
   #'  Okanogan Summer
   #'  Univariate models
-  bob_HMM_smr_OK_time <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_time)
-  bob_HMM_smr_OK_TRI <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_TRI)
-  bob_HMM_smr_OK_Open <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_Open)
-  bob_HMM_smr_OK_Road <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_Road)
-  bob_HMM_smr_OK_MD <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_md)
+  bob_HMM_smr_OK_time <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_time)
+  bob_HMM_smr_OK_TRI <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_TRI)
+  bob_HMM_smr_OK_Open <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Open)
+  bob_HMM_smr_OK_Road <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Road)
+  bob_HMM_smr_OK_MD <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_md)
   #'  Global model
-  bob_HMM_smr_OK <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_OK)
+  bob_HMM_smr_OK_wc <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_OK)
+  bob_HMM_smr_OK <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_smr_OK)
   #'  QQplot of residuals
   plotPR(bob_HMM_smr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -687,14 +703,15 @@
   
   #'  Okanogan Winter
   #'  Univariate models
-  bob_HMM_wtr_OK_time <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_time)
-  bob_HMM_wtr_OK_TRI <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_TRI)
-  bob_HMM_wtr_OK_Open <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_Open)
-  bob_HMM_wtr_OK_Road <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_Road)
-  bob_HMM_wtr_OK_Snow <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_Snow)
-  bob_HMM_wtr_OK_MD <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_md)
+  bob_HMM_wtr_OK_time <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_time)
+  bob_HMM_wtr_OK_TRI <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_TRI)
+  bob_HMM_wtr_OK_Open <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Open)
+  bob_HMM_wtr_OK_Road <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Road)
+  bob_HMM_wtr_OK_Snow <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Snow)
+  bob_HMM_wtr_OK_MD <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_md)
   #'  Global model
-  bob_HMM_wtr_OK <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_OK)
+  bob_HMM_wtr_OK_wc <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_OK)
+  bob_HMM_wtr_OK <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtr_OK)
   #'  QQplot of residuals
   plotPR(bob_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -706,14 +723,15 @@
   
   #'  Northeast Summer
   #'  Univariate models
-  bob_HMM_smr_NE_time <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_time)
-  bob_HMM_smr_NE_TRI <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_TRI)
-  bob_HMM_smr_NE_Open <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_Open)
-  bob_HMM_smr_NE_Road <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_Road)
-  bob_HMM_smr_NE_ELK <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_elk)
-  bob_HMM_smr_NE_WTD <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtd)
+  bob_HMM_smr_NE_time <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_time)
+  bob_HMM_smr_NE_TRI <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_TRI)
+  bob_HMM_smr_NE_Open <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_Open)
+  bob_HMM_smr_NE_Road <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_Road)
+  bob_HMM_smr_NE_ELK <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_elk)
+  bob_HMM_smr_NE_WTD <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtd)
   #'  Global model
-  bob_HMM_smr_NE <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_NE)
+  bob_HMM_smr_NE_wc <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_NE)
+  bob_HMM_smr_NE <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_smr_NE)
   #'  QQplot of residuals
   plotPR(bob_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -725,15 +743,16 @@
   
   #'  Northeast Winter
   #'  Univariate models
-  bob_HMM_wtr_NE_time <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_time)
-  bob_HMM_wtr_NE_TRI <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_TRI)
-  bob_HMM_wtr_NE_Open <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_Open)
-  bob_HMM_wtr_NE_Road <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_Road)
-  bob_HMM_wtr_NE_Snow <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_Snow)
-  bob_HMM_wtr_NE_ELK <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_elk)
-  bob_HMM_wtr_NE_WTD <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtd)
+  bob_HMM_wtr_NE_time <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_time)
+  bob_HMM_wtr_NE_TRI <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_TRI)
+  bob_HMM_wtr_NE_Open <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_Open)
+  bob_HMM_wtr_NE_Road <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_Road)
+  bob_HMM_wtr_NE_Snow <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_Snow)
+  bob_HMM_wtr_NE_ELK <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_elk)
+  bob_HMM_wtr_NE_WTD <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtd)
   #'  Global model
-  bob_HMM_wtr_NE <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_NE)
+  bob_HMM_wtr_NE_wc <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_NE)
+  bob_HMM_wtr_NE <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtr_NE)
   #'  QQplot of residuals
   plotPR(bob_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -747,13 +766,14 @@
   ####  COYOTE HMMS  ####   
   #'  Okanogan Summer
   #'  Univariate models
-  coy_HMM_smr_OK_time <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_time)
-  coy_HMM_smr_OK_TRI <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_TRI)
-  coy_HMM_smr_OK_Open <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_Open)
-  coy_HMM_smr_OK_Road <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_Road)
-  coy_HMM_smr_OK_MD <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_md)
+  coy_HMM_smr_OK_time <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_time)
+  coy_HMM_smr_OK_TRI <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_TRI)
+  coy_HMM_smr_OK_Open <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_Open)
+  coy_HMM_smr_OK_Road <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_Road)
+  coy_HMM_smr_OK_MD <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_md)
   #'  Global model
-  coy_HMM_smr_OK <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_smr_OK)
+  coy_HMM_smr_OK_wc <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_smr_OK)
+  coy_HMM_smr_OK <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_smr_OK)
   #'  QQplot of residuals
   plotPR(coy_HMM_smr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -765,17 +785,18 @@
   
   #'  Okanogan Winter
   #'  Univariate models
-  coy_HMM_wtr_OK_time <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_time)
-  coy_HMM_wtr_OK_TRI <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_TRI)
-  coy_HMM_wtr_OK_Open <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_Open)
-  coy_HMM_wtr_OK_Road <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_Road)
-  coy_HMM_wtr_OK_Snow <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_Snow)
-  coy_HMM_wtr_OK_MD <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_md)
+  coy_HMM_wtr_OK_time <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_time)
+  coy_HMM_wtr_OK_TRI <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_TRI)
+  coy_HMM_wtr_OK_Open <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_Open)
+  coy_HMM_wtr_OK_Road <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_Road)
+  coy_HMM_wtr_OK_Snow <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_Snow)
+  coy_HMM_wtr_OK_MD <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_md)
   #'  MD & TRI highly correlated (0.71) so identify which is more supported
   AIC(coy_HMM_wtr_OK_TRI, coy_HMM_wtr_OK_Open, coy_HMM_wtr_OK_MD)
   #'  Global model 
   #'  Exluding XXX from coy_HMM_wtr_OK model based on univariate XXX model having lower AIC than XXX model  
-  coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_OK)
+  coy_HMM_wtr_OK_wc <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_OK)
+  coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK)
   #'  QQplot of residuals
   plotPR(coy_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -787,14 +808,15 @@
   
   #'  Northeast Summer
   #'  Univariate models
-  coy_HMM_smr_NE_time <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_time)
-  coy_HMM_smr_NE_TRI <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_TRI)
-  coy_HMM_smr_NE_Open <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_Open)
-  coy_HMM_smr_NE_Road <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_Road)
-  coy_HMM_smr_NE_ELK <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_elk)
-  coy_HMM_smr_NE_WTD <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtd)
+  coy_HMM_smr_NE_time <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_time)
+  coy_HMM_smr_NE_TRI <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_TRI)
+  coy_HMM_smr_NE_Open <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_Open)
+  coy_HMM_smr_NE_Road <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_Road)
+  coy_HMM_smr_NE_ELK <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_elk)
+  coy_HMM_smr_NE_WTD <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtd)
   #'  Global model
-  coy_HMM_smr_NE <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_smr_NE)
+  coy_HMM_smr_NE_wc <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_smr_NE)
+  coy_HMM_smr_NE <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_smr_NE)
   #'  QQplot of residuals
   plotPR(coy_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -806,15 +828,16 @@
   
   #'  Northeast Winter
   #'  Univariate models
-  coy_HMM_wtr_NE_time <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_time)
-  coy_HMM_wtr_NE_TRI <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_TRI)
-  coy_HMM_wtr_NE_Open <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_Open)
-  coy_HMM_wtr_NE_Road <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_Road)
-  coy_HMM_wtr_NE_Snow <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_Snow)
-  coy_HMM_wtr_NE_ELK <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_elk)
-  coy_HMM_wtr_NE_WTD <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtd)
+  coy_HMM_wtr_NE_time <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_time)
+  coy_HMM_wtr_NE_TRI <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_TRI)
+  coy_HMM_wtr_NE_Open <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_Open)
+  coy_HMM_wtr_NE_Road <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_Road)
+  coy_HMM_wtr_NE_Snow <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_Snow)
+  coy_HMM_wtr_NE_ELK <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_elk)
+  coy_HMM_wtr_NE_WTD <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtd)
   #'  Global model
-  coy_HMM_wtr_NE <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_NE)
+  coy_HMM_wtr_NE_wc <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_NE)
+  coy_HMM_wtr_NE <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_NE)
   #'  QQplot of residuals
   plotPR(coy_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -832,12 +855,37 @@
                          wolf_HMM_smr_NE, wolf_HMM_wtr_NE, bob_HMM_smr_OK, 
                          bob_HMM_wtr_OK, bob_HMM_smr_NE, bob_HMM_wtr_NE, 
                          coy_HMM_smr_OK, coy_HMM_wtr_OK, coy_HMM_smr_NE, coy_HMM_wtr_NE)
-  save(spp_HMM_output, file = paste0("./Outputs/spp_HMM_output_", Sys.Date(), ".RData"))
+  save(spp_HMM_output, file = paste0("./Outputs/HMM_output/spp_HMM_output_", Sys.Date(), ".RData"))
   
 
   ####  Summarize Results  ####
-  load("./Outputs/spp_HMM_output_2022-02-13.RData")
+  load("./Outputs/HMM_output/spp_HMM_output_2022-02-13.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-02-10.RData")
 
+  #'  Review model output
+  print(spp_HMM_output[[1]]) # md_HMM_smr
+  print(spp_HMM_output[[2]]) # md_HMM_wtr
+  print(spp_HMM_output[[3]]) # elk_HMM_smr
+  print(spp_HMM_output[[4]]) # elk_HMM_wtr
+  print(spp_HMM_output[[5]]) # wtd_HMM_smr
+  print(spp_HMM_output[[6]]) # wtr_HMM_wtr
+  print(spp_HMM_output[[7]]) # coug_HMM_smr_OK
+  print(spp_HMM_output[[8]]) # coug_HMM_wtr_OK
+  print(spp_HMM_output[[9]]) # coug_HMM_smr_NE
+  print(spp_HMM_output[[10]]) # coug_HMM_wtr_NE
+  print(spp_HMM_output[[11]]) # wolf_HMM_smr_OK
+  print(spp_HMM_output[[12]]) # wolf_HMM_wtr_OK
+  print(spp_HMM_output[[13]]) # wolf_HMM_smr_NE
+  print(spp_HMM_output[[14]]) # wolf_HMM_wtr_NE
+  print(spp_HMM_output[[15]]) # bob_HMM_smr_OK
+  print(spp_HMM_output[[16]]) # bob_HMM_wtr_OK
+  print(spp_HMM_output[[17]]) # bob_HMM_smr_NE
+  print(spp_HMM_output[[18]]) # bob_HMM_wtr_NE
+  print(spp_HMM_output[[19]]) # coy_HMM_smr_OK
+  print(spp_HMM_output[[20]]) # coy_HMM_wtr_OK
+  print(spp_HMM_output[[21]]) # coy_HMM_smr_NE
+  print(spp_HMM_output[[22]]) # coy_HMM_wtr_NE
+  
   
   #'  Function to report transition probability coefficients in a table
   rounddig <- 2
@@ -929,7 +977,7 @@
   #'  Spread results so the coefficient effects are easier to compare between 
   #'  transition probabilities and across species
   #'  Prey HMM results
-  results_hmm_wide_trpr <- results_hmm_trpr %>%  
+  results_hmm_wide_TransPr_prey <- results_hmm_TransPr_prey %>%  
     # dplyr::select(-z) %>%
     mutate(
       # SE = round(SE, 2),
@@ -951,19 +999,13 @@
     separate("WOLF_RSF", c("Pr(Wolf) (SE)", "Pr(Wolf) 95% CI"), sep = "_") %>%
     separate("BOB_RSF", c("Pr(Bobcat) (SE)", "Pr(Bobcat) 95% CI"), sep = "_") %>%
     separate("COY_RSF", c("Pr(Coyote) (SE)", "Pr(Coyote) 95% CI"), sep = "_") %>%
-    # mutate(
-    #   AreaOK = rep("NA", nrow(.)),
-    #   AreaCI = rep("NA", nrow(.))
-    # ) %>%
-    # relocate(AreaOK, .before = "Elev (SE)") %>%
-    # relocate(AreaCI, .before = "Elev (SE)") %>%
     arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer")))
-  # names(results_hmm_wide)[names(results_hmm_wide) == "AreaOK"] <- "AreaOK (SE)"
-  # names(results_hmm_wide)[names(results_hmm_wide) == "AreaCI"] <- "AreaOK 95% CI"
-  write.csv(results_hmm_wide_TransPr_prey, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_wide", Sys.Date(), ".csv"))
+
+  
+  # write.csv(results_hmm_wide_TransPr_prey, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_wide", Sys.Date(), ".csv"))
   
   #'  Predators HMM results
-  results_hmm_wide_pred <- results_hmm_pred %>% 
+  results_hmm_wide_TransPr_pred <- results_hmm_TransPr_pred %>% 
     # dplyr::select(-z) %>%
     mutate(
       # SE = round(SE, 2),
@@ -987,7 +1029,7 @@
     arrange(match(Species, c("Bobcat", "Cougar", "Coyote", "Wolf"))) 
   # arrange(match(Season, c("Summer", "Winter")))
   
-  write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
+  # write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
   
   
   ####  Plot Stationary-State Probabilities  ####
@@ -1071,23 +1113,32 @@
   stay_coy_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[22]])
   
   
+  #'  Create polar plots to visualize turning angles
+  ggplot(hmm_data[[1]], aes(x = angle)) +
+    geom_histogram(binwidth = 0.5, boundary = -7.5) +
+    coord_polar() +
+    scale_x_continuous(limits = c(-pi, pi))
   
-  #' #'  Function to extract most likely state sequence for all locations based on
-  #' #'  the Viterbi algorithm and the fitted HMM
-  #' #'  MAKE SURE YOU KNOW WHICH TRANSITION FORMULA INFORMED THESE CLASSIFICATIONS
-  #' loc_states <- function(mod, locs) {
-  #'   #'  Decode most likely state for each observation
-  #'   states <- viterbi(mod)
-  #'   #'  Append state classification to location data
-  #'   dat <- cbind(locs, states)
-  #'   
-  #'   #'  Print derived percentage of time spent in each state
-  #'   print(table(states)/nrow(locs))
-  #'   
-  #'   return(dat)
-  #' }
-  #' #'  Run fitted HMMs and location data through function
-  #' md_state_smr <- loc_states(md_HMM_smr, mdData_smr)
+  
+  
+  
+  
+  #'  Function to extract most likely state sequence for all locations based on
+  #'  the Viterbi algorithm and the fitted HMM
+  #'  MAKE SURE YOU KNOW WHICH TRANSITION FORMULA INFORMED THESE CLASSIFICATIONS
+  loc_states <- function(mod, locs) {
+    #'  Decode most likely state for each observation
+    states <- viterbi(mod)
+    #'  Append state classification to location data
+    dat <- cbind(locs, states)
+
+    #'  Print derived percentage of time spent in each state
+    print(table(states)/nrow(locs))
+
+    return(dat)
+  }
+  #'  Run fitted HMMs and location data through function
+  md_state_smr <- loc_states(spp_HMM_output[[1]], hmm_data[[1]])
   #' md_state_wtr <- loc_states(md_HMM_wtr, mdData_wtr)
   #' elk_state_smr <- loc_states(elk_HMM_smr, elkData_smr)
   #' elk_state_wtr <- loc_states(elk_HMM_wtr, elkData_wtr)
