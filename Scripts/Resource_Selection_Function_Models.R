@@ -830,7 +830,24 @@
   coy_wtr_RSFstack <- rename_raster(coy_wtr_RSFraster)
 
   
-  #'  Plot & Save
+  #'  SAVE!
+  writeRaster(md_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/md_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(md_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/md_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(elk_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/elk_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(elk_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/elk_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(wtd_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wtd_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(wtd_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wtd_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(coug_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coug_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(coug_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coug_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(wolf_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wolf_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(wolf_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wolf_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(bob_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/bob_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(bob_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/bob_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(coy_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coy_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  writeRaster(coy_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coy_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
+  
+  
+  #'  Plot & Save a pdf
   pdf(file = "./Outputs/RSF_Maps_nonbinned.pdf")
   plot(md_smr_RSFstack[[1]], main = "Summer Mule Deer Predicted RSF (2018)"); plot(OK.SA, add = T)
   plot(md_wtr_RSFstack[[1]], main = "Winter Mule Deer Predicted RSF (2018)"); plot(OK.SA, add = T)
@@ -848,30 +865,13 @@
   plot(coy_wtr_RSFstack[[1]], main = "Winter Coyote Predicted RSF (2018)"); plot(OK.SA, add = T); plot(NE.SA, add = T)
   dev.off()
   
-
-  #'  SAVE!
-  writeRaster(md_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/md_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(md_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/md_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(elk_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/elk_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(elk_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/elk_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(wtd_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wtd_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(wtd_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wtd_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(coug_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coug_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(coug_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coug_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(wolf_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wolf_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(wolf_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/wolf_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(bob_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/bob_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(bob_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/bob_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(coy_smr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coy_smr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
-  writeRaster(coy_wtr_RSFstack, filename = "./Shapefiles/Predicted_RSFs/coy_wtr_RSFstack.tif", bylayer = FALSE, format = 'GTiff', overwrite = TRUE)
   
-
   #' ####  Summary tables  ####
   #'  Save model outputs in table format
   #'  Function to save parameter estimates & p-values
   #'  use coef(mod) to look at random effects estimates
   rounddig <- 2
-
+  
   rsf_out <- function(mod, spp, season){
     betas <- mod@beta
     se <- sqrt(diag(vcov(mod)))
@@ -903,7 +903,7 @@
   bob_wtr_rsf_out <- rsf_out(RSF_BOB_list[[2]], "Bobcat", "Winter")
   coy_smr_rsf_out <- rsf_out(RSF_COY_list[[1]], "Coyote", "Summer")
   coy_wtr_rsf_out <- rsf_out(RSF_COY_list[[2]], "Coyote", "Winter")
-
+  
   #'  Merge into larger data frames for easy comparison
   summer_rsf <- rbind(md_smr_rsf_out, elk_smr_rsf_out, wtd_smr_rsf_out, coug_smr_rsf_out, 
                       wolf_smr_rsf_out, bob_smr_rsf_out, coy_smr_rsf_out)
@@ -912,8 +912,8 @@
   rsf_results <- rbind(summer_rsf, winter_rsf) %>%
     arrange(Species)
   colnames(rsf_results) <- c("Species", "Season", "Parameter", "Estimate", "SE", "z", "Pval")
-
-
+  
+  
   #'  Spread this out so the coefficient effects are easier to compare across species
   rsf_results_wide <- rsf_results %>%
     dplyr::select(-z) %>%
@@ -942,11 +942,311 @@
     separate("Landcover_typeWetland", c("Landcover_typeWetland (SE)", "Landcover_typeWetland Pval"), sep = "_") %>%
     arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer", "Cougar", "Wolf", "Bobcat", "Coyote"))) %>%
     arrange(match(Season, c("Summer", "Winter")))
-
-
+  
+  
   #'  Save!
   write.csv(rsf_results, paste0("./Outputs/RSF_output/RSF_Results_", Sys.Date(), ".csv"))  
   write.csv(rsf_results_wide, paste0("./Outputs/RSF_output/RSF_Results_wide_", Sys.Date(), ".csv"))
   
+  
+  
+  ####  Figures for manuscript  ####
+  #'  Study areas need to be sf objects for ggplot2
+  OK.SA <- st_read("./Shapefiles/fwdstudyareamaps", layer = "METHOW_SA") %>%
+    st_transform(crs = sa_proj) 
+  OK.SA$NAME <- "Okanogan"
+  NE.SA <- st_read("./Shapefiles/fwdstudyareamaps", layer = "NE_SA") %>%
+    st_transform(crs = sa_proj)
+  NE.SA$NAME <- "Northeast"
+  
+  #'  Read in 1st band in raster stacks for each species
+  md_smr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/md_smr_RSFstack.tif", band = 1) 
+  md_wtr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/md_wtr_RSFstack.tif", band = 1) 
+  elk_smr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/elk_smr_RSFstack.tif", band = 1) 
+  elk_wtr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/elk_wtr_RSFstack.tif", band = 1) 
+  wtd_smr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/wtd_smr_RSFstack.tif", band = 1) 
+  wtd_wtr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/wtd_wtr_RSFstack.tif", band = 1) 
+  coug_smr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/coug_smr_RSFstack.tif", band = 1) 
+  coug_wtr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/coug_wtr_RSFstack.tif", band = 1) 
+  wolf_smr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/wolf_smr_RSFstack.tif", band = 1) 
+  wolf_wtr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/wolf_wtr_RSFstack.tif", band = 1) 
+  bob_smr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/bob_smr_RSFstack.tif", band = 1) 
+  bob_wtr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/bob_wtr_RSFstack.tif", band = 1) 
+  coy_smr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/coy_smr_RSFstack.tif", band = 1) 
+  coy_wtr_rsf <- raster("./Shapefiles/Predicted_RSFs/Predicted_RSF_Jan25_nonbinned/coy_wtr_RSFstack.tif", band = 1) 
 
+  #'  Function to format raster so I can plot it with ggplot2
+  pts_for_plotting <- function(r) {
+    #' #'  Reduce the resolution so it plots easier
+    #' low_res <- aggregate(r, fact = 10)
+    #'  Coerce raster to SpatialPointsDataFrame
+    pts <- rasterToPoints(r, spatial = TRUE)
+    #'  Coerce spdf to typical data frame
+    df <- as.data.frame(pts)
+    return(df)
+  }
+  md_smr_df <- pts_for_plotting(md_smr_rsf)
+  md_wtr_df <- pts_for_plotting(md_wtr_rsf)
+  elk_smr_df <- pts_for_plotting(elk_smr_rsf)
+  elk_wtr_df <- pts_for_plotting(elk_wtr_rsf)
+  wtd_smr_df <- pts_for_plotting(wtd_smr_rsf)
+  wtd_wtr_df <- pts_for_plotting(wtd_wtr_rsf)
+  coug_smr_df <- pts_for_plotting(coug_smr_rsf)
+  coug_wtr_df <- pts_for_plotting(coug_wtr_rsf)
+  wolf_smr_df <- pts_for_plotting(wolf_smr_rsf)
+  wolf_wtr_df <- pts_for_plotting(wolf_wtr_rsf)
+  bob_smr_df <- pts_for_plotting(bob_smr_rsf)
+  bob_wtr_df <- pts_for_plotting(bob_wtr_rsf)
+  coy_smr_df <- pts_for_plotting(coy_smr_rsf)
+  coy_wtr_df <- pts_for_plotting(coy_wtr_rsf)
+  
+
+  #'  Plot each species and season
+  md_smr_fig <- ggplot() +
+    geom_raster(data = md_smr_df, aes(x = x, y = y, fill = md_smr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(12, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Mule Deer, Summer 2018") 
+  md_wtr_fig <- ggplot() +
+    geom_tile(data = md_wtr_df, aes(x = x, y = y, fill = md_wtr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Mule Deer, Winter 2018 - 2019") 
+  elk_smr_fig <- ggplot() +
+    geom_tile(data = elk_smr_df, aes(x = x, y = y, fill = elk_smr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Elk, Summer 2018") 
+  elk_wtr_fig <- ggplot() +
+    geom_tile(data = elk_wtr_df, aes(x = x, y = y, fill = elk_wtr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Elk, Winter 2018 - 2019")
+  wtd_smr_fig <- ggplot() +
+    geom_tile(data = wtd_smr_df, aes(x = x, y = y, fill = wtd_smr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for White-tailed Deer, Summer 2018") 
+  wtd_wtr_fig <- ggplot() +
+    geom_tile(data = wtd_wtr_df, aes(x = x, y = y, fill = wtd_wtr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for White-tailed Deer, Winter 2018 - 2019")
+  coug_smr_fig <- ggplot() +
+    geom_tile(data = coug_smr_df, aes(x = x, y = y, fill = coug_smr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Cougar, Summer 2018") 
+  coug_wtr_fig <- ggplot() +
+    geom_tile(data = coug_wtr_df, aes(x = x, y = y, fill = coug_wtr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Cougar, Winter 2018 - 2019")
+  wolf_smr_fig <- ggplot() +
+    geom_tile(data = wolf_smr_df, aes(x = x, y = y, fill = wolf_smr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Wolf, Summer 2018") 
+  wolf_wtr_fig <- ggplot() +
+    geom_tile(data = wolf_wtr_df, aes(x = x, y = y, fill = wolf_wtr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Wolf, Winter 2018 - 2019")
+  bob_smr_fig <- ggplot() +
+    geom_tile(data = bob_smr_df, aes(x = x, y = y, fill = bob_smr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Bobcat, Summer 2018") 
+  bob_wtr_fig <- ggplot() +
+    geom_tile(data = bob_wtr_df, aes(x = x, y = y, fill = bob_wtr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Bobcat, Winter 2018 - 2019")
+  coy_smr_fig <- ggplot() +
+    geom_tile(data = coy_smr_df, aes(x = x, y = y, fill = coy_smr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Coyote, Summer 2018") 
+  coy_wtr_fig <- ggplot() +
+    geom_tile(data = coy_wtr_df, aes(x = x, y = y, fill = coy_wtr_RSFstack)) + 
+    scale_fill_gradientn(colours = terrain.colors(15, rev = TRUE), na.value = "white", limits = c(0, 1)) + 
+    #'  Add study area outlines for reference
+    geom_sf(data = OK.SA, fill = NA, color = "grey20", size = 1) +
+    geom_sf(data = NE.SA, fill = NA, color = "grey20", size = 1) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    #'  Change legend, axis, & main titles
+    xlab("Longitude") + ylab("Latitude") +
+    labs(fill = 'Relative \nProbability \nof Selection')  +
+    ggtitle("Resource Selection for Coyote, Winter 2018 - 2019")
+  
+  
+  
+  ggsave("./Outputs/Figures for ms/md_smr_rsf_2018.png", md_smr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/md_wtr_rsf_2018.png", md_wtr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/elk_smr_rsf_2018.png", elk_smr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/elk_wtr_rsf_2018.png", elk_wtr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/wtd_smr_rsf_2018.png", wtd_smr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/wtd_wtr_rsf_2018.png", wtd_wtr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/coug_smr_rsf_2018.png", coug_smr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/coug_wtr_rsf_2018.png", coug_wtr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/wolf_smr_rsf_2018.png", wolf_smr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/wolf_wtr_rsf_2018.png", wolf_wtr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/bob_smr_rsf_2018.png", bob_smr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/bob_wtr_rsf_2018.png", bob_wtr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/coy_smr_rsf_2018.png", coy_smr_fig, width = 14.3, units = "in")
+  ggsave("./Outputs/Figures for ms/coy_wtr_rsf_2018.png", coy_wtr_fig, width = 14.3, units = "in")
+  
+  
+  #'  Quick summary stats for publication
+  n_locs <- function(locs, spp) {
+    #'  Calculate the number of used locations
+    used <- locs[locs$Used == 1,]
+    smr_used <- used[used$Season == "Summer18" | used$Season == "Summer19" | used$Season == "Summer20",]
+    wtr_used <- used[used$Season == "Winter1819" | used$Season == "Winter1920" | used$Season == "Winter2021",]
+    n_smr <- nrow(smr_used); n_wtr <- nrow(wtr_used)
+    n_locs <- c(n_smr, n_wtr)
+    n_locs <- as.data.frame(n_locs)
+    #'  Calculate the number of unique individuals included in seasonal analyses
+    smr_ind <- length(unique(smr_used$ID))
+    wtr_ind <- length(unique(wtr_used$ID))
+    n_ind <- c(smr_ind, wtr_ind)
+    n_ind <- as.data.frame(n_ind)
+    #'  Create single data frame with summary info
+    Species <- spp
+    Season <- c("Summer", "Winter")
+    summary_dat <- cbind(Species, Season, n_ind, n_locs)
+    return(summary_dat)
+  }
+  md_n_locs <- n_locs(md_dat_all, spp = "Mule Deer")
+  elk_n_locs <- n_locs(elk_dat_all, spp = "Elk")
+  wtd_n_locs <- n_locs(wtd_dat_all, spp = "White-tailed Deer")
+  coug_n_locs <- n_locs(coug_dat_all, spp = "Cougar")
+  wolf_n_locs <- n_locs(wolf_dat_all, spp = "Wolf")
+  bob_n_locs <- n_locs(bob_dat_all, spp = "Bobcat")
+  coy_n_locs <- n_locs(coy_dat_all, spp = "Coyote")
+  
+  #'  Make summary table of data that went into RSFs
+  collar_table <- rbind(bob_n_locs, coug_n_locs, coy_n_locs, elk_n_locs, md_n_locs, 
+                        wtd_n_locs, wolf_n_locs)
+  colnames(collar_table) <- c("Species", "Season", "Individuals (n)", "Used locations (n)")
+  
+  write.csv(collar_table, file = "./Outputs/RSF_output/RSF_Summary_Table_Collars.csv")
+  
+  #'  How many UNIQUE individuals were collared total?
+  md_all <- length(unique(md_dat_all$ID))
+  elk_all <- length(unique(elk_dat_all$ID))
+  wtd_all <- length(unique(wtd_dat_all$ID))
+  coug_all <- length(unique(coug_dat_all$ID))
+  wolf_all <- length(unique(wolf_dat_all$ID))
+  bob_all <- length(unique(bob_dat_all$ID))
+  coy_all <- length(unique(coy_dat_all$ID))
+  (unique_ind <- sum(md_all, elk_all, wtd_all, coug_all, wolf_all, bob_all, coy_all))
+  
+  #'  Average number of locations per season
+  (mu_smr <- mean(collar_table$`Used locations (n)`[collar_table$Season == "Summer"]))
+  (se_smr <- sd(collar_table$`Used locations (n)`[collar_table$Season == "Summer"])/sqrt(7))
+  (mu_wtr <- mean(collar_table$`Used locations (n)`[collar_table$Season == "Winter"]))
+  (se_wtr <- sd(collar_table$`Used locations (n)`[collar_table$Season == "Winter"])/sqrt(7))
+  
+  
   
