@@ -28,7 +28,8 @@
   
   #'  Source cleaned telemetry data
   # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-11-16.RData") # includes some deer data with low fix rate, esp. the white-tail data
-  load("./Data/Collar_Truncating&Filtering_noDispMig_2021-12-02.RData")
+  # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-12-02.RData") # accidently excludes some coyote and bobcat collars
+  load("./Data/Collar_Truncating&Filtering_noDispMig_2022-02-18.RData")
   
   #' I chose to use relocation data that excludes obvious dispersal events that
   #' take carnivores away from extent of study areas and relocation data during
@@ -290,11 +291,11 @@
                      BOB_smr_track_NE, BOB_wtr_track_NE, COY_smr_track_OK, COY_wtr_track_OK,
                      COY_smr_track_NE, COY_wtr_track_NE)
   #save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks.RData")
-  save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific.RData")
+  save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_updated021822.RData")
   
   
   #'  Load tracks
-  load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific.RData")
+  load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_updated021822.RData")
   
   
   
@@ -407,7 +408,7 @@
   save(crwOut_ALL, file  = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_", Sys.Date(), ".RData"))
   
   #'  Save workspace so I never need to rerun crawlWrap function again
-  # save.image(paste0("./Data/Collar_Movement_DataPrep_", Sys.Date(), ".RData"))
+  save.image(paste0("./Data/Collar_Movement_DataPrep_", Sys.Date(), ".RData"))
   
   
   ####  Run one species through without function  ####
@@ -504,4 +505,5 @@
   #'                     theta = theta, fixPar = fixPar, attempts = 100, 
   #'                     Time.name = "time", timeStep = "4 hours", coord = c("x", "y"))
   #' tst <- crwOut[[2]]  
+  
   
