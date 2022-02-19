@@ -125,6 +125,8 @@
   meso_skinny <- read.csv("meso_skinny 2021-11-12.csv") %>%  
     mutate(
       StudyArea = ifelse(grepl("NE", ID), "NE", "OK"),
+      Species = ifelse(Species == "BOB", "Bobcat", Species),
+      Species = ifelse(Species == "COY", "Coyote", Species),
       daytime = as.POSIXct(daytime, format = "%Y-%m-%d %H:%M:%S", tz = "UTC"),
       UTCdt = with_tz(daytime, "UTC"),
       Finaldt = with_tz(UTCdt, tzone = "Etc/GMT+8"),
@@ -478,7 +480,7 @@
   #  Save RData for easy transfer to other computers
   # save.image(paste0("./Data/Collar_Truncating&Filtering_", Sys.Date(), ".RData"))
   save.image(paste0("./Data/Collar_Truncating&Filtering_noDispersal_", Sys.Date(), ".RData"))
-  load("./Data/Collar_Truncating&Filtering_noDispersal_2021-12-07.RData")
+  load("./Data/Collar_Truncating&Filtering_noDispersal_2022-02-18.RData") #2021-12-07 missing some bobcats & coyotes
   
   
   ####  Remove locations associated with mule deer migration tracks  ####
