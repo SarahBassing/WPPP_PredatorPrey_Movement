@@ -46,12 +46,12 @@
   library(tidyverse)
   
   #'  Load crwOut animal location data for each species (takes a hot minute)
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-03.RData") #2021-12-08
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData") #2022-02-03 missing 3 bobcats, 2 coyotes
   
   #'  Read in previously extracted NDVI data from GEE
   #'  Note: NDVIsmr is for summer locs ONLY, NDVImax is for winter locs ONLY
-  load("./Outputs/Telemetry_covs/ee_NDVIsmr_list_2022-02-14.RData")
-  load("./Outputs/Telemetry_covs/ee_NDVImax_list_2022-02-14.RData")
+  load("./Outputs/Telemetry_covs/ee_NDVIsmr_list_2022-02-20.RData")
+  load("./Outputs/Telemetry_covs/ee_NDVImax_list_2022-02-20.RData")
   
   #'  Read in spatial data
   TRI <- rast("./Shapefiles/WA DEM rasters/WPPP_TRI.tif")
