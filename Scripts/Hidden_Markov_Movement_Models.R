@@ -25,8 +25,8 @@
   library(tidyverse)
 
   #'  Load crwOut & covaraite data
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-03.RData") 
-  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-02-14.RData") 
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData")    # 2022-02-03 missing some bobcats & coyotes
+  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-02-20.RData")  # 2022-02-14 missing some bobcats & coyotes
   
   
   #'  Merge datasets and create momentuHMMData object
