@@ -28,7 +28,7 @@
   
   #'  Source cleaned telemetry data
   # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-11-16.RData") # includes some deer data with low fix rate, esp. the white-tail data
-  # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-12-02.RData") # accidently excludes some coyote and bobcat collars
+  # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-12-02.RData") # accidentally excludes some coyote and bobcat collars
   load("./Data/Collar_Truncating&Filtering_noDispMig_2022-02-18.RData")
   
   #' I chose to use relocation data that excludes obvious dispersal events that
@@ -290,7 +290,7 @@
                      WOLF_smr_track_NE, WOLF_wtr_track_NE, BOB_smr_track_OK, BOB_wtr_track_OK,
                      BOB_smr_track_NE, BOB_wtr_track_NE, COY_smr_track_OK, COY_wtr_track_OK,
                      COY_smr_track_NE, COY_wtr_track_NE)
-  #save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks.RData")
+  # save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_updated021822.RData")
   save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_updated021822.RData")
   
   
