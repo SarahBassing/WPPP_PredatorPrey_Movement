@@ -32,7 +32,7 @@
   rgee::ee_Initialize(drive = T)  # ignore the Welcome to the Earth Engine client blurb
 
   #'  Load crwOut processed movement data
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-03.RData") #2021-12-08
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData") #2022-02-03 missing bobcats and coyote
 
   
   #'  Prepare telemetry data for ee
@@ -221,7 +221,7 @@
   
   save(ee_smr_NDVI_list, file = paste0("./Outputs/Telemetry_covs/ee_smr_NDVI_list_", Sys.Date(), ".RData"))
   
-  
+
   ####  Re-scale NDVI values  ####
   #'  ONLY RUN IF EXTRACTING NDVI DATA!
   #'  MODIS data are scaled by a factor of 0.0001 for ease of extraction (see 
