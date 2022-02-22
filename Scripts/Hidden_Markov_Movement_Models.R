@@ -253,6 +253,7 @@
   Par0_m1_coug <- list(step = c(100, 650, 100, 650, 0.01, 0.005), angle = c(0.1, 0.5))  
   Par0_m1_wolf <- list(step = c(100, 1600, 100, 1600), angle = c(0.1, 0.5))  
   Par0_m1_bob <- list(step = c(100, 470, 100, 580), angle = c(0.1, 0.5))  
+  Par0_m1_bob_zmass <- list(step = c(100, 470, 100, 580, 0.01, 0.005), angle = c(0.1, 0.5))
   Par0_m1_coy <- list(step = c(100, 850, 100, 850), angle = c(0.1, 0.5))  
   #'  Step arguments: report 2 means then the 2 SD for the two different states
   #'  Gamma distribution: mean & standard deviation of step lengths for each state
@@ -731,8 +732,8 @@
   bob_HMM_smr_NE_ELK <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_elk, fits = 1)
   bob_HMM_smr_NE_WTD <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
-  bob_HMM_smr_NE_wc <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 1)
-  bob_HMM_smr_NE <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 1)
+  bob_HMM_smr_NE_wc <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 3)
+  bob_HMM_smr_NE <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 3)
   #'  QQplot of residuals
   plotPR(bob_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -752,8 +753,8 @@
   bob_HMM_wtr_NE_ELK <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_elk, fits = 1)
   bob_HMM_wtr_NE_WTD <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
-  bob_HMM_wtr_NE_wc <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_NE, fits = 1)
-  bob_HMM_wtr_NE <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtr_NE, fits = 1)
+  bob_HMM_wtr_NE_wc <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob_zmass, DM_Zerotime, trans_formula_wtr_NE, fits = 1)
+  bob_HMM_wtr_NE <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob_zmass, DM_Zerotime, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(bob_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
