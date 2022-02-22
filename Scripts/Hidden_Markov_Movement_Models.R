@@ -247,10 +247,10 @@
   #'  Define initial parameters associated with each distribution & each state
   #'  Species-specific parameters based on viewing plotted data and mean step lengths
   #'  Providing value close to mean step length as "exploratory" mean & SD
-  Par0_m1_md <- list(step = c(100, 250, 100, 250, 0.01, 0.005), angle = c(0.1, 0.5))  #zero-mass params needed
-  Par0_m1_elk <- list(step = c(100, 450, 100, 450, 0.01, 0.005), angle = c(0.1, 0.5))  #zero-mass params needed
-  Par0_m1_wtd <- list(step = c(100, 260, 100, 260, 0.01, 0.005), angle = c(0.1, 0.5))  #zero-mass params needed
-  Par0_m1_coug <- list(step = c(100, 650, 100, 650, 0.01, 0.005), angle = c(0.1, 0.5))  #zero-mass params needed
+  Par0_m1_md <- list(step = c(100, 250, 100, 250, 0.01, 0.005), angle = c(0.1, 0.5))  
+  Par0_m1_elk <- list(step = c(100, 450, 100, 450, 0.01, 0.005), angle = c(0.1, 0.5))  
+  Par0_m1_wtd <- list(step = c(100, 260, 100, 260, 0.01, 0.005), angle = c(0.1, 0.5))  
+  Par0_m1_coug <- list(step = c(100, 650, 100, 650, 0.01, 0.005), angle = c(0.1, 0.5))  
   Par0_m1_wolf <- list(step = c(100, 1600, 100, 1600), angle = c(0.1, 0.5))  
   Par0_m1_bob <- list(step = c(100, 470, 100, 580), angle = c(0.1, 0.5))  
   Par0_m1_coy <- list(step = c(100, 850, 100, 850), angle = c(0.1, 0.5))  
@@ -258,8 +258,9 @@
   #'  Gamma distribution: mean & standard deviation of step lengths for each state
   #'  Michelot & Langrock 2019 recommend using same value for mean and SD per state
   #'  Wrapped Cauchy distribution: concentration of turning angles for each state
-  #'  Include zero-mass parameters when there are 0s in the data w/gamma, Weibull, etc. distributions
-  #'  e.g., zeromass0 <- c(0.1,0.05) # step zero-mass
+  #'  Include zero-mass parameters when there are 0s in the data w/gamma, Weibull, 
+  #'  etc. distributions, e.g., zeromass0 <- c(0.1,0.05) # step zero-mass
+  #'  Applies to mule deer, elk, white-tailed deer, and cougars
   
   #'  Label states
   stateNames <- c("encamped", "exploratory")
@@ -887,6 +888,173 @@
   print(spp_HMM_output[[22]]) # coy_HMM_wtr_NE
   
   
+  ####  State-Dependent Distributions  ####
+  #'  Function to report state-dependent distribution parameters, including zero-mass parameters
+  step_turn_parms_zmass <- function(mod, spp, season, area){ 
+    #'  Pull out turning angle parameters
+    step_out <- as.data.frame(mod$mle[[1]])
+    step_out$Species <- spp
+    step_out$Season <- season
+    step_out$StudyArea <- area
+    colnames(step_out) <- c("State1 Intercept_mu", "State1 Cos_mu", "State1 Sin_mu", 
+                            "State2 Intercept_mu", "State2 Cos_mu", "State2 Sin_mu",
+                            "State1 Intercept_sd", "State1 Cos_sd", "State1 Sin_sd", 
+                            "State2 Intercept_sd", "State2 Cos_sd", "State2 Sin_sd",
+                            "State1 Intercept_zmass", "State1 Cos_zmass", "State1 Sin_zmass", 
+                            "State2 Intercept_zmass", "State2 Cos_zmass", "State2 Sin_zmass", 
+                            "Species", "Season", "StudyArea")
+    #'  Wrangle parameters into an interpret-able table
+    step_table <- step_out %>%
+      pivot_longer(!c(Species, Season, StudyArea), names_to = "Parameter", values_to = "Estimate") %>%
+      separate(Parameter, c("State", "Parameter"), sep = " ") %>%
+      pivot_wider(names_from = "State", values_from = "Estimate") %>%
+      separate(Parameter, c("Coefficient", "Parameter"), sep = "_") %>%
+      pivot_wider(names_from = "Parameter", values_from = c("State1", "State2"))
+    #'  Create separate tables for state 1 & 2 parameters
+    state1 <- step_table[,1:7]
+    state1$State <- "Encamped"
+    colnames(state1) <- c("Species", "Season", "Study Area", "Coefficient", "Mean", "SD", "Zeromass", "State")
+    state2 <- step_table[,c(1:4,8:10)]
+    state2$State <- "Exploratory"
+    colnames(state2) <- c("Species", "Season", "Study Area", "Coefficient", "Mean", "SD", "Zeromass", "State")
+    #'  Merge into one single table of step length parameters
+    step_out_tbl <- rbind(state1, state2) %>%
+      relocate(State, .before = "Coefficient")
+
+    #'  Turning angles parameters
+    turn_out <- as.data.frame(mod$mle[[2]])
+    turn_out$Species <- spp
+    turn_out$Season <- season
+    turn_out$StudyArea <- area
+    turn_out_tbl <- turn_out %>%
+      relocate(Species, .before = "encamped") %>%
+      relocate(Season, .after = "Species") %>%
+      relocate(StudyArea, .after = "Season") %>%
+      rownames_to_column(var = "Parameter") %>%
+      relocate(Parameter, .after = "StudyArea") %>%
+      mutate(Parameter = ifelse(Parameter == "mean", "Mean", "Concentration"))
+    colnames(turn_out_tbl) <- c("Species", "Season", "Study Area", "Parameter", "Encamped", "Exploratory")
+      
+    #'  List parameter tables together
+    params_out <- list(step_out_tbl, turn_out_tbl)
+    return(params_out)
+
+  }
+  #'  Create parameter tables for species that included zero-mass parameters
+  md_smr_params <- step_turn_parms_zmass(spp_HMM_output[[1]], spp = "Mule Deer", season = "Summer", area = "Okanogan")
+  md_wtr_params <- step_turn_parms_zmass(spp_HMM_output[[2]], spp = "Mule Deer", season = "Winter", area = "Okanogan")
+  elk_smr_params <- step_turn_parms_zmass(spp_HMM_output[[3]], spp = "Elk", season = "Summer", area = "Northeast")
+  elk_wtr_params <- step_turn_parms_zmass(spp_HMM_output[[4]], spp = "Elk", season = "Winter", area = "Northeast")
+  wtd_smr_params <- step_turn_parms_zmass(spp_HMM_output[[5]], spp = "White-tailed Deer", season = "Summer", area = "Northeast")
+  wtd_wtr_params <- step_turn_parms_zmass(spp_HMM_output[[6]], spp = "White-tailed Deer", season = "Winter", area = "Northeast")
+  coug_smr_params_OK <- step_turn_parms_zmass(spp_HMM_output[[7]], spp = "Cougar", season = "Summer", area = "Okanogan")
+  coug_wtr_params_OK <- step_turn_parms_zmass(spp_HMM_output[[8]], spp = "Cougar", season = "Winter", area = "Okanogan")
+  coug_smr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[9]], spp = "Cougar", season = "Summer", area = "Northeast")
+  coug_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[10]], spp = "Cougar", season = "Winter", area = "Northeast")
+  
+  #'  Function to report state-dependent distribution parameters, excluding zero-mass parameters
+  step_turn_parms <- function(mod, spp, season, area){ 
+    #'  Pull out turning angle parameters
+    step_out <- as.data.frame(mod$mle[[1]])
+    step_out$Species <- spp
+    step_out$Season <- season
+    step_out$StudyArea <- area
+    colnames(step_out) <- c("State1 Intercept_mu", "State1 Cos_mu", "State1 Sin_mu", 
+                            "State2 Intercept_mu", "State2 Cos_mu", "State2 Sin_mu",
+                            "State1 Intercept_sd", "State1 Cos_sd", "State1 Sin_sd", 
+                            "State2 Intercept_sd", "State2 Cos_sd", "State2 Sin_sd",
+                            "Species", "Season", "StudyArea")
+    #'  Wrangle parameters into an interpret-able table
+    step_table <- step_out %>%
+      pivot_longer(!c(Species, Season, StudyArea), names_to = "Parameter", values_to = "Estimate") %>%
+      separate(Parameter, c("State", "Parameter"), sep = " ") %>%
+      pivot_wider(names_from = "State", values_from = "Estimate") %>%
+      separate(Parameter, c("Coefficient", "Parameter"), sep = "_") %>%
+      pivot_wider(names_from = "Parameter", values_from = c("State1", "State2"))
+    #'  Create separate tables for state 1 & 2 parameters
+    state1 <- step_table[,1:6]
+    state1$State <- "Encamped"
+    colnames(state1) <- c("Species", "Season", "Study Area", "Coefficient", "Mean", "SD", "State")
+    state2 <- step_table[,c(1:4,7:8)]
+    state2$State <- "Exploratory"
+    colnames(state2) <- c("Species", "Season", "Study Area", "Coefficient", "Mean", "SD", "State")
+    #'  Merge into one single table of step length parameters
+    step_out_tbl <- rbind(state1, state2) %>%
+      relocate(State, .before = "Coefficient") %>%
+      mutate(zmass = NA)
+    colnames(step_out_tbl) <- c("Species", "Season", "Study Area", "State", "Coefficient", 
+                                "Mean", "SD", "Zeromass")
+    
+    #'  Turning angles parameters
+    turn_out <- as.data.frame(mod$mle[[2]])
+    turn_out$Species <- spp
+    turn_out$Season <- season
+    turn_out$StudyArea <- area
+    turn_out_tbl <- turn_out %>%
+      relocate(Species, .before = "encamped") %>%
+      relocate(Season, .after = "Species") %>%
+      relocate(StudyArea, .after = "Season") %>%
+      rownames_to_column(var = "Parameter") %>%
+      relocate(Parameter, .after = "StudyArea") %>%
+      mutate(Parameter = ifelse(Parameter == "mean", "Mean", "Concentration"))
+    colnames(turn_out_tbl) <- c("Species", "Season", "Study Area", "Parameter", "Encamped", "Exploratory")
+    
+    #'  List parameter tables together
+    params_out <- list(step_out_tbl, turn_out_tbl)
+    return(params_out)
+    
+  }
+  #'  Create parameter tables for species that don't include zero-mass parameters
+  wolf_smr_params_OK <- step_turn_parms(spp_HMM_output[[11]], spp = "Wolf", season = "Summer", area = "Okanogan")
+  wolf_wtr_params_OK <- step_turn_parms(spp_HMM_output[[12]], spp = "Wolf", season = "Winter", area = "Okanogan")
+  wolf_smr_params_NE <- step_turn_parms(spp_HMM_output[[13]], spp = "Wolf", season = "Summer", area = "Northeast")
+  wolf_wtr_params_NE <- step_turn_parms(spp_HMM_output[[14]], spp = "Wolf", season = "Winter", area = "Northeast")
+  bob_smr_params_OK <- step_turn_parms(spp_HMM_output[[15]], spp = "Bobcat", season = "Summer", area = "Okanogan")
+  bob_wtr_params_OK <- step_turn_parms(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Okanogan")
+  bob_smr_params_NE <- step_turn_parms(spp_HMM_output[[17]], spp = "Bobcat", season = "Summer", area = "Northeast")
+  bob_wtr_params_NE <- step_turn_parms(spp_HMM_output[[18]], spp = "Bobcat", season = "Winter", area = "Northeast")
+  coy_smr_params_OK <- step_turn_parms(spp_HMM_output[[19]], spp = "Coyote", season = "Summer", area = "Okanogan")
+  coy_wtr_params_OK <- step_turn_parms(spp_HMM_output[[20]], spp = "Coyote", season = "Winter", area = "Okanogan")
+  coy_smr_params_NE <- step_turn_parms(spp_HMM_output[[21]], spp = "Coyote", season = "Summer", area = "Northeast")
+  coy_wtr_params_NE <- step_turn_parms(spp_HMM_output[[22]], spp = "Coyote", season = "Winter", area = "Northeast")
+  
+  #'  Make single giant table of all step length parameters
+  all_steps <- bind_rows(md_smr_params[[1]], md_wtr_params[[1]], elk_smr_params[[1]], 
+                         elk_wtr_params[[1]], wtd_smr_params[[1]], wtd_wtr_params[[1]],
+                         coug_smr_params_OK[[1]], coug_wtr_params_OK[[1]], 
+                         coug_smr_params_NE[[1]], coug_wtr_params_NE[[1]], 
+                         wolf_smr_params_OK[[1]], wolf_wtr_params_OK[[1]], 
+                         wolf_smr_params_NE[[1]], wolf_wtr_params_NE[[1]], 
+                         bob_smr_params_OK[[1]], bob_wtr_params_OK[[1]], 
+                         bob_smr_params_NE[[1]], bob_wtr_params_NE[[1]], 
+                         coy_smr_params_OK[[1]], coy_wtr_params_OK[[1]], 
+                         coy_smr_params_NE[[1]], coy_wtr_params_NE[[1]]) %>%
+    mutate(Mean = round(Mean, 2),
+           SD = round(SD, 2),
+           Zeromass = round(Zeromass, 2)) %>%
+    arrange(Species)
+  
+  #'  Make single giant table of all turning angles parameters
+  all_turns <- bind_rows(md_smr_params[[2]], md_wtr_params[[2]], elk_smr_params[[2]], 
+                         elk_wtr_params[[2]], wtd_smr_params[[2]], wtd_wtr_params[[2]],
+                         coug_smr_params_OK[[2]], coug_wtr_params_OK[[2]], 
+                         coug_smr_params_NE[[2]], coug_wtr_params_NE[[2]], 
+                         wolf_smr_params_OK[[2]], wolf_wtr_params_OK[[2]], 
+                         wolf_smr_params_NE[[2]], wolf_wtr_params_NE[[2]], 
+                         bob_smr_params_OK[[2]], bob_wtr_params_OK[[2]], 
+                         bob_smr_params_NE[[2]], bob_wtr_params_NE[[2]], 
+                         coy_smr_params_OK[[2]], coy_wtr_params_OK[[2]], 
+                         coy_smr_params_NE[[2]], coy_wtr_params_NE[[2]]) %>%
+    mutate(Encamped = round(Encamped, 2),
+           Exploratory = round(Exploratory, 2)) %>%
+    arrange(Species)
+  
+  write.csv(all_steps, paste0("./Outputs/HMM_output/HMM_Results_StepLength_", Sys.Date(), ".csv"))
+  write.csv(all_turns, paste0("./Outputs/HMM_output/HMM_Results_TurningAngle_", Sys.Date(), ".csv"))
+  
+  
+  
+  ####  Transition Probabilities  ####
   #'  Function to report transition probability coefficients in a table
   rounddig <- 2
   hmm_out <- function(mod, spp, season, area) {
@@ -1032,6 +1200,7 @@
   # write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
   
   
+  
   ####  Plot Stationary-State Probabilities  ####
   #'  Functions to extract stationary state probabilities & plot predicted responses
   stay_probs_prey <- function(hmmm) {
@@ -1122,10 +1291,9 @@
   
   
   
-  
+  ####  Viterbi Algorithm  ####
   #'  Function to extract most likely state sequence for all locations based on
   #'  the Viterbi algorithm and the fitted HMM
-  #'  MAKE SURE YOU KNOW WHICH TRANSITION FORMULA INFORMED THESE CLASSIFICATIONS
   loc_states <- function(mod, locs) {
     #'  Decode most likely state for each observation
     states <- viterbi(mod)
@@ -1184,101 +1352,7 @@
   stay_coug_wtr <- stay_probs(spp_HMM_output[[8]])
   
   
-  
-  
-  
-  #'  THIS ISN'T WORKING- CAN'T FIGURE OUT HOW TO EXTRACT BETA EFFECTS OF STUDY AREA & SEX ON STEP LENGTH
-  #'  Function to extract 95%CI for covariate effects on state-dependent distributions
-  #'  For species with ZeroMass functions (ungulates and cougars)
-  #' state_dist_zm <- function(hmmm) {
-  #'   #'  Calculate 95%CI on beta coefficients
-  #'   global_est <- CIbeta(hmmm, alpha = 0.95)
-  #'   #'  Grab names of each parameter
-  #'   rnames <- colnames(global_est[[1]][[1]])
-  #'   #'  Organize into a dataframe
-  #'   step_out <- as.data.frame(matrix(unlist(global_est[[1]]), ncol = 4))
-  #'   colnames(step_out) <- c("est", "se", "lower", "upper")
-  #'   row.names(step_out) <- rnames
-  #'   vrbls <- c("Intercept", "AreaOK", "SexM")  
-  #'   params <- rep(vrbls, 4)
-  #'   distp <- c("Mean1", "Mean2", "SD1", "SD2", "ZeroMass1", "ZeroMass2")
-  #'   dist_params <- rep(distp, each = 3) 
-  #'   step_out <- cbind(step_out, params)
-  #'   step_out <- cbind(step_out, dist_params)
-  #'   step_out <- step_out %>%
-  #'     mutate(
-  #'       params = as.factor(as.character(params)),
-  #'       dist_params = as.factor(as.character(dist_params))) %>%
-  #'     arrange(match(params, vrbls))
-  #'   
-  #'   return(step_out)
-  #' }
-  #' #'  Run each season and species-specific model through function
-  #' md_s1819_hmm <- state_dist_zm(md_HMM_smr)
 
-  #' #' Plot estimates and CIs for Pr(exploratory) at each time step
-  #' plot(trProbs$est[1,2,], type="l", ylim=c(0,1), ylab="Pr(exploratory)", xlab="t", col=c("#E69F00", "#56B4E9")[coy_HMM_smr$miSum$Par$states])
-  #' arrows(1:dim(trProbs$est)[3],
-  #'        trProbs$lower[1,2,],
-  #'        1:dim(trProbs$est)[3],
-  #'        trProbs$upper[1,2,],
-  #'        length=0.025, angle=90, code=3, col=c("#E69F00", "#56B4E9")[coy_HMM_smr$miSum$Par$states], lwd=1.3)
-  #' abline(h=0.5,lty=2)
-  #' 
-  #' # proportion of entire time series spent in each state
-  #' coy_HMM_smr$miSum$Par$timeInStates
-  #' 
-  #' # histograms of distance to water by state
-  #' par(mfrow=c(2,1))
-  #' hist(coy_HMM_smr$miSum$data$dist2sabie[which(coy_HMM_smr$miSum$Par$states==1)],main=stateNames[1],xlab="distance to water (m)")
-  #' hist(coy_HMM_smr$miSum$data$dist2sabie[which(coy_HMM_smr$miSum$Par$states==2)],main=stateNames[2],xlab="distance to water (m)")
-  
-  
-  
-  
-  #' #'  Testing with one species
-  #' #'  Create momentuHMMData object from crwData object and covariates
-  #' #'  Missing values due to sex missing from interpolated locations
-  #' coyData_wtr <- prepData(data = coyMerge_wtr,
-  #'                         covNames = c("Elev", "Slope", "HumanMod", "NearstRd",
-  #'                                      "PercForMix", "PercXGrass", "PercXShrub",
-  #'                                      "Year", "Sex", "Area"))
-  #' # mdData <- prepData(data = mdMerge, covNames = c("Elev", "Slope", "HumanMod", "Sex", "Season"))
-  #' # wolfData <- prepData(data = wolfMerge, covNames = c("Elev", "Slope", "HumanMod", "dist2road")) #"Sex"
-  #' # wolfData <- prepData(data = crwOut_WOLF, covNames = "Sex") #covNames = c("Elev", "Slope", "HumanMod")
-  #' 
-  #' #' Fit basic model with no covariates
-  #' m1 <- fitHMM(data = coyData_wtr, nbStates = 2, dist = dist, Par0 = Par0_m1_coy_wtr,
-  #'              estAngleMean = list(angle = FALSE), stateNames = stateNames)
-  #' #'  Compute the most likely state sequence
-  #' states <- viterbi(m1)
-  #' #'  Derive percentage of time spent in each state
-  #' table(states)/nrow(coyData_wtr)
-  #' 
-  #' #'  Adding complexity
-  #' formula <- ~Elev + Slope + PercForMix + PercXGrass + PercXShrub + NearstRd + HumanMod + Area + Sex  # Remove Area + Sex if using ungulate data!
-  #' #'  Consider putting sex (predators only) or season on the state-dependent distributions
-  #' #'  I could see season influencing step length at the very least
-  #' DM <- list(step = list(mean = ~Season, sd = ~Season), angle = list(concentration = ~1)) # zeromass = ~Season
-  #' 
-  #' #'  Get new initial parameter values based on nested m1 model
-  #' Par0_m2_coy_wtr <- getPar0(model = m1, formula = formula)  #DM = DM
-  #' Par0_m2_coy_wtr$beta  # should the covariate betas be 0.00000???
-  #' 
-  #' #'  Fit model with all covariates on transition probability
-  #' m2 <- fitHMM(data = coyData_wtr, nbStates = 2, dist = dist, Par0 = Par0_m2_coy_wtr$Par,
-  #'              beta0 = Par0_m2_coy_wtr$beta, stateNames = stateNames, formula = formula, DM = DM) #
-  #' states <- viterbi(m2)
-  #' table(states)/nrow(coyData_wtr)
-  #' 
-  #' #'  Model selection with AIC
-  #' AIC(m1,m2)
-  #' 
-  #' Par0_m3_coy_wtr <- getPar0(model = m2, formula = formula)
-  #' Par0_m3_coy_wtr$beta
-  #' 
-  #' #'  Plot model- this will plot every individual track....
-  #' # plot(m1, plotCI = TRUE)
   
 
 
