@@ -132,7 +132,7 @@
                    bobData_wtr_NE, coyData_smr_OK, coyData_wtr_OK, coyData_smr_NE, 
                    coyData_wtr_NE)
   save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_", Sys.Date(), ".RData"))
-  
+  load("./Outputs/Telemetry_covs/crwOut_ALL_wCovs_2022-02-22.RData")
   
   
   #'  Correlation Matrix
@@ -315,6 +315,7 @@
   #'  For predator species
   trans_formula_smr_OK <- ~TRI + PercOpen + Dist2Road + MD_RSF 
   trans_formula_wtr_OK <- ~TRI + PercOpen + Dist2Road + SnowCover + MD_RSF 
+  trans_formula_wtr_OK_noMD <- ~TRI + PercOpen + Dist2Road + SnowCover
   trans_formula_smr_NE <- ~TRI + PercOpen + Dist2Road + ELK_RSF + WTD_RSF 
   trans_formula_wtr_NE <- ~TRI + PercOpen + Dist2Road + SnowCover + ELK_RSF + WTD_RSF 
   
@@ -548,8 +549,8 @@
   AIC(coug_HMM_wtr_OK_TRI, coug_HMM_wtr_OK_Open, coug_HMM_wtr_OK_MD)
   #'  Global model   
   #'  Excluding MD from coug_HMM_wtr_OK model based on univariate TRI model having lower AIC than MD model
-  coug_HMM_wtr_OK_wc <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK, fits = 1)
-  coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK, fits = 1)
+  coug_HMM_wtr_OK_wc <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
   #'  QQplot of residuals
   plotPR(coug_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -732,7 +733,11 @@
   bob_HMM_smr_NE_ELK <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_elk, fits = 1)
   bob_HMM_smr_NE_WTD <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
+  #'  THIS ONE CONVERGES BUT THE ESTIMATES SEEM WEIRD
   bob_HMM_smr_NE_wc <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 3)
+  #'  CURRENTLY THROWING AN ERROR
+  #'  Error in nlm(nLogLike, optPar, nbStates, newformula, p$bounds, p$parSize,  : 
+  #'  non-finite value supplied by 'nlm'
   bob_HMM_smr_NE <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 3)
   #'  QQplot of residuals
   plotPR(bob_HMM_smr_NE, lag.max = NULL, ncores = 4)
@@ -797,8 +802,8 @@
   AIC(coy_HMM_wtr_OK_TRI, coy_HMM_wtr_OK_Open, coy_HMM_wtr_OK_MD)
   #'  Global model 
   #'  Excluding MD from coy_HMM_wtr_OK model to be consistent with other models where TRI & MD are correlated  
-  coy_HMM_wtr_OK_wc <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_OK, fits = 1)
-  coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK, fits = 1)
+  coy_HMM_wtr_OK_wc <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
+  coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -851,18 +856,20 @@
   
   
   #'  Save model results
+  #'  NOTE THE ORDER IS NOW CHANGED SINCE DROPPING SOME BOBCAT MODELS (No BOB smr NE [[17]])
   spp_HMM_output <- list(md_HMM_smr, md_HMM_wtr, elk_HMM_smr, elk_HMM_wtr, wtd_HMM_smr, 
                          wtd_HMM_wtr, coug_HMM_smr_OK, coug_HMM_wtr_OK, coug_HMM_smr_NE, 
                          coug_HMM_wtr_NE, wolf_HMM_smr_OK, wolf_HMM_wtr_OK, 
                          wolf_HMM_smr_NE, wolf_HMM_wtr_NE, bob_HMM_smr_OK, 
-                         bob_HMM_wtr_OK, bob_HMM_smr_NE, bob_HMM_wtr_NE, 
-                         coy_HMM_smr_OK, coy_HMM_wtr_OK, coy_HMM_smr_NE, coy_HMM_wtr_NE)
+                         bob_HMM_wtr_OK, #bob_HMM_smr_NE, 
+                         bob_HMM_wtr_NE, coy_HMM_smr_OK, coy_HMM_wtr_OK, 
+                         coy_HMM_smr_NE, coy_HMM_wtr_NE)
   save(spp_HMM_output, file = paste0("./Outputs/HMM_output/spp_HMM_output_", Sys.Date(), ".RData"))
   
 
   ####  Summarize Results  ####
-  load("./Outputs/HMM_output/spp_HMM_output_2022-02-13.RData")
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-02-10.RData")
+  load("./Outputs/HMM_output/spp_HMM_output_2022-02-22.RData")
+  load("./Outputs/Telemetry_covs/crwOut_ALL_wCovs_2022-02-22.RData")
 
   #'  Review model output
   print(spp_HMM_output[[1]]) # md_HMM_smr
@@ -881,12 +888,13 @@
   print(spp_HMM_output[[14]]) # wolf_HMM_wtr_NE
   print(spp_HMM_output[[15]]) # bob_HMM_smr_OK
   print(spp_HMM_output[[16]]) # bob_HMM_wtr_OK
-  print(spp_HMM_output[[17]]) # bob_HMM_smr_NE
-  print(spp_HMM_output[[18]]) # bob_HMM_wtr_NE
-  print(spp_HMM_output[[19]]) # coy_HMM_smr_OK
-  print(spp_HMM_output[[20]]) # coy_HMM_wtr_OK
-  print(spp_HMM_output[[21]]) # coy_HMM_smr_NE
-  print(spp_HMM_output[[22]]) # coy_HMM_wtr_NE
+  #'  List order changes here if using 2022-02-22 data
+  # print(spp_HMM_output[[17]]) # bob_HMM_smr_NE
+  print(spp_HMM_output[[17]]) # bob_HMM_wtr_NE
+  print(spp_HMM_output[[18]]) # coy_HMM_smr_OK
+  print(spp_HMM_output[[19]]) # coy_HMM_wtr_OK
+  print(spp_HMM_output[[20]]) # coy_HMM_smr_NE
+  print(spp_HMM_output[[21]]) # coy_HMM_wtr_NE
   
   
   ####  State-Dependent Distributions  ####
@@ -952,6 +960,9 @@
   coug_wtr_params_OK <- step_turn_parms_zmass(spp_HMM_output[[8]], spp = "Cougar", season = "Winter", area = "Okanogan")
   coug_smr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[9]], spp = "Cougar", season = "Summer", area = "Northeast")
   coug_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[10]], spp = "Cougar", season = "Winter", area = "Northeast")
+  #' And NE winter bobcat- note the list order is a little wonky starting here
+  bob_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[17]], spp = "Bobcat", season = "Winter", area = "Northeast")
+  
   
   #'  Function to report state-dependent distribution parameters, excluding zero-mass parameters
   step_turn_parms <- function(mod, spp, season, area){ 
@@ -1012,12 +1023,12 @@
   wolf_wtr_params_NE <- step_turn_parms(spp_HMM_output[[14]], spp = "Wolf", season = "Winter", area = "Northeast")
   bob_smr_params_OK <- step_turn_parms(spp_HMM_output[[15]], spp = "Bobcat", season = "Summer", area = "Okanogan")
   bob_wtr_params_OK <- step_turn_parms(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Okanogan")
-  bob_smr_params_NE <- step_turn_parms(spp_HMM_output[[17]], spp = "Bobcat", season = "Summer", area = "Northeast")
-  bob_wtr_params_NE <- step_turn_parms(spp_HMM_output[[18]], spp = "Bobcat", season = "Winter", area = "Northeast")
-  coy_smr_params_OK <- step_turn_parms(spp_HMM_output[[19]], spp = "Coyote", season = "Summer", area = "Okanogan")
-  coy_wtr_params_OK <- step_turn_parms(spp_HMM_output[[20]], spp = "Coyote", season = "Winter", area = "Okanogan")
-  coy_smr_params_NE <- step_turn_parms(spp_HMM_output[[21]], spp = "Coyote", season = "Summer", area = "Northeast")
-  coy_wtr_params_NE <- step_turn_parms(spp_HMM_output[[22]], spp = "Coyote", season = "Winter", area = "Northeast")
+  #'  Note the list order gets a little wonky here b/c excluding NE summer bob for now
+  # bob_smr_params_NE <- step_turn_parms(spp_HMM_output[[17]], spp = "Bobcat", season = "Summer", area = "Northeast")
+  coy_smr_params_OK <- step_turn_parms(spp_HMM_output[[18]], spp = "Coyote", season = "Summer", area = "Okanogan")
+  coy_wtr_params_OK <- step_turn_parms(spp_HMM_output[[19]], spp = "Coyote", season = "Winter", area = "Okanogan")
+  coy_smr_params_NE <- step_turn_parms(spp_HMM_output[[20]], spp = "Coyote", season = "Summer", area = "Northeast")
+  coy_wtr_params_NE <- step_turn_parms(spp_HMM_output[[21]], spp = "Coyote", season = "Winter", area = "Northeast")
   
   #'  Make single giant table of all step length parameters
   all_steps <- bind_rows(md_smr_params[[1]], md_wtr_params[[1]], elk_smr_params[[1]], 
@@ -1027,7 +1038,8 @@
                          wolf_smr_params_OK[[1]], wolf_wtr_params_OK[[1]], 
                          wolf_smr_params_NE[[1]], wolf_wtr_params_NE[[1]], 
                          bob_smr_params_OK[[1]], bob_wtr_params_OK[[1]], 
-                         bob_smr_params_NE[[1]], bob_wtr_params_NE[[1]], 
+                         # bob_smr_params_NE[[1]], 
+                         bob_wtr_params_NE[[1]], 
                          coy_smr_params_OK[[1]], coy_wtr_params_OK[[1]], 
                          coy_smr_params_NE[[1]], coy_wtr_params_NE[[1]]) %>%
     mutate(Mean = round(Mean, 2),
@@ -1043,7 +1055,8 @@
                          wolf_smr_params_OK[[2]], wolf_wtr_params_OK[[2]], 
                          wolf_smr_params_NE[[2]], wolf_wtr_params_NE[[2]], 
                          bob_smr_params_OK[[2]], bob_wtr_params_OK[[2]], 
-                         bob_smr_params_NE[[2]], bob_wtr_params_NE[[2]], 
+                         # bob_smr_params_NE[[2]], 
+                         bob_wtr_params_NE[[2]], 
                          coy_smr_params_OK[[2]], coy_wtr_params_OK[[2]], 
                          coy_smr_params_NE[[2]], coy_wtr_params_NE[[2]]) %>%
     mutate(Encamped = round(Encamped, 2),
@@ -1119,19 +1132,20 @@
   wolf_wtr_hmm_NE <- hmm_out(spp_HMM_output[[14]], "Wolf", "Winter", "Northeast") #wolf_HMM_wtr_NE
   bob_smr_hmm_OK <- hmm_out(spp_HMM_output[[15]], "Bobcat", "Summer", "Okanogan") #bob_HMM_smr_OK
   bob_wtr_hmm_OK <- hmm_out(spp_HMM_output[[16]], "Bobcat", "Winter", "Okanogan") #bob_HMM_wtr_OK
-  bob_smr_hmm_NE <- hmm_out(spp_HMM_output[[17]], "Bobcat", "Summer", "Northeast") #bob_HMM_smr_NE
-  bob_wtr_hmm_NE <- hmm_out(spp_HMM_output[[18]], "Bobcat", "Winter", "Northeast") #bob_HMM_wtr_NE
-  coy_smr_hmm_OK <- hmm_out(spp_HMM_output[[19]], "Coyote", "Summer", "Okanogan") #coy_HMM_smr_OK
-  coy_wtr_hmm_OK <- hmm_out(spp_HMM_output[[20]], "Coyote", "Winter", "Okanogan") #coy_HMM_wtr_OK
-  coy_smr_hmm_NE <- hmm_out(spp_HMM_output[[21]], "Coyote", "Summer", "Northeast") #coy_HMM_smr_NE
-  coy_wtr_hmm_NE <- hmm_out(spp_HMM_output[[22]], "Coyote", "Winter", "Northeast") #coy_HMM_wtr_NE
+  #'  Note the list order gets wonky here b/c excluding bob smr NE right now
+  # bob_smr_hmm_NE <- hmm_out(spp_HMM_output[[17]], "Bobcat", "Summer", "Northeast") #bob_HMM_smr_NE
+  bob_wtr_hmm_NE <- hmm_out(spp_HMM_output[[17]], "Bobcat", "Winter", "Northeast") #bob_HMM_wtr_NE
+  coy_smr_hmm_OK <- hmm_out(spp_HMM_output[[18]], "Coyote", "Summer", "Okanogan") #coy_HMM_smr_OK
+  coy_wtr_hmm_OK <- hmm_out(spp_HMM_output[[19]], "Coyote", "Winter", "Okanogan") #coy_HMM_wtr_OK
+  coy_smr_hmm_NE <- hmm_out(spp_HMM_output[[20]], "Coyote", "Summer", "Northeast") #coy_HMM_smr_NE
+  coy_wtr_hmm_NE <- hmm_out(spp_HMM_output[[21]], "Coyote", "Winter", "Northeast") #coy_HMM_wtr_NE
   
   #'  Gather prey and predator results to put into a single results table
   results_hmm_TransPr <- rbind(md_smr_hmm, md_wtr_hmm, elk_smr_hmm, elk_wtr_hmm, 
                                wtd_smr_hmm, wtd_wtr_hmm, coug_smr_hmm_OK, coug_wtr_hmm_OK, 
                                coug_smr_hmm_NE, coug_wtr_hmm_NE, wolf_smr_hmm_OK, 
                                wolf_wtr_hmm_OK, wolf_smr_hmm_NE, wolf_wtr_hmm_NE, 
-                               bob_smr_hmm_OK, bob_wtr_hmm_OK, bob_smr_hmm_NE, 
+                               bob_smr_hmm_OK, bob_wtr_hmm_OK, #bob_smr_hmm_NE, 
                                bob_wtr_hmm_NE, coy_smr_hmm_OK, coy_wtr_hmm_OK, 
                                coy_smr_hmm_NE, coy_wtr_hmm_NE)
   results_hmm_TransPr_prey <- rbind(md_smr_hmm, md_wtr_hmm, elk_smr_hmm, elk_wtr_hmm, 
@@ -1139,9 +1153,9 @@
   results_hmm_TransPr_pred <- rbind(coug_smr_hmm_OK, coug_wtr_hmm_OK, coug_smr_hmm_NE, 
                                     coug_wtr_hmm_NE, wolf_smr_hmm_OK, wolf_wtr_hmm_OK, 
                                     wolf_smr_hmm_NE, wolf_wtr_hmm_NE, bob_smr_hmm_OK, 
-                                    bob_wtr_hmm_OK, bob_smr_hmm_NE, bob_wtr_hmm_NE, 
-                                    coy_smr_hmm_OK, coy_wtr_hmm_OK, coy_smr_hmm_NE, 
-                                    coy_wtr_hmm_NE)
+                                    bob_wtr_hmm_OK, #bob_smr_hmm_NE, 
+                                    bob_wtr_hmm_NE, coy_smr_hmm_OK, coy_wtr_hmm_OK, 
+                                    coy_smr_hmm_NE, coy_wtr_hmm_NE)
   
   #'  Spread results so the coefficient effects are easier to compare between 
   #'  transition probabilities and across species
@@ -1199,6 +1213,93 @@
   # arrange(match(Season, c("Summer", "Winter")))
   
   # write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
+  
+  
+  #'  Back-transform HMM results to the real (natural) scale of the data
+  #'  Extract parameter means, SE, and 95% CI on natural scale when all covariates
+  #'  are held at their mean value (i.e., 0 since covariates are scaled)
+  backtrans_params <- function(mod) {
+    
+    #'  CIreal has 4 lists: [[1]] step length params, [[2]] turning angle concentration,
+    #'  [[3]] transition probabilities, and [[4]] initial state for each track.
+    #'  Step length includes 4-6 lists depending on if zeromass parameter is needed
+    #'  Lists 1:3 are State1 mean, sd, zeromass, 4:6 are State2 mean, sd, zeromass
+    #'  Transition probability included 4 lists: [[1]] staying in State1, [[2]] 
+    #'  transition from State1 to State2, [[3]] transitioning from State2 to State1,
+    #'  and [[4]] staying in State2
+    ci_nat <- CIreal(mod)
+    
+    #'  Table of step lengths (in meters) and 95% CI
+    steps_state1 <- c(ci_nat[[1]]$est[[1]], ci_nat[[1]]$lower[[1]], ci_nat[[1]]$upper[[1]])
+    steps_state2 <- c(ci_nat[[1]]$est[[4]], ci_nat[[1]]$lower[[4]], ci_nat[[1]]$upper[[4]])
+    steps_real <- as.data.frame(rbind(steps_state1, steps_state2))
+    colnames(steps_real) <- c("Mean", "Lower", "Upper")
+    steps_real <- rownames_to_column(steps_real, var = "State") %>%
+      mutate(State = ifelse(State == "steps_state1", "Encamped", "Exploratory"),
+             Mean = round(Mean, 2),
+             Lower = round(Lower, 2),
+             Upper = round(Upper, 2)) %>%
+      unite("95% CI", Lower:Upper, sep = " - ") 
+    
+    #'  Table of turning angles and concentrations
+    turn_state1 <- c(0.00, ci_nat[[2]]$est[[1]])
+    turn_state2 <- c(0.00, ci_nat[[2]]$est[[2]])
+    turn_real <- as.data.frame(rbind(turn_state1, turn_state2))
+    colnames(turn_real) <- c("Mean", "Concentration")
+    turn_real <- rownames_to_column(turn_real, var = "State") %>%
+      mutate(State = ifelse(State == "turn_state1", "Encamped", "Exploratory"),
+             Mean = round(Mean, 2),
+             Concentration = round(Concentration, 2)) 
+      
+    #'  Table of transition probabilties and 95% CI
+    trans_state11 <- c(ci_nat[[3]]$est[[1]], ci_nat[[3]]$lower[[1]], ci_nat[[3]]$upper[[1]])
+    trans_state12 <- c(ci_nat[[3]]$est[[2]], ci_nat[[3]]$lower[[2]], ci_nat[[3]]$upper[[2]])
+    trans_state22 <- c(ci_nat[[3]]$est[[4]], ci_nat[[3]]$lower[[4]], ci_nat[[3]]$upper[[4]])
+    trans_state21 <- c(ci_nat[[3]]$est[[3]], ci_nat[[3]]$lower[[3]], ci_nat[[3]]$upper[[3]])
+    trans_real <- as.data.frame(rbind(trans_state11, trans_state12, trans_state22, trans_state21))
+    colnames(trans_real) <- c("Mean", "Lower", "Upper")
+    trans_real <- rownames_to_column(trans_real, var = "States") %>%
+      mutate(States = ifelse(States == "trans_state11", "Encamped to Encamped", States),
+             States = ifelse(States == "trans_state22", "Exploratory to Exploratory", States),
+             States = ifelse(States == "trans_state12", "Encamped to Exploratory", States),
+             States = ifelse(States == "trans_state21", "Exploratory to Encamped", States), 
+             Mean = round(Mean, 2), 
+             Lower = round(Lower, 2), 
+             Upper = round(Upper, 2)) %>%
+      unite("95% CI", Lower:Upper, sep = " - ")
+ 
+    print(round(ci_nat[[1]]$est, 2))
+    print(round(ci_nat[[2]]$est, 2))
+    print(round(ci_nat[[3]]$est, 2))
+    
+    table_list <- list(steps_real, turn_real, trans_real)
+    
+    return(table_list)
+  }
+  md_smr_backtrans <- backtrans_params(spp_HMM_output[[1]])
+  md_wtr_backtrans <- backtrans_params(spp_HMM_output[[2]])
+  elk_smr_backtrans <- backtrans_params(spp_HMM_output[[3]])
+  elk_wtr_backtrans <- backtrans_params(spp_HMM_output[[4]])
+  wtd_smr_backtrans <- backtrans_params(spp_HMM_output[[5]])
+  wtd_wtr_backtrans <- backtrans_params(spp_HMM_output[[6]])
+  coug_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[7]])
+  coug_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[8]])
+  coug_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[9]])
+  coug_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[10]])
+  wolf_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[11]])
+  wolf_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[12]])
+  wolf_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[13]])
+  wolf_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[14]])
+  bob_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[15]])
+  bob_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[16]])
+  #'  List order changes when using von Mises distribution
+  # bob_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[17]])
+  bob_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[17]])
+  coy_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[18]])
+  coy_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[19]])
+  coy_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[20]])
+  coy_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[21]])
+  
   
   
   
