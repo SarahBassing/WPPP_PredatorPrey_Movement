@@ -1242,49 +1242,59 @@
              Mean = round(Mean, 2),
              Lower = round(Lower, 2),
              Upper = round(Upper, 2)) %>%
-      unite("95% CI", Lower:Upper, sep = " - ") %>%
+      unite("95%CI", Lower:Upper, sep = " - ") %>%
       relocate(Species, .before = "State") %>%
-      relocate(Season, .after = "Species") %>%
-      relocate(StudyArea, .after = "Season")
+      relocate(StudyArea, .after = "Species") %>%
+      relocate(Season, .after = "StudyArea")
     
     #'  Table of turning angles and concentrations
-    turn_state1 <- c(0.00, ci_nat[[2]]$est[[1]])
-    turn_state2 <- c(0.00, ci_nat[[2]]$est[[2]])
-    turn_real <- as.data.frame(rbind(turn_state1, turn_state2))
-    colnames(turn_real) <- c("Mean", "Concentration")
-    turn_real <- rownames_to_column(turn_real, var = "State") %>%
+    turn_matrix <- matrix(c(0, 0, ci_nat[[2]]$est[[1]], ci_nat[[2]]$est[[2]]),nrow=2,ncol=2,byrow=TRUE)
+    colnames(turn_matrix) <- c("Encamped", "Exploratory")
+    rownames(turn_matrix) <- c("Mean", "Concentration")
+    turn_real <- rownames_to_column(as.data.frame(turn_matrix), var = "Parameter") %>%
       mutate(Species = spp,
              Season = season,
              StudyArea = area,
-             State = ifelse(State == "turn_state1", "Encamped", "Exploratory"),
-             Mean = round(Mean, 2),
-             Concentration = round(Concentration, 2)) %>%
-      relocate(Species, .before = "State") %>%
-      relocate(Season, .after = "Species") %>%
-      relocate(StudyArea, .after = "Season")
+             Encamped = round(Encamped, 2),
+             Exploratory = round(Exploratory, 2)) %>%
+      relocate(Species, .before = "Parameter") %>%
+      relocate(StudyArea, .after = "Species") %>%
+      relocate(Season, .after = "StudyArea")
       
     #'  Table of transition probabilties and 95% CI
-    trans_state11 <- c(ci_nat[[3]]$est[[1]], ci_nat[[3]]$lower[[1]], ci_nat[[3]]$upper[[1]])
-    trans_state12 <- c(ci_nat[[3]]$est[[2]], ci_nat[[3]]$lower[[2]], ci_nat[[3]]$upper[[2]])
-    trans_state22 <- c(ci_nat[[3]]$est[[4]], ci_nat[[3]]$lower[[4]], ci_nat[[3]]$upper[[4]])
-    trans_state21 <- c(ci_nat[[3]]$est[[3]], ci_nat[[3]]$lower[[3]], ci_nat[[3]]$upper[[3]])
-    trans_real <- as.data.frame(rbind(trans_state11, trans_state12, trans_state22, trans_state21))
-    colnames(trans_real) <- c("Mean", "Lower", "Upper")
-    trans_real <- rownames_to_column(trans_real, var = "States") %>%
-      mutate(Species = spp,
+    trans_probs <- ci_nat[[3]]$est
+    trans_real <- rownames_to_column(as.data.frame(trans_probs), var = "States") %>%
+      mutate(States = ifelse(States == "encamped", "Encamped", "Exploratory"),
+             Species = spp,
              Season = season,
              StudyArea = area,
-             States = ifelse(States == "trans_state11", "Encamped to Encamped", States),
-             States = ifelse(States == "trans_state22", "Exploratory to Exploratory", States),
-             States = ifelse(States == "trans_state12", "Encamped to Exploratory", States),
-             States = ifelse(States == "trans_state21", "Exploratory to Encamped", States), 
-             Mean = round(Mean, 2), 
-             Lower = round(Lower, 2), 
-             Upper = round(Upper, 2)) %>%
-      unite("95% CI", Lower:Upper, sep = " - ") %>%
+             encamped = round(encamped, 2),
+             exploratory = round(exploratory, 2)) %>%
       relocate(Species, .before = "States") %>%
-      relocate(Season, .after = "Species") %>%
-      relocate(StudyArea, .after = "Season")
+      relocate(StudyArea, .after = "Species") %>%
+      relocate(Season, .after = "StudyArea") 
+    colnames(trans_real) <- c("Species", "Study Area", "Season", "Start State", "Pr(To Encamped)", "Pr(To Exploratory)")
+    # trans_state11 <- c(ci_nat[[3]]$est[[1]], ci_nat[[3]]$lower[[1]], ci_nat[[3]]$upper[[1]])
+    # trans_state12 <- c(ci_nat[[3]]$est[[2]], ci_nat[[3]]$lower[[2]], ci_nat[[3]]$upper[[2]])
+    # trans_state22 <- c(ci_nat[[3]]$est[[4]], ci_nat[[3]]$lower[[4]], ci_nat[[3]]$upper[[4]])
+    # trans_state21 <- c(ci_nat[[3]]$est[[3]], ci_nat[[3]]$lower[[3]], ci_nat[[3]]$upper[[3]])
+    # trans_real <- as.data.frame(rbind(trans_state11, trans_state12, trans_state22, trans_state21))
+    # colnames(trans_real) <- c("Mean", "Lower", "Upper")
+    # trans_real <- rownames_to_column(trans_real, var = "States") %>%
+    #   mutate(Species = spp,
+    #          Season = season,
+    #          StudyArea = area,
+    #          States = ifelse(States == "trans_state11", "Encamped to Encamped", States),
+    #          States = ifelse(States == "trans_state22", "Exploratory to Exploratory", States),
+    #          States = ifelse(States == "trans_state12", "Encamped to Exploratory", States),
+    #          States = ifelse(States == "trans_state21", "Exploratory to Encamped", States), 
+    #          Mean = round(Mean, 2), 
+    #          Lower = round(Lower, 2), 
+    #          Upper = round(Upper, 2)) %>%
+    #   unite("95%CI", Lower:Upper, sep = " - ") %>%
+    #   relocate(Species, .before = "States") %>%
+    #   relocate(Season, .after = "Species") %>%
+    #   relocate(StudyArea, .after = "Season")
  
     print(round(ci_nat[[1]]$est, 2))
     print(round(ci_nat[[2]]$est, 2))
@@ -1332,7 +1342,12 @@
                                    bob_wtr_backtrans_NE[[1]], 
                                    coy_smr_backtrans_OK[[1]], coy_wtr_backtrans_OK[[1]], 
                                    coy_smr_backtrans_NE[[1]], coy_wtr_backtrans_NE[[1]]) %>%
-    arrange(Species)
+    arrange(Species) %>%
+    pivot_wider(names_from = "State", values_from = c("Mean", "95%CI")) %>%
+    relocate('95%CI_Encamped', .after = "Mean_Encamped") %>%
+    filter(!Species == "Bobcat")
+  colnames(all_steps_backtrans) <- c("Species", "Study Area", "Season", "Mean Encamped", "95% CI Encamped", "Mean Exploratory", "95% CI Exploratory")
+  
   #'  Table for back-transformed turning angles
   all_turns_backtrans <- bind_rows(md_smr_backtrans[[2]], md_wtr_backtrans[[2]], 
                                    elk_smr_backtrans[[2]], elk_wtr_backtrans[[2]], 
@@ -1346,7 +1361,10 @@
                                    bob_wtr_backtrans_NE[[2]], 
                                    coy_smr_backtrans_OK[[2]], coy_wtr_backtrans_OK[[2]], 
                                    coy_smr_backtrans_NE[[2]], coy_wtr_backtrans_NE[[2]]) %>%
-    arrange(Species)
+    arrange(Species) %>%
+    filter(!Species == "Bobcat")
+  colnames(all_turns_backtrans) <- c("Species", "Study Area", "Season", "Parameter", "Encamped", "Exploratory")
+  
   #'  Table for back-transformed transition probabilities
   all_TransPr_backtrans <- bind_rows(md_smr_backtrans[[3]], md_wtr_backtrans[[3]], 
                                    elk_smr_backtrans[[3]], elk_wtr_backtrans[[3]], 
@@ -1360,7 +1378,8 @@
                                    bob_wtr_backtrans_NE[[3]], 
                                    coy_smr_backtrans_OK[[3]], coy_wtr_backtrans_OK[[3]], 
                                    coy_smr_backtrans_NE[[3]], coy_wtr_backtrans_NE[[3]]) %>%
-    arrange(Species)
+    arrange(Species) %>%
+    filter(!Species == "Bobcat")
   
   #'  Save tables
   write.csv(all_steps_backtrans, paste0("./Outputs/HMM_output/HMM_Results_StepLength_BackTrans_", Sys.Date(), ".csv"))
