@@ -1063,8 +1063,8 @@
            Exploratory = round(Exploratory, 2)) %>%
     arrange(Species)
   
-  write.csv(all_steps, paste0("./Outputs/HMM_output/HMM_Results_StepLength_", Sys.Date(), ".csv"))
-  write.csv(all_turns, paste0("./Outputs/HMM_output/HMM_Results_TurningAngle_", Sys.Date(), ".csv"))
+  # write.csv(all_steps, paste0("./Outputs/HMM_output/HMM_Results_StepLength_", Sys.Date(), ".csv"))
+  # write.csv(all_turns, paste0("./Outputs/HMM_output/HMM_Results_TurningAngle_", Sys.Date(), ".csv"))
   
   
   
@@ -1218,7 +1218,7 @@
   #'  Back-transform HMM results to the real (natural) scale of the data
   #'  Extract parameter means, SE, and 95% CI on natural scale when all covariates
   #'  are held at their mean value (i.e., 0 since covariates are scaled)
-  backtrans_params <- function(mod) {
+  backtrans_params <- function(mod, spp, season, area) {
     
     #'  CIreal has 4 lists: [[1]] step length params, [[2]] turning angle concentration,
     #'  [[3]] transition probabilities, and [[4]] initial state for each track.
@@ -1235,11 +1235,17 @@
     steps_real <- as.data.frame(rbind(steps_state1, steps_state2))
     colnames(steps_real) <- c("Mean", "Lower", "Upper")
     steps_real <- rownames_to_column(steps_real, var = "State") %>%
-      mutate(State = ifelse(State == "steps_state1", "Encamped", "Exploratory"),
+      mutate(Species = spp,
+             Season = season,
+             StudyArea = area,
+             State = ifelse(State == "steps_state1", "Encamped", "Exploratory"),
              Mean = round(Mean, 2),
              Lower = round(Lower, 2),
              Upper = round(Upper, 2)) %>%
-      unite("95% CI", Lower:Upper, sep = " - ") 
+      unite("95% CI", Lower:Upper, sep = " - ") %>%
+      relocate(Species, .before = "State") %>%
+      relocate(Season, .after = "Species") %>%
+      relocate(StudyArea, .after = "Season")
     
     #'  Table of turning angles and concentrations
     turn_state1 <- c(0.00, ci_nat[[2]]$est[[1]])
@@ -1247,9 +1253,15 @@
     turn_real <- as.data.frame(rbind(turn_state1, turn_state2))
     colnames(turn_real) <- c("Mean", "Concentration")
     turn_real <- rownames_to_column(turn_real, var = "State") %>%
-      mutate(State = ifelse(State == "turn_state1", "Encamped", "Exploratory"),
+      mutate(Species = spp,
+             Season = season,
+             StudyArea = area,
+             State = ifelse(State == "turn_state1", "Encamped", "Exploratory"),
              Mean = round(Mean, 2),
-             Concentration = round(Concentration, 2)) 
+             Concentration = round(Concentration, 2)) %>%
+      relocate(Species, .before = "State") %>%
+      relocate(Season, .after = "Species") %>%
+      relocate(StudyArea, .after = "Season")
       
     #'  Table of transition probabilties and 95% CI
     trans_state11 <- c(ci_nat[[3]]$est[[1]], ci_nat[[3]]$lower[[1]], ci_nat[[3]]$upper[[1]])
@@ -1259,14 +1271,20 @@
     trans_real <- as.data.frame(rbind(trans_state11, trans_state12, trans_state22, trans_state21))
     colnames(trans_real) <- c("Mean", "Lower", "Upper")
     trans_real <- rownames_to_column(trans_real, var = "States") %>%
-      mutate(States = ifelse(States == "trans_state11", "Encamped to Encamped", States),
+      mutate(Species = spp,
+             Season = season,
+             StudyArea = area,
+             States = ifelse(States == "trans_state11", "Encamped to Encamped", States),
              States = ifelse(States == "trans_state22", "Exploratory to Exploratory", States),
              States = ifelse(States == "trans_state12", "Encamped to Exploratory", States),
              States = ifelse(States == "trans_state21", "Exploratory to Encamped", States), 
              Mean = round(Mean, 2), 
              Lower = round(Lower, 2), 
              Upper = round(Upper, 2)) %>%
-      unite("95% CI", Lower:Upper, sep = " - ")
+      unite("95% CI", Lower:Upper, sep = " - ") %>%
+      relocate(Species, .before = "States") %>%
+      relocate(Season, .after = "Species") %>%
+      relocate(StudyArea, .after = "Season")
  
     print(round(ci_nat[[1]]$est, 2))
     print(round(ci_nat[[2]]$est, 2))
@@ -1276,31 +1294,78 @@
     
     return(table_list)
   }
-  md_smr_backtrans <- backtrans_params(spp_HMM_output[[1]])
-  md_wtr_backtrans <- backtrans_params(spp_HMM_output[[2]])
-  elk_smr_backtrans <- backtrans_params(spp_HMM_output[[3]])
-  elk_wtr_backtrans <- backtrans_params(spp_HMM_output[[4]])
-  wtd_smr_backtrans <- backtrans_params(spp_HMM_output[[5]])
-  wtd_wtr_backtrans <- backtrans_params(spp_HMM_output[[6]])
-  coug_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[7]])
-  coug_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[8]])
-  coug_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[9]])
-  coug_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[10]])
-  wolf_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[11]])
-  wolf_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[12]])
-  wolf_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[13]])
-  wolf_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[14]])
-  bob_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[15]])
-  bob_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[16]])
+  md_smr_backtrans <- backtrans_params(spp_HMM_output[[1]], spp = "Mule Deer", season = "Summer", area = "Okanogan")
+  md_wtr_backtrans <- backtrans_params(spp_HMM_output[[2]], spp = "Mule Deer", season = "Winter", area = "Okanogan")
+  elk_smr_backtrans <- backtrans_params(spp_HMM_output[[3]], spp = "Elk", season = "Summer", area = "Northeast")
+  elk_wtr_backtrans <- backtrans_params(spp_HMM_output[[4]], spp = "Elk", season = "Winter", area = "Northeast")
+  wtd_smr_backtrans <- backtrans_params(spp_HMM_output[[5]], spp = "White-tailed Deer", season = "Summer", area = "Northeast")
+  wtd_wtr_backtrans <- backtrans_params(spp_HMM_output[[6]], spp = "White-tailed Deer", season = "Winter", area = "Northeast")
+  coug_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[7]], spp = "Cougar", season = "Summer", area = "Okanogan")
+  coug_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[8]], spp = "Cougar", season = "Winter", area = "Okanogan")
+  coug_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[9]], spp = "Cougar", season = "Summer", area = "Northeast")
+  coug_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[10]], spp = "Cougar", season = "Winter", area = "Northeast")
+  wolf_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[11]], spp = "Wolf", season = "Summer", area = "Okanogan")
+  wolf_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[12]], spp = "Wolf", season = "Winter", area = "Okanogan")
+  wolf_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[13]], spp = "Wolf", season = "Summer", area = "Northeast")
+  wolf_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[14]], spp = "Wolf", season = "Winter", area = "Northeast")
+  bob_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[15]], spp = "Bobcat", season = "Summer", area = "Okanogan")
+  bob_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Okanogan")
   #'  List order changes when using von Mises distribution
-  # bob_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[17]])
-  bob_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[17]])
-  coy_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[18]])
-  coy_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[19]])
-  coy_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[20]])
-  coy_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[21]])
+  # bob_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[17]], spp = "Bobcat", season = "Summer", area = "Northeast")
+  bob_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[17]], spp = "Bobcat", season = "Winter", area = "Northeast")
+  coy_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[18]], spp = "Coyote", season = "Summer", area = "Okanogan")
+  coy_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[19]], spp = "Coyote", season = "Winter", area = "Okanogan")
+  coy_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[20]], spp = "Coyote", season = "Summer", area = "Northeast")
+  coy_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[21]], spp = "Coyote", season = "Winter", area = "Northeast")
   
   
+  #'  Table for back-transformed step lengths
+  all_steps_backtrans <- bind_rows(md_smr_backtrans[[1]], md_wtr_backtrans[[1]], 
+                                   elk_smr_backtrans[[1]], elk_wtr_backtrans[[1]], 
+                                   wtd_smr_backtrans[[1]], wtd_wtr_backtrans[[1]],
+                                   coug_smr_backtrans_OK[[1]], coug_wtr_backtrans_OK[[1]], 
+                                   coug_smr_backtrans_NE[[1]], coug_wtr_backtrans_NE[[1]], 
+                                   wolf_smr_backtrans_OK[[1]], wolf_wtr_backtrans_OK[[1]], 
+                                   wolf_smr_backtrans_NE[[1]], wolf_wtr_backtrans_NE[[1]], 
+                                   bob_smr_backtrans_OK[[1]], bob_wtr_backtrans_OK[[1]], 
+                                   # bob_smr_backtrans_NE[[1]], 
+                                   bob_wtr_backtrans_NE[[1]], 
+                                   coy_smr_backtrans_OK[[1]], coy_wtr_backtrans_OK[[1]], 
+                                   coy_smr_backtrans_NE[[1]], coy_wtr_backtrans_NE[[1]]) %>%
+    arrange(Species)
+  #'  Table for back-transformed turning angles
+  all_turns_backtrans <- bind_rows(md_smr_backtrans[[2]], md_wtr_backtrans[[2]], 
+                                   elk_smr_backtrans[[2]], elk_wtr_backtrans[[2]], 
+                                   wtd_smr_backtrans[[2]], wtd_wtr_backtrans[[2]],
+                                   coug_smr_backtrans_OK[[2]], coug_wtr_backtrans_OK[[2]], 
+                                   coug_smr_backtrans_NE[[2]], coug_wtr_backtrans_NE[[2]], 
+                                   wolf_smr_backtrans_OK[[2]], wolf_wtr_backtrans_OK[[2]], 
+                                   wolf_smr_backtrans_NE[[2]], wolf_wtr_backtrans_NE[[2]], 
+                                   bob_smr_backtrans_OK[[2]], bob_wtr_backtrans_OK[[2]], 
+                                   # bob_smr_backtrans_NE[[2]], 
+                                   bob_wtr_backtrans_NE[[2]], 
+                                   coy_smr_backtrans_OK[[2]], coy_wtr_backtrans_OK[[2]], 
+                                   coy_smr_backtrans_NE[[2]], coy_wtr_backtrans_NE[[2]]) %>%
+    arrange(Species)
+  #'  Table for back-transformed transition probabilities
+  all_TransPr_backtrans <- bind_rows(md_smr_backtrans[[3]], md_wtr_backtrans[[3]], 
+                                   elk_smr_backtrans[[3]], elk_wtr_backtrans[[3]], 
+                                   wtd_smr_backtrans[[3]], wtd_wtr_backtrans[[3]],
+                                   coug_smr_backtrans_OK[[3]], coug_wtr_backtrans_OK[[3]], 
+                                   coug_smr_backtrans_NE[[3]], coug_wtr_backtrans_NE[[3]], 
+                                   wolf_smr_backtrans_OK[[3]], wolf_wtr_backtrans_OK[[3]], 
+                                   wolf_smr_backtrans_NE[[3]], wolf_wtr_backtrans_NE[[3]], 
+                                   bob_smr_backtrans_OK[[3]], bob_wtr_backtrans_OK[[3]], 
+                                   # bob_smr_backtrans_NE[[3]], 
+                                   bob_wtr_backtrans_NE[[3]], 
+                                   coy_smr_backtrans_OK[[3]], coy_wtr_backtrans_OK[[3]], 
+                                   coy_smr_backtrans_NE[[3]], coy_wtr_backtrans_NE[[3]]) %>%
+    arrange(Species)
+  
+  #'  Save tables
+  write.csv(all_steps_backtrans, paste0("./Outputs/HMM_output/HMM_Results_StepLength_BackTrans_", Sys.Date(), ".csv"))
+  write.csv(all_turns_backtrans, paste0("./Outputs/HMM_output/HMM_Results_TurningAngle_BackTrans_", Sys.Date(), ".csv"))
+  write.csv(all_TransPr_backtrans, paste0("./Outputs/HMM_output/HMM_Results_TransPr_BackTrans_", Sys.Date(), ".csv"))
   
   
   ####  Plot Stationary-State Probabilities  ####
