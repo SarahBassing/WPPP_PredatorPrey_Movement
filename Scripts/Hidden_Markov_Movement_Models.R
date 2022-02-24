@@ -1215,6 +1215,7 @@
   # write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
   
   
+  ####  Back-transformed Results  ####
   #'  Back-transform HMM results to the real (natural) scale of the data
   #'  Extract parameter means, SE, and 95% CI on natural scale when all covariates
   #'  are held at their mean value (i.e., 0 since covariates are scaled)
