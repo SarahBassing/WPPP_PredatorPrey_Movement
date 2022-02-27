@@ -312,10 +312,12 @@
   trans_formula_smr_all <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF 
   trans_formula_wtr_all <- ~TRI + PercOpen + Dist2Road + SnowCover + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF 
   trans_formula_smr_all_noCoy <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF 
+  trans_formula_smr_all_noTRI <- ~PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF
   #'  For predator species
   trans_formula_smr_OK <- ~TRI + PercOpen + Dist2Road + MD_RSF 
   trans_formula_wtr_OK <- ~TRI + PercOpen + Dist2Road + SnowCover + MD_RSF 
   trans_formula_wtr_OK_noMD <- ~TRI + PercOpen + Dist2Road + SnowCover
+  trans_formula_wtr_OK_noTRI <- ~PercOpen + Dist2Road + SnowCover + MD_RSF
   trans_formula_smr_NE <- ~TRI + PercOpen + Dist2Road + ELK_RSF + WTD_RSF 
   trans_formula_wtr_NE <- ~TRI + PercOpen + Dist2Road + SnowCover + ELK_RSF + WTD_RSF 
   
@@ -382,12 +384,14 @@
   md_HMM_smr_WOLF <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_wolf, fits = 1)
   md_HMM_smr_BOB <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_bob, fits = 1)
   md_HMM_smr_COY <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_coy, fits = 1)
-  #'  COY & TRI highly correlated (-0.75) so identify which is more supported
-  AIC(md_HMM_smr_TRI, md_HMM_smr_COY)
   #'  Global model 
-  #'  Excluding COY_RSF from md_HMM_smr based on univariate TRI model having lower AIC than COY model
-  #'  Including cosinor parameters on DM step length to help with autocorrelation  
+  #'  COY & TRI highly correlated (-0.75) so running models with TRI & MD separately
+  #'  Will use AIC to choose final model  
   md_HMM_smr_wc <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
+  md_HMM_smr_noCoy <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
+  md_HMM_smr_noTRI <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noTRI, fits = 1)
+  AIC(md_HMM_smr_noTRI, md_HMM_smr_noCoy)
+  #'  Final model based on AIC above (noCoy has lower AIC by 55)
   md_HMM_smr <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
   #'  QQplot of residuals
   plotPR(md_HMM_smr, lag.max = NULL, ncores = 4)
@@ -545,11 +549,15 @@
   coug_HMM_wtr_OK_Road <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Road, fits = 1)
   coug_HMM_wtr_OK_Snow <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_Snow, fits = 1)
   coug_HMM_wtr_OK_MD <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_md, fits = 1)
-  #'  MD & TRI highly correlated (0.76) so identify which is more supported
-  AIC(coug_HMM_wtr_OK_TRI, coug_HMM_wtr_OK_Open, coug_HMM_wtr_OK_MD)
-  #'  Global model   
-  #'  Excluding MD from coug_HMM_wtr_OK model based on univariate TRI model having lower AIC than MD model
+  #'  MD & TRI highly correlated (0.76) so running models with TRI & MD separately
+  #'  Will use AIC to choose final model
   coug_HMM_wtr_OK_wc <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  coug_HMM_wtr_OK_noMD <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  coug_HMM_wtr_OK_noTRI <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noTRI, fits = 1)
+  AIC(coug_HMM_wtr_OK_noMD, coug_HMM_wtr_OK_noTRI)
+  #'  Final model based on AIC above (noMD has lower AIC by 14) plus more
+  #'  interested in movement behaviors with respect to terrain/habitat features
+  #'  associated with hunting mode
   coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
   #'  QQplot of residuals
   plotPR(coug_HMM_wtr_OK, lag.max = NULL, ncores = 4)
@@ -798,11 +806,16 @@
   coy_HMM_wtr_OK_Road <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_Road, fits = 1)
   coy_HMM_wtr_OK_Snow <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_Snow, fits = 1)
   coy_HMM_wtr_OK_MD <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_md, fits = 1)
-  #'  MD & TRI highly correlated (0.71) so identify which is more supported
-  AIC(coy_HMM_wtr_OK_TRI, coy_HMM_wtr_OK_Open, coy_HMM_wtr_OK_MD)
   #'  Global model 
-  #'  Excluding MD from coy_HMM_wtr_OK model to be consistent with other models where TRI & MD are correlated  
+  #'  MD & TRI highly correlated (0.71) so running models with TRI & MD separately
+  #'  Will use AIC to choose final model 
   coy_HMM_wtr_OK_wc <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
+  coy_HMM_wtr_OK_noMD <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
+  coy_HMM_wtr_OK_noTRI <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noTRI, fits = 1)
+  AIC(coy_HMM_wtr_OK_noTRI, coy_HMM_wtr_OK_noMD)
+  #'  Final model based on AIC above (noMD has lower AIC by 3.8) plus more
+  #'  interested in movement behaviors with respect to terrain/habitat features
+  #'  associated with hunting mode
   coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_wtr_OK, lag.max = NULL, ncores = 4)
