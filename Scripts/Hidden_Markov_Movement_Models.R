@@ -1583,110 +1583,164 @@
   library(patchwork)
   #'  MULE DEER panels
   length(md_smr_fig)
-  (md_smr_patch <- md_smr_fig[[1]] + md_smr_fig[[2]] + md_smr_fig[[3]] + 
-    md_smr_fig[[4]] + md_smr_fig[[5]] + md_smr_fig[[6]] + plot_layout(guides = 'collect') + 
-    plot_annotation(title = 'Summer Mule Deer Stationary State Probabilities',
-                    subtitle = 'Okanogan 2018 - 2021') + plot_layout(ncol = 2))
+  (md_smr_patch <- md_smr_fig[[1]] + md_smr_fig[[2]] + theme(axis.title.y = element_blank()) + 
+      md_smr_fig[[3]] + md_smr_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      md_smr_fig[[5]] + md_smr_fig[[6]] + theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Summer Mule Deer Stationary State Probabilities',
+                      subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
   length(md_wtr_fig)
-  (md_wtr_patch <- md_wtr_fig[[1]] + md_wtr_fig[[2]] + md_wtr_fig[[3]] + 
-    md_wtr_fig[[4]] + md_wtr_fig[[5]] + md_wtr_fig[[6]] + md_wtr_fig[[7]] + 
-    md_wtr_fig[[8]] + guide_area() + plot_layout(guides = 'collect') + 
-    plot_annotation(title = 'Winter Mule Deer Stationary State Probabilities',
-                    subtitle = 'Okanogan 2018 - 2021') + plot_layout(ncol = 3))
+  (md_wtr_patch <- md_wtr_fig[[1]] + md_wtr_fig[[2]] + theme(axis.title.y = element_blank()) + 
+      md_wtr_fig[[3]] + theme(axis.title.y = element_blank()) + md_wtr_fig[[4]] + 
+      md_wtr_fig[[5]] + theme(axis.title.y = element_blank()) + md_wtr_fig[[6]] + 
+      theme(axis.title.y = element_blank()) + md_wtr_fig[[7]] + 
+      md_wtr_fig[[8]] + theme(axis.title.y = element_blank()) + guide_area() + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Mule Deer Stationary State Probabilities',
+                      subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 3))
   #'  ELK panels
   length(elk_smr_fig)
-  (elk_smr_patch <- elk_smr_fig[[1]] + elk_smr_fig[[2]] + elk_smr_fig[[3]] + 
-    elk_smr_fig[[4]] + elk_smr_fig[[5]] + elk_smr_fig[[6]] + elk_smr_fig[[7]] + 
-    plot_layout(guides = 'collect') + guide_area() +
-    plot_annotation(title = 'Summer Elk Stationary State Probabilities',
-                    subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 3))
+  (elk_smr_patch <- elk_smr_fig[[1]] + elk_smr_fig[[2]] + theme(axis.title.y = element_blank()) + 
+      elk_smr_fig[[3]] + theme(axis.title.y = element_blank()) + elk_smr_fig[[4]] + 
+      elk_smr_fig[[5]] + theme(axis.title.y = element_blank()) + elk_smr_fig[[6]] + 
+      theme(axis.title.y = element_blank()) + elk_smr_fig[[7]] + plot_layout(guides = 'collect') + 
+      guide_area() + plot_annotation(title = 'Summer Elk Stationary State Probabilities',
+                                     subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 3))
   length(elk_wtr_fig)
-  (elk_wtr_patch <- elk_wtr_fig[[1]] + elk_wtr_fig[[2]] + elk_wtr_fig[[3]] + 
-    elk_wtr_fig[[4]] + elk_wtr_fig[[5]] + elk_wtr_fig[[6]] + elk_wtr_fig[[7]] + 
-    elk_wtr_fig[[8]] + guide_area() + plot_layout(guides = 'collect') + 
-    plot_annotation(title = 'Winter Elk Stationary State Probabilities',
-                    subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 3))
+  (elk_wtr_patch <- elk_wtr_fig[[1]] + elk_wtr_fig[[2]] + theme(axis.title.y = element_blank()) + 
+      elk_wtr_fig[[3]] + theme(axis.title.y = element_blank()) + elk_wtr_fig[[4]] + 
+      elk_wtr_fig[[5]] + theme(axis.title.y = element_blank()) + elk_wtr_fig[[6]] + 
+      theme(axis.title.y = element_blank()) + elk_wtr_fig[[7]] + elk_wtr_fig[[8]] + 
+      theme(axis.title.y = element_blank()) + guide_area() + plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Elk Stationary State Probabilities',
+                      subtitle = '    Northeast 2018 - 2021') + plot_layout(ncol = 3))
   #'  WHITE-TAILED DEER panels
   length(wtd_smr_fig)
-  (wtd_smr_patch <- wtd_smr_fig[[1]] + wtd_smr_fig[[2]] + wtd_smr_fig[[3]] + 
-    wtd_smr_fig[[4]] + wtd_smr_fig[[5]] + wtd_smr_fig[[6]] + wtd_smr_fig[[7]] + 
-    plot_layout(guides = 'collect') + guide_area() +
-    plot_annotation(title = 'Summer White-tailed Deer Stationary State Probabilities',
-                    subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 3))
+  (wtd_smr_patch <- wtd_smr_fig[[1]] + wtd_smr_fig[[2]] + theme(axis.title.y = element_blank()) + 
+      wtd_smr_fig[[3]] + theme(axis.title.y = element_blank()) + wtd_smr_fig[[4]] + 
+      wtd_smr_fig[[5]] + theme(axis.title.y = element_blank()) + wtd_smr_fig[[6]] + 
+      theme(axis.title.y = element_blank()) + wtd_smr_fig[[7]] + plot_layout(guides = 'collect') + 
+      guide_area() + plot_annotation(title = 'Summer White-tailed Deer Stationary State Probabilities',
+                                     subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 3))
   length(wtd_wtr_fig)
-  (wtd_wtr_patch <- wtd_wtr_fig[[1]] + wtd_wtr_fig[[2]] + wtd_wtr_fig[[3]] + 
-    wtd_wtr_fig[[4]] + wtd_wtr_fig[[5]] + wtd_wtr_fig[[6]] + wtd_wtr_fig[[7]] + 
-    wtd_wtr_fig[[8]] + guide_area() + plot_layout(guides = 'collect') + 
-    plot_annotation(title = 'Winter White-tailed Deer Stationary State Probabilities',
-                    subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 3))
+  (wtd_wtr_patch <- wtd_wtr_fig[[1]] + wtd_wtr_fig[[2]] + theme(axis.title.y = element_blank()) + 
+      wtd_wtr_fig[[3]] + theme(axis.title.y = element_blank()) + wtd_wtr_fig[[4]] + 
+      wtd_wtr_fig[[5]] + theme(axis.title.y = element_blank()) + wtd_wtr_fig[[6]] + 
+      theme(axis.title.y = element_blank()) + wtd_wtr_fig[[7]] + wtd_wtr_fig[[8]] + 
+      theme(axis.title.y = element_blank()) + guide_area() + plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter White-tailed Deer Stationary State Probabilities',
+                      subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 3))
   #'  COUGAR panels
   length(coug_smr_OK_fig)
-  (coug_smr_OK_patch <- coug_smr_OK_fig[[1]] + coug_smr_OK_fig[[2]] + coug_smr_OK_fig[[3]] + 
-    coug_smr_OK_fig[[4]] + plot_layout(guides = 'collect') + 
-    plot_annotation(title = 'Summer Cougar Stationary State Probabilities',
-                    subtitle = 'Okanogan 2018 - 2021') + plot_layout(ncol = 2))
+  (coug_smr_OK_patch <- coug_smr_OK_fig[[1]] + coug_smr_OK_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + coug_smr_OK_fig[[3]] + 
+      coug_smr_OK_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Summer Cougar Stationary State Probabilities',
+                      subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
   length(coug_wtr_OK_fig)
-  (coug_wtr_OK_patch <- coug_wtr_OK_fig[[1]] + coug_wtr_OK_fig[[2]] + coug_wtr_OK_fig[[3]] + 
-    coug_wtr_OK_fig[[4]] + plot_layout(guides = 'collect') + 
-    plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
-                    subtitle = 'Okanogan 2018 - 2021') + plot_layout(ncol = 2))
+  (coug_wtr_OK_patch <- coug_wtr_OK_fig[[1]] + coug_wtr_OK_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + coug_wtr_OK_fig[[3]] + 
+      coug_wtr_OK_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
   length(coug_smr_NE_fig)
-  (coug_smr_NE_patch <- coug_smr_NE_fig[[1]] + coug_smr_NE_fig[[2]] + coug_smr_NE_fig[[3]] + 
-    coug_smr_NE_fig[[4]] + coug_smr_NE_fig[[5]] + guide_area() + plot_layout(guides = 'collect') + 
-    plot_annotation(title = 'Summer Cougar Stationary State Probabilities',
-                    subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 2))
+  (coug_smr_NE_patch <- coug_smr_NE_fig[[1]] + coug_smr_NE_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + coug_smr_NE_fig[[3]] + 
+      coug_smr_NE_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      coug_smr_NE_fig[[5]] + guide_area() + plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Summer Cougar Stationary State Probabilities',
+                      subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
   length(coug_wtr_NE_fig)
-  (coug_wtr_NE_patch <- coug_wtr_NE_fig[[1]] + coug_wtr_NE_fig[[2]] + coug_wtr_NE_fig[[3]] + 
-    coug_wtr_NE_fig[[4]] + coug_wtr_NE_fig[[5]] + coug_wtr_NE_fig[[6]] + plot_layout(guides = 'collect') + 
-    plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
-                    subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 2))
+  (coug_wtr_NE_patch <- coug_wtr_NE_fig[[1]] + coug_wtr_NE_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + coug_wtr_NE_fig[[3]] + 
+      coug_wtr_NE_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      coug_wtr_NE_fig[[5]] + coug_wtr_NE_fig[[6]] + 
+      theme(axis.title.y = element_blank()) + plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
   #'  WOLF panels
   length(wolf_smr_OK_fig)
-  (wolf_smr_OK_patch <- wolf_smr_OK_fig[[1]] + wolf_smr_OK_fig[[2]] + wolf_smr_OK_fig[[3]] + 
-    wolf_smr_OK_fig[[4]] + plot_layout(guides = 'collect') + 
-    plot_annotation(title = 'Summer Wolf Stationary State Probabilities',
-                    subtitle = 'Okanogan 2018 - 2021') + plot_layout(ncol = 2))
-  length(wolf_wtr_OK_fig)
-  (wolf_wtr_OK_patch <- wolf_wtr_OK_fig[[1]] + wolf_wtr_OK_fig[[2]] + wolf_wtr_OK_fig[[3]] + 
-      wolf_wtr_OK_fig[[4]] + wolf_wtr_OK_fig[[5]] + guide_area() + plot_layout(guides = 'collect') + 
-      plot_annotation(title = 'Winter Wolf Stationary State Probabilities',
-                    subtitle = 'Okanogan 2018 - 2021') + plot_layout(ncol = 2))
-  length(wolf_smr_NE_fig)
-  (wolf_smr_NE_patch <- wolf_smr_NE_fig[[1]] + wolf_smr_NE_fig[[2]] + wolf_smr_NE_fig[[3]] + 
-      wolf_smr_NE_fig[[4]] + wolf_smr_NE_fig[[5]] + guide_area() + plot_layout(guides = 'collect') + 
+  (wolf_smr_OK_patch <- wolf_smr_OK_fig[[1]] + wolf_smr_OK_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + wolf_smr_OK_fig[[3]] + 
+      wolf_smr_OK_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Summer Wolf Stationary State Probabilities',
-                    subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 2))
-  length(wolf_wtr_NE_fig)
-  (wolf_wtr_NE_patch <- wolf_wtr_NE_fig[[1]] + wolf_wtr_NE_fig[[2]] + wolf_wtr_NE_fig[[3]] + 
-      wolf_wtr_NE_fig[[4]] + wolf_wtr_NE_fig[[5]] + wolf_wtr_NE_fig[[6]] + plot_layout(guides = 'collect') + 
+                    subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
+  length(wolf_wtr_OK_fig)
+  (wolf_wtr_OK_patch <- wolf_wtr_OK_fig[[1]] + wolf_wtr_OK_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + wolf_wtr_OK_fig[[3]] + 
+      wolf_wtr_OK_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      wolf_wtr_OK_fig[[5]] + guide_area() + plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Winter Wolf Stationary State Probabilities',
-                    subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 2))
+                    subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
+  length(wolf_smr_NE_fig)
+  (wolf_smr_NE_patch <- wolf_smr_NE_fig[[1]] + wolf_smr_NE_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + wolf_smr_NE_fig[[3]] + 
+      wolf_smr_NE_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      wolf_smr_NE_fig[[5]] + guide_area() + plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Summer Wolf Stationary State Probabilities',
+                    subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
+  length(wolf_wtr_NE_fig)
+  (wolf_wtr_NE_patch <- wolf_wtr_NE_fig[[1]] + wolf_wtr_NE_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + wolf_wtr_NE_fig[[3]] + 
+      wolf_wtr_NE_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      wolf_wtr_NE_fig[[5]] + wolf_wtr_NE_fig[[6]] + theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Wolf Stationary State Probabilities',
+                    subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
   #'  COYOTE panels
   length(coy_smr_OK_fig)
-  (coy_smr_OK_patch <- coy_smr_OK_fig[[1]] + coy_smr_OK_fig[[2]] + coy_smr_OK_fig[[3]] + 
-      coy_smr_OK_fig[[4]] + plot_layout(guides = 'collect') + 
+  (coy_smr_OK_patch <- coy_smr_OK_fig[[1]] + coy_smr_OK_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + coy_smr_OK_fig[[3]] + 
+      coy_smr_OK_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Summer Coyote Stationary State Probabilities',
-                      subtitle = 'Okanogan 2018 - 2021') + plot_layout(ncol = 2))
+                      subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
   length(coy_wtr_OK_fig)
-  (coy_wtr_OK_patch <- coy_wtr_OK_fig[[1]] + coy_wtr_OK_fig[[2]] + coy_wtr_OK_fig[[3]] + 
-      coy_wtr_OK_fig[[4]] + plot_layout(guides = 'collect') + 
+  (coy_wtr_OK_patch <- coy_wtr_OK_fig[[1]] + coy_wtr_OK_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + coy_wtr_OK_fig[[3]] + 
+      coy_wtr_OK_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Winter Coyote Stationary State Probabilities',
-                      subtitle = 'Okanogan 2018 - 2021') + plot_layout(ncol = 2))
+                      subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
   length(coy_smr_NE_fig)
-  (coy_smr_NE_patch <- coy_smr_NE_fig[[1]] + coy_smr_NE_fig[[2]] + coy_smr_NE_fig[[3]] + 
-      coy_smr_NE_fig[[4]] + coy_smr_NE_fig[[5]] + guide_area() + plot_layout(guides = 'collect') + 
+  (coy_smr_NE_patch <- coy_smr_NE_fig[[1]] + coy_smr_NE_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + coy_smr_NE_fig[[3]] + 
+      coy_smr_NE_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      coy_smr_NE_fig[[5]] + guide_area() + plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Summer Coyote Stationary State Probabilities',
-                      subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 2))
+                      subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
   length(coy_wtr_NE_fig)
-  (coy_wtr_NE_patch <- coy_wtr_NE_fig[[1]] + coy_wtr_NE_fig[[2]] + coy_wtr_NE_fig[[3]] + 
-      coy_wtr_NE_fig[[4]] + coy_wtr_NE_fig[[5]] + coy_wtr_NE_fig[[6]] + plot_layout(guides = 'collect') + 
+  (coy_wtr_NE_patch <- coy_wtr_NE_fig[[1]] + coy_wtr_NE_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + coy_wtr_NE_fig[[3]] + 
+      coy_wtr_NE_fig[[4]] + theme(axis.title.y = element_blank()) + 
+      coy_wtr_NE_fig[[5]] + coy_wtr_NE_fig[[6]] + plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Winter Coyote Stationary State Probabilities',
-                      subtitle = 'Northeast 2018 - 2021') + plot_layout(ncol = 2))
+                      subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
   
   
-  # pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots.pdf")
-  # plot(md_smr_fig, main = "Stationary State Probabilties for Summer Mule Deer")
-  # dev.off()
+  pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots.pdf")
+  plot(md_smr_patch, main = "Stationary State Probabilties for Summer Mule Deer")
+  plot(md_wtr_patch, main = "Stationary State Probabilties for Winter Mule Deer")
+  plot(elk_smr_patch, main = "Stationary State Probabilties for Summer Elk")
+  plot(elk_wtr_patch, main = "Stationary State Probabilties for Winter Elk")
+  plot(wtd_smr_patch, main = "Stationary State Probabilties for Summer White-tailed Deer")
+  plot(wtd_wtr_patch, main = "Stationary State Probabilties for Winter White-tailed Deer")
+  plot(coug_smr_OK_patch, main = "Stationary State Probabilties for Summer Cougar, OK")
+  plot(coug_wtr_OK_patch, main = "Stationary State Probabilties for Winter Cougar, OK")
+  plot(coug_smr_NE_patch, main = "Stationary State Probabilties for Summer Cougar, NE")
+  plot(coug_wtr_NE_patch, main = "Stationary State Probabilties for Winter Cougar, NE")
+  plot(wolf_smr_OK_patch, main = "Stationary State Probabilties for Summer Wolf, OK")
+  plot(wolf_wtr_OK_patch, main = "Stationary State Probabilties for Winter Wolf, OK")
+  plot(wolf_smr_NE_patch, main = "Stationary State Probabilties for Summer Wolf, NE")
+  plot(wolf_wtr_NE_patch, main = "Stationary State Probabilties for Winter Wolf, NE")
+  plot(coy_smr_OK_patch, main = "Stationary State Probabilties for Summer Coyote, OK")
+  plot(coy_wtr_OK_patch, main = "Stationary State Probabilties for Winter Coyote, OK")
+  plot(coy_smr_NE_patch, main = "Stationary State Probabilties for Summer Coyote, NE")
+  plot(coy_wtr_NE_patch, main = "Stationary State Probabilties for Winter Coyote, NE")
+  dev.off()
   
   
  
