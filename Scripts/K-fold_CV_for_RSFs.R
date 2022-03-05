@@ -522,20 +522,20 @@
 
   
   #'  Read in saved k-fold trained model results
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/md_kfold_smr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/md_kfold_wtr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/elk_kfold_smr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/bob_kfold_smr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_2022-01-27.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-01-26.RData")
-  load("C:/Users/sb89/Desktop/HMM/Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-01-26.RData")
+  load("./Outputs/RSF_output/Kfold_CV/md_kfold_smr_2022-01-26.RData")
+  load("./Outputs/RSF_output/Kfold_CV/md_kfold_wtr_2022-01-26.RData")
+  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_smr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_smr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-01-27.RData")
   
   #'  Function to save parameter estimates from each trained model
   #'  Use coef(mod) to look at random effects estimates
@@ -986,7 +986,7 @@
       mutate(wgt_Freq = Freq/bin_area)
     #'  Calculate Spearman's Rank Correlation between bin rank and area-weighted
     #'  frequency of used locations
-    SpearmanCor <- cor(wgtBinFreq$layer, wgtBinFreq$wgt_Freq)
+    SpearmanCor <- cor(wgtBinFreq$layer, wgtBinFreq$wgt_Freq, method = "spearman")
     return(SpearmanCor)
   }
   
@@ -1029,7 +1029,7 @@
   coy_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = coy_wtr_usedbin, bin_area = coy_wtr_karea, species = "Coyote", season = "Winter")
   
   #'  ================================================
-  ####  Plot Spearman's Rank Correlation results  ####
+  ####  Table Spearman's Rank Correlation results  ####
   #'  ================================================
   #'  Create a single df of all Spearman's Rank Correlation results
   spearman_out <- rbind(md_smr_SpRankCor, md_wtr_SpRankCor, elk_smr_SpRankCor, 
