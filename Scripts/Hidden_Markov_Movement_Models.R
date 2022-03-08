@@ -1405,11 +1405,11 @@
   ####  Plot Stationary-State Probabilities  ####
   #'  Functions to extract stationary state probabilities & plot predicted responses
   stay_probs_prey <- function(hmmm) {
-    #'  Calculate stationary state probs. for each state based on covaraite data
+    #'  Calculate stationary state probs. for each state based on covariate data
     #'  for each time step
     stay_pr <- stationary(hmmm)
     stay_pr <- stay_pr[[1]]
-    #'  Calculate stationary state probs. for each state when covaraite data are
+    #'  Calculate stationary state probs. for each state when covariate data are
     #'  held at their mean value (0 b/c data are centered and scaled)
     stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0, 
                                                    SnowCover = 0, TRI = 0, 
@@ -1504,7 +1504,7 @@
       cov[[2]]$State <- "Exploratory"
       #'  Convert to data frame instead of list
       cov <- rbind(as.data.frame(cov[[1]]), as.data.frame(cov[[2]]))
-      cov$state <- as.factor(cov$State)
+      cov$State <- as.factor(cov$State)
       #'  Append to new list of data frames
       covs_out[[l]] <- cov
     }
@@ -1742,9 +1742,27 @@
   plot(coy_wtr_NE_patch, main = "Stationary State Probabilties for Winter Coyote, NE")
   dev.off()
   
+  #'  Save individual plots
+  png(file="./Outputs/Figures for ms/MD_smr_TRI.png", width = 700, height = 500)
+  (md_smr_tri <- md_smr_fig[[1]] + plot_annotation(title = 'Summer Mule Deer Stationary State Probabilities', subtitle = '     Okanogan 2018 - 2021'))
+  dev.off()
+  png(file="./Outputs/Figures for ms/MD_smr_WOLF.png", width = 700, height = 500)
+  (md_smr_wolf <- md_smr_fig[[5]] + plot_annotation(title = 'Summer Mule Deer Stationary State Probabilities', subtitle = '     Okanogan 2018 - 2021'))
+  dev.off()
+  png(file="./Outputs/Figures for ms/MD_smr_BOB.png", width = 700, height = 500)
+  (md_smr_bob <- md_smr_fig[[6]] + plot_annotation(title = 'Summer Mule Deer Stationary State Probabilities', subtitle = '     Okanogan 2018 - 2021'))
+  dev.off()
+  png(file="./Outputs/Figures for ms/MD_wtr_COUG.png", width = 700, height = 500)
+  (md_wtr_coug <- md_wtr_fig[[5]] + plot_annotation(title = 'Winter Mule Deer Stationary State Probabilities', subtitle = '     Okanogan 2018 - 2021'))
+  dev.off()
+  png(file="./Outputs/Figures for ms/MD_wtr_COY.png", width = 700, height = 500)
+  (md_wtr_coy <- md_wtr_fig[[8]] + plot_annotation(title = 'Winter Mule Deer Stationary State Probabilities', subtitle = '     Okanogan 2018 - 2021'))
+  dev.off()
   
- 
   
+  png(file="./Outputs/Figures for ms/WTD_smr_COY.png", width = 700, height = 500)
+  (wtd_smr_coy <- wtd_smr_fig[[7]] + plot_annotation(title = 'Summer White-tailed Deer Stationary State Probabilities', subtitle = '     Okanogan 2018 - 2021'))
+  dev.off()
   
   ####  Viterbi Algorithm  ####
   #'  Function to extract most likely state sequence for all locations based on
