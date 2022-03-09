@@ -349,6 +349,36 @@
   coug_season2 <- Seasonal_telem(coug_thin)
   wolf_season2 <- Seasonal_telem(wolf_thin)
 
+  #  Identify which collars are on incorrect fix schedule
+  fix_schedule <- function(trunk) {
+    schedj <- trunk %>%
+      mutate(hour = as.integer(strftime(Floordt, format = "%H", tz="Etc/GMT+8")),
+             schedj = ifelse(hour == 2 | hour == 6 | hour == 10 | hour == 14 | hour == 18 | hour == 22, "schedule_1", "schedule_2"),
+             time_gap = as.numeric(difftime(Floordt, lag(Floordt), tz = "Etc/GMT+8", units = "hours")),
+             leap_schedj = lead(schedj, n = 2),
+             drop_loc = ifelse(schedj == "schedule_2" & time_gap <= 2 & schedj == leap_schedj, "drop", "keep")) %>%
+      filter(drop_loc == "keep") %>%
+      mutate(new_gap = as.numeric(difftime(Floordt, lag(Floordt), tz = "Etc/GMT+8", units = "hours")),
+             new_gap = ifelse(new_gap < 0, "NA", new_gap),
+             next_schedj = lead(schedj, n = 1),
+             drop_loc1 = ifelse(new_gap == 2 & schedj != next_schedj, "drop", "keep")) %>%
+      filter(drop_loc1 == "keep") %>%
+      mutate(last_schedj = lead(schedj, n = 1),
+             new_track = ifelse(schedj == last_schedj, 0, 1)) %>%
+      dplyr::select(-c("schedj", "time_gap", "leap_schedj", "drop_loc", "new_gap", "next_schedj", "drop_loc1", "last_schedj")) #, "new_track"
+    return(schedj)
+  }
+  md_schedj <- fix_schedule(md_season)
+  elk_schedj <- fix_schedule(elk_season)
+  wtd_schedj <- fix_schedule(wtd_season)
+  coug_schedj <- fix_schedule(coug_season)
+  wolf_schedj <- fix_schedule(wolf_season)
+  meso_schedj <- fix_schedule(meso_season)
+  
+  # 3709ELK18
+  # 32WTD18
+  # 3961MD17
+  
   
   ####  Fix Success & Gappy Data  ####
   #  ------------------------------
@@ -371,19 +401,25 @@
   wolf_counts <- sum_locs(wolf_season) 
   meso_counts <- sum_locs(meso_season)
   #  How much data am I losing if I stick to only 1 fix schedule for ungulates/large pred?
-  md_counts2 <- sum_locs(md_season2) 
-  elk_counts2 <- sum_locs(elk_season2) 
+  md_counts2 <- sum_locs(md_season2)
+  elk_counts2 <- sum_locs(elk_season2)
   wtd_counts2 <- sum_locs(wtd_season2)
   coug_counts2 <- sum_locs(coug_season2)
   wolf_counts2 <- sum_locs(wolf_season2)
+  #  How much data am I losing if stick to 4 hour fix rate but ignore schedule?
+  md_counts3 <- sum_locs(md_schedj)
+  elk_counts3 <- sum_locs(elk_schedj)
+  wtd_counts3 <- sum_locs(wtd_schedj)
+  coug_counts3 <- sum_locs(coug_schedj)
+  wolf_counts3 <- sum_locs(wolf_schedj)
 
   
   #  Visually inspect counts
   #  Looking for time periods with many missing fixes (< 400/season) and collars 
   #  that were on wrong schedule, switched schedules, or took extra locations
-  md_cnt <- full_join(md_counts, md_counts2, by = c("ID", "Season"))
-  elk_cnt <- full_join(elk_counts, elk_counts2, by = c("ID", "Season"))
-  wtd_cnt <- full_join(wtd_counts, wtd_counts2, by = c("ID", "Season"))
+  md_cnt <- full_join(md_counts, md_counts3, by = c("ID", "Season"))
+  elk_cnt <- full_join(elk_counts, elk_counts3, by = c("ID", "Season"))
+  wtd_cnt <- full_join(wtd_counts, wtd_counts3, by = c("ID", "Season"))
   #  Rename predator info for consistency
   coug_cnt <- coug_counts
   wolf_cnt <- wolf_counts
@@ -399,12 +435,12 @@
   
   #  Are these missing fixes randomly distributed across the season or are there 
   #  large blocks of missing time (e.g., at beginning or end of time period?)
-  md_locs <- inner_join(md_season, md_400, by = c("ID", "Season"))
-  elk_locs <- inner_join(elk_season, elk_400, by = c("ID", "Season"))
-  wtd_locs <- inner_join(wtd_season, wtd_400, by = c("ID", "Season"))
-  coug_locs <- inner_join(coug_season, coug_400, by = c("ID", "Season"))
-  wolf_locs <- inner_join(wolf_season, wolf_400, by = c("ID", "Season"))
-  meso_locs <- inner_join(meso_season, meso_400, by = c("ID", "Season"))
+  md_locs <- inner_join(md_schedj, md_400, by = c("ID", "Season"))
+  elk_locs <- inner_join(elk_schedj, elk_400, by = c("ID", "Season"))
+  wtd_locs <- inner_join(wtd_schedj, wtd_400, by = c("ID", "Season"))
+  coug_locs <- inner_join(coug_schedj, coug_400, by = c("ID", "Season"))
+  wolf_locs <- inner_join(wolf_schedj, wolf_400, by = c("ID", "Season"))
+  meso_locs <- inner_join(meso_schedj, meso_400, by = c("ID", "Season"))
   
   #  Calculate the number of hours between subsequent locations
   #  How often are there big gaps and when are those gaps occurring?
@@ -415,6 +451,7 @@
       mutate(
         time_gap = difftime(Floordt, lag(Floordt), tz = "Etc/GMT+8", units = "hours"),
         time_gap = as.numeric(time_gap),
+        gap_4hr = ifelse(time_gap <= 4, 0, time_gap),
         gap_8hr = ifelse(time_gap <= 8, 0, time_gap),
         gap_24hr = ifelse(time_gap <= 24, 0, time_gap),
         date_range = difftime(max(Floordt), min(Floordt), tz = "Etc/GMT+8", units = "days"),
@@ -422,6 +459,7 @@
       )
     #  Plot gaps in telemetry locations that are greater than 24hrs in length
     hist(time_gap$gap_24hr, breaks = 50, main = "Histogram of time gaps", xlab = "Hours between locations")
+    hist(time_gap$gap_4hr, breaks = 1, main = "Histogram of 2 hour fixs", xlab = "Hours between locations")
     return(time_gap)
   }
   
@@ -465,12 +503,12 @@
   tf_wolf <- wolf_gaps[wolf_gaps$count < 90 | wolf_gaps$date_range < 20,]
   tf_meso <- meso_gaps[meso_gaps$count < 90 | meso_gaps$date_range < 20,]
   #  2. Exclude these locations from telemetry data so data are good-to-go for analyses
-  md_gtg <- anti_join(md_season, tf_md, by = c("ID", "Season"))
-  elk_gtg <- anti_join(elk_season, tf_elk, by = c("ID", "Season"))
-  wtd_gtg <- anti_join(wtd_season, tf_wtd, by = c("ID", "Season"))
-  coug_gtg <- anti_join(coug_season, tf_coug, by = c("ID", "Season"))
-  wolf_gtg <- anti_join(wolf_season, tf_wolf, by = c("ID", "Season"))
-  meso_gtg <- anti_join(meso_season, tf_meso, by = c("ID", "Season"))
+  md_gtg <- anti_join(md_schedj, tf_md, by = c("ID", "Season"))
+  elk_gtg <- anti_join(elk_schedj, tf_elk, by = c("ID", "Season"))
+  wtd_gtg <- anti_join(wtd_schedj, tf_wtd, by = c("ID", "Season"))
+  coug_gtg <- anti_join(coug_schedj, tf_coug, by = c("ID", "Season"))
+  wolf_gtg <- anti_join(wolf_schedj, tf_wolf, by = c("ID", "Season"))
+  meso_gtg <- anti_join(meso_schedj, tf_meso, by = c("ID", "Season"))
   #  Don't forget to separate out bobcats from coyotes for actual analyses
   coy_gtg <- filter(meso_gtg, Species == "Coyote")
   bob_gtg <- filter(meso_gtg, Species == "Bobcat")
@@ -479,8 +517,8 @@
   
   #  Save RData for easy transfer to other computers
   # save.image(paste0("./Data/Collar_Truncating&Filtering_", Sys.Date(), ".RData"))
-  save.image(paste0("./Data/Collar_Truncating&Filtering_noDispersal_", Sys.Date(), ".RData"))
-  load("./Data/Collar_Truncating&Filtering_noDispersal_2022-02-18.RData") #2021-12-07 missing some bobcats & coyotes
+  save.image(paste0("./Data/Collar_Truncating&Filtering_noDispersal_CleanedFixSchedule_", Sys.Date(), ".RData"))
+  load("./Data/Collar_Truncating&Filtering_noDispersal_CleanedFixSchedule_2022-03-08.RData") #2022-02-18 included 2 hr fix schedules (OK for RSFs but bad for HMM)
   
   
   ####  Remove locations associated with mule deer migration tracks  ####
@@ -554,7 +592,7 @@
   #  Save RData for easy transfer to other computers
   # save.image(paste0("./Data/Collar_Truncating&Filtering_", Sys.Date(), ".RData"))
   # save.image(paste0("./Data/Collar_Truncating&Filtering_noDispersal_", Sys.Date(), ".RData"))
-  save.image(paste0("./Data/Collar_Truncating&Filtering_noDispMig_", Sys.Date(), ".RData"))
+  save.image(paste0("./Data/Collar_Truncating&Filtering_noDispMig_CleanedFixSchedule_", Sys.Date(), ".RData"))
   
   #  Next step is Collar_Movement_DataPrep.R script
 
