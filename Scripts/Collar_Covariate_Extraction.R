@@ -46,7 +46,8 @@
   library(tidyverse)
   
   #'  Load crwOut animal location data for each species (takes a hot minute)
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData") #2022-02-03 missing 3 bobcats, 2 coyotes
+  # load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData") #2022-02-18 included 2 hr fixes when collars switch schedules
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-08.RData")
   
   #'  Read in previously extracted NDVI data from GEE
   #'  Note: NDVIsmr is for summer locs ONLY, NDVImax is for winter locs ONLY
@@ -445,7 +446,7 @@
   }
   #'  Run list of species location data through function in parallel
   spp_telem_covs <- lapply(sf_locs, cov_extract) # non-parallel approach
-  # spp_telem_covs <- future_lapply(sf_locs, cov_extract) 
+  # spp_telem_covs <- future_lapply(sf_locs, cov_extract)
   
   
   #'  End time keeping
@@ -454,7 +455,7 @@
   #' parallel::stopCluster(cl)
   #'  How long did this take?
   difftime(end.time, start.time, units = "hours")
-
+  
   
   #'  List covariate data sets by season and study area (for predators)
   #'  Note the order: 1) MD smr, 2) MD wtr, 3) ELK smr, 4) ELK wtr, 5) WTD smr, 
@@ -477,23 +478,46 @@
   #'  producing NAs for all RSF values at these locations
   remove_wtr_covs <- function(covs) {
     smr_data <- dplyr::select(covs, -c("MD_wtr", "ELK_wtr", "WTD_wtr", "COUG_wtr", 
-                                           "WOLF_wtr", "BOB_wtr", "COY_wtr")) 
+                                           "WOLF_wtr", "BOB_wtr", "COY_wtr")) %>%
+      #'  Add columns for location hour and whether it's day or night based on 
+      #'  sunrise and sunset times over course of each month
+      mutate(hour = as.integer(strftime(time, format = "%H", tz="Etc/GMT+8")),
+             month = as.integer(strftime(time, format = "%m", tz="Etc/GMT+8")),
+             #' For July - Aug, hours between 5am and 9pm are daytime (0), else nightime (1)
+             daytime = ifelse(month < 9 & hour < 5 | hour > 21, 0, 1),
+             #'  For Sept, hours between 7am and 7pm are daytime (0), else nightime (1)
+             daytime = ifelse(month == 9 & hour < 7 | hour > 19, 0, daytime))
     names(smr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
-                     "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")
+                     "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF", "hour", 
+                     "month", "daytime")
     return(smr_data)
   }
   smr_telem_data <- lapply(smr_covs, remove_wtr_covs)
   
+  
   remove_smr_covs <- function(covs) {
     wtr_data <- dplyr::select(covs, -c("MD_smr", "ELK_smr", "WTD_smr", "COUG_smr",  
-                                           "WOLF_smr", "BOB_smr", "COY_smr"))
+                                           "WOLF_smr", "BOB_smr", "COY_smr")) %>%
+      #'  Add columns for location hour and whether it's day or night based on 
+      #'  sunrise and sunset times over course of each month
+      mutate(hour = as.integer(strftime(time, format = "%H", tz="Etc/GMT+8")),
+             month = as.integer(strftime(time, format = "%m", tz="Etc/GMT+8")),
+             #' For Dec, hours between 7:30am and 4:20pm are daytime (0), else nightime (1)
+             daytime = ifelse(month == 12 & hour < 7 | hour > 16, 0, 1),
+             #' For Jan, hours between 8am and 4:20pm are daytime (0), else nightime (1)
+             daytime = ifelse(month == 1 & hour < 8 | hour > 16, 0, daytime),
+             #'  For Feb, hours between 7:30am and 5pm are daytime (0), else nightime (1)
+             daytime = ifelse(month == 2 & hour < 7 | hour > 17, 0, daytime))
     names(wtr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
-                     "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")
+                     "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF", "hour", 
+                     "month", "daytime")
     return(wtr_data)
   }
   wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
+ 
+  
   
   #'  Reorder NDVI lists to match species, season, & study area-specific covariate
   #'  lists --- KEEP TRACK OF THIS ORDER!!!!
