@@ -47,7 +47,7 @@
   
   #'  Load crwOut animal location data for each species (takes a hot minute)
   # load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData") #2022-02-18 included 2 hr fixes when collars switch schedules
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-08.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-13.RData")
   
   #'  Read in previously extracted NDVI data from GEE
   #'  Note: NDVIsmr is for summer locs ONLY, NDVImax is for winter locs ONLY
