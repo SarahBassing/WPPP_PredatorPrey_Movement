@@ -175,7 +175,7 @@
 
   #  Save cleaned data
   clean_data <- list(md_skinny, elk_skinny, wtd_skinny, coug_skinny, wolf_skinny, meso_skinny)
-  save(clean_data, file = "./Data/Collar_AllSpecies_AllLocations_Clean.RData")
+  # save(clean_data, file = "./Data/Collar_AllSpecies_AllLocations_Clean.RData")
 
   
   #  Function to truncate telemetry data by excluding first 3 weeks after capture
@@ -245,7 +245,7 @@
   
   #  Save truncated (but not thinned or filtered) data
   trunk_data <- list(md_trunk, elk_trunk, wtd_trunk, coug_trunk, wolf_trunk, meso_trunk)
-  save(trunk_data, file = "./Data/Collar_AllSpecies_AllLocations_Truncated.RData")
+  # save(trunk_data, file = "./Data/Collar_AllSpecies_AllLocations_Truncated.RData")
   load("./Data/Collar_AllSpecies_AllLocations_Truncated.RData")
   
   
@@ -352,20 +352,34 @@
   #  Identify which collars are on incorrect fix schedule
   fix_schedule <- function(trunk) {
     schedj <- trunk %>%
+      #  Identify when collars recorded locations every 2 hrs instead of every 4 hrs
       mutate(hour = as.integer(strftime(Floordt, format = "%H", tz="Etc/GMT+8")),
              schedj = ifelse(hour == 2 | hour == 6 | hour == 10 | hour == 14 | hour == 18 | hour == 22, "schedule_1", "schedule_2"),
              time_gap = as.numeric(difftime(Floordt, lag(Floordt), tz = "Etc/GMT+8", units = "hours")),
              leap_schedj = lead(schedj, n = 2),
              drop_loc = ifelse(schedj == "schedule_2" & time_gap <= 2 & schedj == leap_schedj, "drop", "keep")) %>%
+      #  Remove locations following "wrong" schedule during 2hr fix rate
       filter(drop_loc == "keep") %>%
+      #  Identify random locations that occur on 2hr fix schedule but otherwise 
+      #  locations follow one of the 4hr fix schedule
       mutate(new_gap = as.numeric(difftime(Floordt, lag(Floordt), tz = "Etc/GMT+8", units = "hours")),
              new_gap = ifelse(new_gap < 0, "NA", new_gap),
              next_schedj = lead(schedj, n = 1),
              drop_loc1 = ifelse(new_gap == 2 & schedj != next_schedj, "drop", "keep")) %>%
+      #  Remove these locations
       filter(drop_loc1 == "keep") %>%
+      #  Identify groupings where 2 "wrong" schedule fixes are mixed in with "correct" fixes
       mutate(last_schedj = lead(schedj, n = 1),
-             new_track = ifelse(schedj == last_schedj, 0, 1)) %>%
-      dplyr::select(-c("schedj", "time_gap", "leap_schedj", "drop_loc", "new_gap", "next_schedj", "drop_loc1", "last_schedj")) #, "new_track"
+             flip_flops = ifelse(schedj == last_schedj, 0, 1),
+             sneak_locs = lead(flip_flops, n = 1),
+             sneaks = ifelse(schedj == "schedule_2" & flip_flops != sneak_locs, "drop", "keep")) %>% 
+      #  Remove these locations
+      filter(sneaks == "keep") %>%
+      #  Generate secondary animal ID that includes info about which fix schedule
+      #  each location is a part of
+      mutate(ID2 = ifelse(schedj == "schedule_1", paste0(ID, "a"), paste0(ID, "b"))) %>%
+      relocate(ID2, .after = ID) %>%
+      dplyr::select(-c("schedj", "time_gap", "leap_schedj", "drop_loc", "new_gap", "next_schedj", "drop_loc1", "last_schedj", "flip_flops", "sneak_locs", "sneaks")) 
     return(schedj)
   }
   md_schedj <- fix_schedule(md_season)
@@ -375,11 +389,13 @@
   wolf_schedj <- fix_schedule(wolf_season)
   meso_schedj <- fix_schedule(meso_season)
   
+  #  Double check things worked with these example individuals
   # 3709ELK18
+  # 3676EA17
   # 32WTD18
   # 3961MD17
-  
-  
+  # 3981MD17
+ 
   ####  Fix Success & Gappy Data  ####
   #  ------------------------------
   #  Function to calculate number of locations per individual and season
@@ -407,6 +423,7 @@
   coug_counts2 <- sum_locs(coug_season2)
   wolf_counts2 <- sum_locs(wolf_season2)
   #  How much data am I losing if stick to 4 hour fix rate but ignore schedule?
+  #  Should be same as 1st set of counts above!
   md_counts3 <- sum_locs(md_schedj)
   elk_counts3 <- sum_locs(elk_schedj)
   wtd_counts3 <- sum_locs(wtd_schedj)
@@ -415,7 +432,7 @@
 
   
   #  Visually inspect counts
-  #  Looking for time periods with many missing fixes (< 400/season) and collars 
+  #  Looking for time periods with many missing fixes (< 400/season) and collars
   #  that were on wrong schedule, switched schedules, or took extra locations
   md_cnt <- full_join(md_counts, md_counts3, by = c("ID", "Season"))
   elk_cnt <- full_join(elk_counts, elk_counts3, by = c("ID", "Season"))
@@ -459,7 +476,6 @@
       )
     #  Plot gaps in telemetry locations that are greater than 24hrs in length
     hist(time_gap$gap_24hr, breaks = 50, main = "Histogram of time gaps", xlab = "Hours between locations")
-    hist(time_gap$gap_4hr, breaks = 1, main = "Histogram of 2 hour fixs", xlab = "Hours between locations")
     return(time_gap)
   }
   
@@ -518,8 +534,8 @@
   #  Save RData for easy transfer to other computers
   # save.image(paste0("./Data/Collar_Truncating&Filtering_", Sys.Date(), ".RData"))
   save.image(paste0("./Data/Collar_Truncating&Filtering_noDispersal_CleanedFixSchedule_", Sys.Date(), ".RData"))
-  load("./Data/Collar_Truncating&Filtering_noDispersal_CleanedFixSchedule_2022-03-08.RData") #2022-02-18 included 2 hr fix schedules (OK for RSFs but bad for HMM)
-  
+  load("./Data/Collar_Truncating&Filtering_noDispersal_CleanedFixSchedule_2022-03-13.RData") 
+  #  Collar_Truncating&Filtering_noDispersal_2022-02-18 included 2 hr interval fixes (OK for RSFs but bad for HMM)
   
   ####  Remove locations associated with mule deer migration tracks  ####
   #  -----------------------------------------------------------------
