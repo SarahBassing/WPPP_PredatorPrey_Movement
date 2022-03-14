@@ -19,7 +19,7 @@
   #'  ============================================
   
   #'  Clear memory
-  # rm(list=ls())
+  rm(list=ls())
   
   #'  Load libraries
   library(momentuHMM)
@@ -29,8 +29,8 @@
   #'  Source cleaned telemetry data
   # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-11-16.RData") # includes some deer data with low fix rate, esp. the white-tail data
   # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-12-02.RData") # accidentally excludes some coyote and bobcat collars
-  # load("./Data/Collar_Truncating&Filtering_noDispMig_2022-02-18.RData") # included 2 hr fixes when collars switch schedules (OK for RSFs but bad for HMMs)
-  load("./Data/Collar_Truncating&Filtering_noDispMig_CleanedFixSchedule_2022-03-08.RData")
+  # load("./Data/Collar_Truncating&Filtering_noDispMig_2022-02-18.RData") # included 2 hr interval fixes when collars switch schedules (OK for RSFs but bad for HMMs)
+  load("./Data/Collar_Truncating&Filtering_noDispMig_CleanedFixSchedule_2022-03-13.RData")
   
   #' I chose to use relocation data that excludes obvious dispersal events that
   #' take carnivores away from extent of study areas and relocation data during
@@ -43,43 +43,49 @@
   ####  Data preparation  ####
   #'  Select relevant columns
   #'  Keeping version of datetime that have been floored to beginning of hour
-  rawELK <- elk_gtg %>%
-    dplyr::select(ID, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
-    arrange(ID, Floordt)
-  colnames(rawELK) <- c("ID", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
-  #'  Only keep first track to practice with
-  # rawELK1 <- subset(rawELK, ID == unique(ID)[2])
+  #'  Make sure to order each data frame by ID and time for create.burst to work
   rawMD <- md_gtg_nomig %>% #md_gtg  # depends on whether migration movements are excluded
-    dplyr::select(ID, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
     arrange(ID, Floordt)
-  colnames(rawMD) <- c("ID", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  colnames(rawMD) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawMD <- rawMD[order(rawMD$ID2, rawMD$time),]
+  rawELK <- elk_gtg %>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
+    arrange(ID, Floordt)
+  colnames(rawELK) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawELK <- rawELK[order(rawELK$ID2, rawELK$time),]
   rawWTD <- wtd_gtg %>%
-    dplyr::select(ID, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
     arrange(ID, Floordt)
-  colnames(rawWTD) <- c("ID", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  colnames(rawWTD) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawWTD <- rawWTD[order(rawWTD$ID2, rawWTD$time),]
   rawCOUG <- coug_gtg %>%
-    dplyr::select(ID, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
     arrange(ID, Floordt)
-  colnames(rawCOUG) <- c("ID", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  colnames(rawCOUG) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawCOUG <- rawCOUG[order(rawCOUG$ID2, rawCOUG$time),]
   rawWOLF <- wolf_gtg %>%
-    dplyr::select(ID, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
     arrange(ID, Floordt)
-  colnames(rawWOLF) <- c("ID", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  colnames(rawWOLF) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawWOLF <- rawWOLF[order(rawWOLF$ID2, rawWOLF$time),]
   rawBOB <- bob_gtg %>%
-    dplyr::select(ID, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
     arrange(ID, Floordt)
-  colnames(rawBOB) <- c("ID", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  colnames(rawBOB) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawBOB <- rawBOB[order(rawBOB$ID2, rawBOB$time),]
   rawCOY <- coy_gtg %>%
-    dplyr::select(ID, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt)%>%
     arrange(ID, Floordt)
-  colnames(rawCOY) <- c("ID", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
-
+  colnames(rawCOY) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawCOY <- rawCOY[order(rawCOY$ID2, rawCOY$time),]
+  
   #'  Function to covert times to POSIX & make locations spatial for each species
   prep_raw <- function(raw, plotit = TRUE) {
     raw$time <- as.POSIXct(raw$time, format = "%Y-%m-%d %H:%M:%S", tz = "America/Los_Angeles")
 
     #'  Make locations spatial and project to UTM coordinates with study area projection
-    llcoord <- SpatialPoints(raw[,6:7], proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
+    llcoord <- SpatialPoints(raw[,7:8], proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
     utmcoord <- spTransform(llcoord, CRS("+proj=lcc +lat_1=48.73333333333333 +lat_2=47.5 +lat_0=47 +lon_0=-120.8333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs "))
     #'  Add UTM locations to data frame
     raw$x <- attr(utmcoord, "coords")[,1]
@@ -189,7 +195,9 @@
     #'  Tmax = 28.25 hours (in seconds) so that locations are still grouped in a
     #'  single burst if there's a gap of 24hr or less in the data (up to 6 sequential
     #'  fixes missed with 4 hours on each end) but a new burst if gap is >24 hrs.
-    rawloc$burst <- creat.burst(data = rawloc, id = TRUE, id_name = "ID", date_name = "time", Tmax = 87300)
+    #'  Also creating separate tracks if fix schedule changes within a season 
+    #'  (burts based on ID2 instead of ID)
+    rawloc$burst <- creat.burst(data = rawloc, id = TRUE, id_name = "ID2", date_name = "time", Tmax = 87300)
     #'  Exclude super short bursts (where burst length is 3 or less locations)
     #'  because need at least 3 points to get a turning angle
     loc_burst <- rawloc[rawloc$burst %in% names(table(rawloc$burst))[table(rawloc$burst) >=3],]
@@ -292,11 +300,11 @@
                      BOB_smr_track_NE, BOB_wtr_track_NE, COY_smr_track_OK, COY_wtr_track_OK,
                      COY_smr_track_NE, COY_wtr_track_NE)
   # save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_updated021822.RData")
-  save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_updated030822.RData")
+  save(spp_all_tracks, file = paste0("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_", Sys.Date(), ".RData"))
   
   
   #'  Load tracks
-  load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_updated030822.RData")
+  load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_2022-03-13.RData")
   
   
   
