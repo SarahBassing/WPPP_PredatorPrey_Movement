@@ -34,7 +34,7 @@
   library(rlist)
   
   #'  Load telemetry data
-  load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig.RData")
+  load("./Outputs/Telemetry_tracks/Tracks_by_Spp_Season_1201021/spp_all_tracks_noDis_noMig.RData")
   
   #'  Functions to filter species-specific data by study area
   #'  NE study area collars
