@@ -243,12 +243,12 @@
   save(COY_track_NE, file = "./Outputs/Telemetry_tracks/COY_track_NE.RData")
   
   #'  Create season-specific data sets for crawlWrap function
-  MD_smr_track <- MD_track[MD_track$Season == "Summer18" | MD_track$Season == "Summer19", ]
-  MD_wtr_track <- MD_track[MD_track$Season == "Winter1819" | MD_track$Season == "Winter1920", ]
-  ELK_smr_track <- ELK_track[ELK_track$Season == "Summer18" | ELK_track$Season == "Summer19", ]
-  ELK_wtr_track <- ELK_track[ELK_track$Season == "Winter1819" | ELK_track$Season == "Winter1920", ]
-  WTD_smr_track <- WTD_track[WTD_track$Season == "Summer18" | WTD_track$Season == "Summer19", ]
-  WTD_wtr_track <- WTD_track[WTD_track$Season == "Winter1819" | WTD_track$Season == "Winter1920", ]
+  MD_smr_track <- MD_track[MD_track$Season == "Summer18" | MD_track$Season == "Summer19" | MD_track$Season == "Summer20", ]
+  MD_wtr_track <- MD_track[MD_track$Season == "Winter1819" | MD_track$Season == "Winter1920" | MD_track$Season == "Winter2021", ]
+  ELK_smr_track <- ELK_track[ELK_track$Season == "Summer18" | ELK_track$Season == "Summer19" | ELK_track$Season == "Summer20",]
+  ELK_wtr_track <- ELK_track[ELK_track$Season == "Winter1819" | ELK_track$Season == "Winter1920" | ELK_track$Season == "Winter2021", ]
+  WTD_smr_track <- WTD_track[WTD_track$Season == "Summer18" | WTD_track$Season == "Summer19" | WTD_track$Season == "Summer20", ]
+  WTD_wtr_track <- WTD_track[WTD_track$Season == "Winter1819" | WTD_track$Season == "Winter1920" | WTD_track$Season == "Winter2021", ]
   COUG_smr_track_OK <- COUG_track_OK[COUG_track_OK$Season == "Summer18" | COUG_track_OK$Season == "Summer19" | COUG_track_OK$Season == "Summer20", ]
   COUG_smr_track_NE <- COUG_track_NE[COUG_track_NE$Season == "Summer18" | COUG_track_NE$Season == "Summer19" | COUG_track_NE$Season == "Summer20", ]
   COUG_wtr_track_OK <- COUG_track_OK[COUG_track_OK$Season == "Winter1819" | COUG_track_OK$Season == "Winter1920" | COUG_track_OK$Season == "Winter2021", ]
@@ -304,7 +304,7 @@
   
   
   #'  Load tracks
-  load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_2022-03-13.RData")
+  load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_2022-03-14.RData")
   
   
   
@@ -404,6 +404,31 @@
   save(crwOut_COY_wtr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_COY_wtr_OK.RData")
   save(crwOut_COY_smr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_COY_smr_NE.RData")
   save(crwOut_COY_wtr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_COY_wtr_NE.RData")
+  
+  
+  # load("./Outputs/Telemetry_crwOut/crwOut_MD_smr.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_MD_wtr.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_ELK_smr.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_ELK_wtr.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_WTD_smr.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_WTD_wtr.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_COUG_smr_OK.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_COUG_wtr_OK.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_COUG_smr_NE.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_COUG_wtr_NE.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_WOLF_smr_OK.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_WOLF_wtr_OK.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_WOLF_smr_NE.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_WOLF_wtr_NE.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_BOB_smr_OK.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_BOB_wtr_OK.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_BOB_smr_NE.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_BOB_wtr_NE.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_COY_smr_OK.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_COY_wtr_OK.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_COY_smr_NE.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_COY_wtr_NE.RData")
+  
   
   #'  List all crwOut datasets together
   crwOut_ALL <- list(crwOut_MD_smr, crwOut_MD_wtr, crwOut_ELK_smr, crwOut_ELK_wtr,
