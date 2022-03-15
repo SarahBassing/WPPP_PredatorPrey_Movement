@@ -26,8 +26,8 @@
   library(tidyverse)
 
   #'  Load crwOut & covaraite data
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData")    # 2022-02-03 missing some bobcats & coyotes
-  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-02-20.RData")  # 2022-02-14 missing some bobcats & coyotes
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData")    # 2022-02-03 missing some bobcats & coyotes
+  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-03-14.RData")  # 2022-02-14 missing some bobcats & coyotes
   
   
   #'  Merge datasets and create momentuHMMData object
@@ -43,6 +43,7 @@
     crwlMerge$crwPredict$Sex <- as.factor(crwlMerge$crwPredict$Sex)
     crwlMerge$crwPredict$Season <- as.factor(crwlMerge$crwPredict$Season)
     crwlMerge$crwPredict$SnowCover <- as.factor(crwlMerge$crwPredict$SnowCover)
+    crwlMerge$crwPredict$daytime <- as.factor(crwlMerge$crwPredict$daytime)
     #'  Standardize continuous variables
     crwlMerge$crwPredict$Dist2Road <- scale(crwlMerge$crwPredict$Dist2Road)
     crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
@@ -55,12 +56,15 @@
     crwlMerge$crwPredict$WOLF_RSF <- scale(crwlMerge$crwPredict$WOLF_RSF)
     crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
     crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
-    crwlMerge$crwPredict$hour <- as.integer(strftime(crwlMerge$crwPredict$time, format = "%H", tz="Etc/GMT+8"))
+    crwlMerge$crwPredict$hour <- as.integer(crwlMerge$crwPredict$hour)
+    crwlMerge$crwPredict$hour2 <- as.integer(crwlMerge$crwPredict$hour2)
+    crwlMerge$crwPredict$hour3 <- as.integer(crwlMerge$crwPredict$hour3)
     #'  Prep crwlMerge data for fitHMM function
     Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", "NDVI", 
                                                     "SnowCover", "TRI", "MD_RSF", 
                                                     "COUG_RSF", "WOLF_RSF", "BOB_RSF", 
-                                                    "COY_RSF", "hour", "Sex", 
+                                                    "COY_RSF", "hour", "hour2",
+                                                    "hour3", "daytime", "Sex", 
                                                     "StudyArea", "Season"))  # "ELK_RSF", "WTD_RSF", 
     return(Data)
   }
@@ -88,6 +92,7 @@
     crwlMerge$crwPredict$Sex <- as.factor(crwlMerge$crwPredict$Sex)
     crwlMerge$crwPredict$Season <- as.factor(crwlMerge$crwPredict$Season)
     crwlMerge$crwPredict$SnowCover <- as.factor(crwlMerge$crwPredict$SnowCover)
+    crwlMerge$crwPredict$daytime <- as.factor(crwlMerge$crwPredict$daytime)
     #' #'  Standardize continuous variables
     crwlMerge$crwPredict$Dist2Road <- scale(crwlMerge$crwPredict$Dist2Road)
     crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
@@ -100,12 +105,15 @@
     crwlMerge$crwPredict$WOLF_RSF <- scale(crwlMerge$crwPredict$WOLF_RSF)
     crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
     crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
-    crwlMerge$crwPredict$hour <- as.integer(strftime(crwlMerge$crwPredict$time, format = "%H", tz="Etc/GMT+8"))
+    crwlMerge$crwPredict$hour <- as.integer(crwlMerge$crwPredict$hour)
+    crwlMerge$crwPredict$hour2 <- as.integer(crwlMerge$crwPredict$hour2)
+    crwlMerge$crwPredict$hour3 <- as.integer(crwlMerge$crwPredict$hour3)
     #'  Prep crwlMerge data for fitHMM function
     Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", "NDVI", 
                                                     "SnowCover", "TRI", "ELK_RSF", 
                                                     "WTD_RSF", "COUG_RSF", "WOLF_RSF",
-                                                    "BOB_RSF", "COY_RSF", "hour",
+                                                    "BOB_RSF", "COY_RSF", "hour", 
+                                                    "hour2", "hour3", "daytime",
                                                     "Sex", "StudyArea", "Season")) # "MD_RSF",
     return(Data)
   }
@@ -133,7 +141,7 @@
                    bobData_wtr_NE, coyData_smr_OK, coyData_wtr_OK, coyData_smr_NE, 
                    coyData_wtr_NE)
   save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_", Sys.Date(), ".RData"))
-  load("./Outputs/Telemetry_covs/crwOut_ALL_wCovs_2022-02-22.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-14.RData")
   
   
   #'  Correlation Matrix
@@ -286,9 +294,12 @@
   DM_null <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
   DM_null_ZeroMass <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
   DM_time <- list(step = list(mean = ~cosinor(hour, period = 24), sd = ~cosinor(hour, period = 24)), angle = list(concentration = ~1))
-  DM_Zerotime <- list(step = list(mean = ~cosinor(hour, period = 24), sd = ~cosinor(hour, period = 24), zeromass = ~cosinor(hour, period = 24)), angle = list(concentration = ~1)) # includes zeromass parameters
+  DM_timeday <- list(step = list(mean = ~daynight + cosinor(hour, period = 24), sd = ~daynight + cosinor(hour, period = 24)), angle = list(concentration = ~1))
+  DM_Zerotime <- list(step = list(mean = ~daynight + cosinor(hour, period = 24), sd = ~daynight + cosinor(hour, period = 24), zeromass = ~daynight + cosinor(hour, period = 24)), angle = list(concentration = ~1)) # includes zeromass parameters
+  DM_time3 <- list(step = list(mean = ~daytime + cosinor(hour2, period = 6), sd = ~daytime + cosinor(hour2, period = 6)), angle = list(concentration = ~1))
+  DM_Zerotime3 <- list(step = list(mean = ~daytime + cosinor(hour2, period = 6), sd = ~daytime + cosinor(hour2, period = 6), zeromass = ~daytime + cosinor(hour2, period = 6)), angle = list(concentration = ~1)) # includes zeromass parameters
   
-    
+  
   ####  Models describing Transition Probabilities  ####
   #'  Define formula(s) to be applied to transition probabilities
   #'  Covariates affecting probability of transitioning from one state to another
@@ -389,13 +400,13 @@
   #'  COY & TRI highly correlated (-0.75) so running models with TRI & MD separately
   #'  Will use AIC to choose final model  
   md_HMM_smr_wc <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
-  md_HMM_smr_noCoy <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
-  md_HMM_smr_noTRI <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noTRI, fits = 1)
+  md_HMM_smr_noCoy <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime3, trans_formula_smr_all_noCoy, fits = 1)
+  md_HMM_smr_noTRI <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime3, trans_formula_smr_all_noTRI, fits = 1)
   AIC(md_HMM_smr_noTRI, md_HMM_smr_noCoy)
   #'  Final model based on AIC above (noCoy has lower AIC by 55)
-  md_HMM_smr <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
+  md_HMM_smr <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime3, trans_formula_smr_all_noCoy, fits = 1)
   #'  QQplot of residuals
-  plotPR(md_HMM_smr, lag.max = NULL, ncores = 4)
+  plotPR(md_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better? NOPE looks real bad on step length
   pr_md_HMM_smr <- pseudoRes(md_HMM_smr)
   acf(pr_md_HMM_smr$stepRes[is.finite(pr_md_HMM_smr$stepRes)], lag.max = 300)
@@ -418,9 +429,9 @@
   #'  Removed cosinor parameters on trans prob. due to poor convergence of SE and 
   #'  95% CI on Sin effect on Pr(2 -> 1) in univariate time model
   md_HMM_wtr_wc <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_wtr_all, fits = 1)
-  md_HMM_wtr <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_wtr_all, fits = 1)
+  md_HMM_wtr <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime3, trans_formula_wtr_all, fits = 1)
   #'  QQplot of residuals
-  plotPR(md_HMM_wtr, lag.max = NULL, ncores = 4)
+  plotPR(md_HMM_wtr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_md_HMM_wtr <- pseudoRes(md_HMM_wtr)
   acf(pr_md_HMM_wtr$stepRes[is.finite(pr_md_HMM_wtr$stepRes)], lag.max = 300)
@@ -441,9 +452,9 @@
   elk_HMM_smr_COY <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
   elk_HMM_smr_wc <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all, fits = 1)
-  elk_HMM_smr <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all, fits = 1)
+  elk_HMM_smr <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime3, trans_formula_smr_all, fits = 1)
   #'  QQplot of residuals
-  plotPR(elk_HMM_smr, lag.max = NULL, ncores = 4)
+  plotPR(elk_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_elk_HMM_smr <- pseudoRes(elk_HMM_smr)
   acf(pr_elk_HMM_smr$stepRes[!is.na(pr_elk_HMM_smr$stepRes)],lag.max = 100)
@@ -464,9 +475,9 @@
   elk_HMM_wtr_COY <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
   elk_HMM_wtr_wc <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all, fits = 1)
-  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all, fits = 1)
+  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime3, trans_formula_wtr_all, fits = 1)
   #'  QQplot of residuals
-  plotPR(elk_HMM_wtr, lag.max = NULL, ncores = 4)
+  plotPR(elk_HMM_wtr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_elk_HMM_wtr <- pseudoRes(elk_HMM_wtr)
   acf(pr_elk_HMM_wtr$stepRes[!is.na(pr_elk_HMM_wtr$stepRes)],lag.max = 100)
@@ -488,9 +499,9 @@
   wtd_HMM_smr_COY <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
   wtd_HMM_smr_wc <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_smr_all, fits = 1)
-  wtd_HMM_smr <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_smr_all, fits = 1)
+  wtd_HMM_smr <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime3, trans_formula_smr_all, fits = 1)
   #'  QQplot of residuals
-  plotPR(wtd_HMM_smr, lag.max = NULL, ncores = 4)
+  plotPR(wtd_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_wtd_HMM_smr <- pseudoRes(wtd_HMM_smr)
   acf(pr_wtd_HMM_smr$stepRes[!is.na(pr_wtd_HMM_smr$stepRes)],lag.max = 100)
@@ -511,9 +522,9 @@
   wtd_HMM_wtr_COY <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
   wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_wtr_all, fits = 1)
-  wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_wtr_all, fits = 1)
+  wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime3, trans_formula_wtr_all, fits = 1)
   #'  QQplot of residuals
-  plotPR(wtd_HMM_wtr, lag.max = NULL, ncores = 4)
+  plotPR(wtd_HMM_wtr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_wtd_HMM_wtr <- pseudoRes(wtd_HMM_wtr)
   acf(pr_wtd_HMM_wtr$stepRes[!is.na(pr_wtd_HMM_wtr$stepRes)],lag.max = 100)
@@ -532,9 +543,9 @@
   coug_HMM_smr_OK_MD <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_md, fits = 1)
   #'  Global model
   coug_HMM_smr_OK_wc <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_smr_OK, fits = 1)
-  coug_HMM_smr_OK <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_smr_OK, fits = 1)
+  coug_HMM_smr_OK <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_smr_OK, fits = 1)
   #'  QQplot of residuals
-  plotPR(coug_HMM_smr_OK, lag.max = NULL, ncores = 4)
+  plotPR(coug_HMM_smr_OK, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_coug_HMM_smr_OK <- pseudoRes(coug_HMM_smr_OK)
   acf(pr_coug_HMM_smr_OK$stepRes[!is.na(pr_coug_HMM_smr_OK$stepRes)],lag.max = 100)
@@ -553,15 +564,15 @@
   #'  MD & TRI highly correlated (0.76) so running models with TRI & MD separately
   #'  Will use AIC to choose final model
   coug_HMM_wtr_OK_wc <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
-  coug_HMM_wtr_OK_noMD <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
-  coug_HMM_wtr_OK_noTRI <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noTRI, fits = 1)
+  coug_HMM_wtr_OK_noMD <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_wtr_OK_noMD, fits = 1)
+  coug_HMM_wtr_OK_noTRI <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_wtr_OK_noTRI, fits = 1)
   AIC(coug_HMM_wtr_OK_noMD, coug_HMM_wtr_OK_noTRI)
   #'  Final model based on AIC above (noMD has lower AIC by 14) plus more
   #'  interested in movement behaviors with respect to terrain/habitat features
   #'  associated with hunting mode
-  coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_wtr_OK_noMD, fits = 1)
   #'  QQplot of residuals
-  plotPR(coug_HMM_wtr_OK, lag.max = NULL, ncores = 4)
+  plotPR(coug_HMM_wtr_OK, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_coug_HMM_wtr_OK <- pseudoRes(coug_HMM_wtr_OK)
   acf(pr_coug_HMM_wtr_OK$stepRes[!is.na(pr_coug_HMM_wtr_OK$stepRes)],lag.max = 100)
@@ -579,9 +590,9 @@
   coug_HMM_smr_NE_WTD <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtd, fits = 1)
   #'  Global model
   coug_HMM_smr_NE_wc <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_smr_NE, fits = 1)
-  coug_HMM_smr_NE <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_smr_NE, fits = 1)
+  coug_HMM_smr_NE <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_smr_NE, fits = 1)
   #'  QQplot of residuals
-  plotPR(coug_HMM_smr_NE, lag.max = NULL, ncores = 4)
+  plotPR(coug_HMM_smr_NE, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_coug_HMM_smr_NE <- pseudoRes(coug_HMM_smr_NE)
   acf(pr_coug_HMM_smr_NE$stepRes[!is.na(pr_coug_HMM_smr_NE$stepRes)],lag.max = 100)
@@ -600,9 +611,9 @@
   coug_HMM_wtr_WTD <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtd, fits = 1)
   #'  Global model
   coug_HMM_wtr_NE_wc <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_NE, fits = 1)
-  coug_HMM_wtr_NE <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_NE, fits = 1)
+  coug_HMM_wtr_NE <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
-  plotPR(coug_HMM_wtr_NE, lag.max = NULL, ncores = 4)
+  plotPR(coug_HMM_wtr_NE, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_coug_HMM_wtr_NE <- pseudoRes(coug_HMM_wtr_NE)
   acf(pr_coug_HMM_wtr_NE$stepRes[!is.na(pr_coug_HMM_wtr_NE$stepRes)],lag.max = 100)
@@ -621,9 +632,9 @@
   wolf_HMM_smr_OK_MD <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_md, fits = 1)
   #'  Global model
   wolf_HMM_smr_OK_wc <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_OK, fits = 1)
-  wolf_HMM_smr_OK <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_smr_OK, fits = 1)
+  wolf_HMM_smr_OK <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time3, trans_formula_smr_OK, fits = 1)
   #'  QQplot of residuals
-  plotPR(wolf_HMM_smr_OK, lag.max = NULL, ncores = 4)
+  plotPR(wolf_HMM_smr_OK, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_wolf_HMM_smr_OK <- pseudoRes(wolf_HMM_smr_OK)
   acf(pr_wolf_HMM_smr_OK$stepRes[!is.na(pr_wolf_HMM_smr_OK$stepRes)],lag.max = 100)
@@ -641,7 +652,8 @@
   wolf_HMM_wtr_OK_MD <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_md, fits = 1)
   #'  Global model
   wolf_HMM_wtr_OK_wc <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
-  wolf_HMM_wtr_OK <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
+  wolf_HMM_wtr_OK_og <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
+  wolf_HMM_wtr_OK_new <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time3, trans_formula_wtr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -661,7 +673,7 @@
   wolf_HMM_smr_NE_WTD <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
   wolf_HMM_smr_NE_wc <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_NE, fits = 1)
-  wolf_HMM_smr_NE <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_smr_NE, fits = 1)
+  wolf_HMM_smr_NE <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time3, trans_formula_smr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -682,7 +694,7 @@
   wolf_HMM_wtr_NE_WTD <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
   wolf_HMM_wtr_NE_wc <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_NE, fits = 1)
-  wolf_HMM_wtr_NE <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_NE, fits = 1)
+  wolf_HMM_wtr_NE <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time3, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -702,8 +714,8 @@
   bob_HMM_smr_OK_Road <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Road, fits = 1)
   bob_HMM_smr_OK_MD <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_md, fits = 1)
   #'  Global model
-  bob_HMM_smr_OK_wc <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_OK, fits = 1)
-  bob_HMM_smr_OK <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_smr_OK, fits = 1)
+  bob_HMM_smr_OK_wc <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob_zmass, DM_Zerotime, trans_formula_smr_OK, fits = 1)
+  bob_HMM_smr_OK <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob_zmass, DM_Zerotime3, trans_formula_smr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(bob_HMM_smr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -713,48 +725,50 @@
   plot(bob_HMM_smr_OK, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
   
-  #'  Okanogan Winter
-  #'  Univariate models
-  bob_HMM_wtr_OK_time <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_time, fits = 3)
-  bob_HMM_wtr_OK_TRI <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_TRI, fits = 3)
-  bob_HMM_wtr_OK_Open <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Open, fits = 3)
-  bob_HMM_wtr_OK_Road <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Road, fits = 3)
-  bob_HMM_wtr_OK_Snow <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Snow, fits = 3)
-  bob_HMM_wtr_OK_MD <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_md, fits = 3)
-  #'  Global model
-  bob_HMM_wtr_OK_wc <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_OK, fits = 3)
-  bob_HMM_wtr_OK <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtr_OK, fits = 3)
-  #'  QQplot of residuals
-  plotPR(bob_HMM_wtr_OK, lag.max = NULL, ncores = 4)
-  #'  Does temporal autocorrelation look any better?
-  pr_bob_HMM_wtr_OK <- pseudoRes(bob_HMM_wtr_OK)
-  acf(pr_bob_HMM_wtr_OK$stepRes[!is.na(pr_bob_HMM_wtr_OK$stepRes)],lag.max = 100)
-  #'  Review parameter estimates
-  plot(bob_HMM_wtr_OK, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
+  #' #'  Okanogan Winter
+  #' #'  Univariate models
+  #' bob_HMM_wtr_OK_time <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_time, fits = 3)
+  #' bob_HMM_wtr_OK_TRI <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_TRI, fits = 3)
+  #' bob_HMM_wtr_OK_Open <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Open, fits = 3)
+  #' bob_HMM_wtr_OK_Road <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Road, fits = 3)
+  #' bob_HMM_wtr_OK_Snow <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_Snow, fits = 3)
+  #' bob_HMM_wtr_OK_MD <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_md, fits = 3)
+  #' #'  Global model
+  #' #'  Error in nlm(nLogLike, optPar, nbStates, newformula, p$bounds, p$parSize,  : 
+  #' #'  non-finite value supplied by 'nlm'
+  #' bob_HMM_wtr_OK_wc <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_OK, fits = 3)
+  #' bob_HMM_wtr_OK <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob_zmass, DM_Zerotime3, trans_formula_wtr_OK, fits = 3)
+  #' #'  QQplot of residuals
+  #' plotPR(bob_HMM_wtr_OK, lag.max = NULL, ncores = 4)
+  #' #'  Does temporal autocorrelation look any better?
+  #' pr_bob_HMM_wtr_OK <- pseudoRes(bob_HMM_wtr_OK)
+  #' acf(pr_bob_HMM_wtr_OK$stepRes[!is.na(pr_bob_HMM_wtr_OK$stepRes)],lag.max = 100)
+  #' #'  Review parameter estimates
+  #' plot(bob_HMM_wtr_OK, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
   
-  #'  Northeast Summer
-  #'  Univariate models
-  bob_HMM_smr_NE_time <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_time, fits = 1)
-  bob_HMM_smr_NE_TRI <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_TRI, fits = 1)
-  bob_HMM_smr_NE_Open <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_Open, fits = 1)
-  bob_HMM_smr_NE_Road <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_Road, fits = 1)
-  bob_HMM_smr_NE_ELK <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_elk, fits = 1)
-  bob_HMM_smr_NE_WTD <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtd, fits = 1)
-  #'  Global model
-  #'  THIS ONE CONVERGES BUT THE ESTIMATES SEEM WEIRD
-  bob_HMM_smr_NE_wc <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 3)
-  #'  CURRENTLY THROWING AN ERROR
-  #'  Error in nlm(nLogLike, optPar, nbStates, newformula, p$bounds, p$parSize,  : 
-  #'  non-finite value supplied by 'nlm'
-  bob_HMM_smr_NE <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 3)
-  #'  QQplot of residuals
-  plotPR(bob_HMM_smr_NE, lag.max = NULL, ncores = 4)
-  #'  Does temporal autocorrelation look any better?
-  pr_bob_HMM_smr_NE <- pseudoRes(bob_HMM_smr_NE)
-  acf(pr_bob_HMM_smr_NE$stepRes[!is.na(pr_bob_HMM_smr_NE$stepRes)],lag.max = 100)
-  #'  Review parameter estimates
-  plot(bob_HMM_smr_NE, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
+  #' #'  Northeast Summer
+  #' #'  Univariate models
+  #' bob_HMM_smr_NE_time <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_time, fits = 1)
+  #' bob_HMM_smr_NE_TRI <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_TRI, fits = 1)
+  #' bob_HMM_smr_NE_Open <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_Open, fits = 1)
+  #' bob_HMM_smr_NE_Road <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_Road, fits = 1)
+  #' bob_HMM_smr_NE_ELK <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_elk, fits = 1)
+  #' bob_HMM_smr_NE_WTD <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtd, fits = 1)
+  #' #'  Global model
+  #' #'  THIS ONE CONVERGES BUT THE ESTIMATES SEEM WEIRD
+  #' bob_HMM_smr_NE_wc <- HMM_fit(bobData_smr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 3)
+  #' #'  CURRENTLY THROWING AN ERROR
+  #' #'  Error in nlm(nLogLike, optPar, nbStates, newformula, p$bounds, p$parSize,  : 
+  #' #'  non-finite value supplied by 'nlm'
+  #' bob_HMM_smr_NE <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time3, trans_formula_smr_NE, fits = 3)
+  #' #'  QQplot of residuals
+  #' plotPR(bob_HMM_smr_NE, lag.max = NULL, ncores = 4)
+  #' #'  Does temporal autocorrelation look any better?
+  #' pr_bob_HMM_smr_NE <- pseudoRes(bob_HMM_smr_NE)
+  #' acf(pr_bob_HMM_smr_NE$stepRes[!is.na(pr_bob_HMM_smr_NE$stepRes)],lag.max = 100)
+  #' #'  Review parameter estimates
+  #' plot(bob_HMM_smr_NE, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
   
   #'  Northeast Winter
@@ -767,8 +781,8 @@
   bob_HMM_wtr_NE_ELK <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_elk, fits = 1)
   bob_HMM_wtr_NE_WTD <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
-  bob_HMM_wtr_NE_wc <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob_zmass, DM_Zerotime, trans_formula_wtr_NE, fits = 1)
-  bob_HMM_wtr_NE <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob_zmass, DM_Zerotime, trans_formula_wtr_NE, fits = 1)
+  bob_HMM_wtr_NE_wc <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_NE, fits = 1)
+  bob_HMM_wtr_NE <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time3, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(bob_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -789,7 +803,7 @@
   coy_HMM_smr_OK_MD <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_md, fits = 1)
   #'  Global model
   coy_HMM_smr_OK_wc <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_smr_OK, fits = 1)
-  coy_HMM_smr_OK <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_smr_OK, fits = 1)
+  coy_HMM_smr_OK <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time3, trans_formula_smr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_smr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -811,13 +825,13 @@
   #'  MD & TRI highly correlated (0.71) so running models with TRI & MD separately
   #'  Will use AIC to choose final model 
   coy_HMM_wtr_OK_wc <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
-  coy_HMM_wtr_OK_noMD <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
-  coy_HMM_wtr_OK_noTRI <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noTRI, fits = 1)
+  coy_HMM_wtr_OK_noMD <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time3, trans_formula_wtr_OK_noMD, fits = 1)
+  coy_HMM_wtr_OK_noTRI <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time3, trans_formula_wtr_OK_noTRI, fits = 1)
   AIC(coy_HMM_wtr_OK_noTRI, coy_HMM_wtr_OK_noMD)
   #'  Final model based on AIC above (noMD has lower AIC by 3.8) plus more
   #'  interested in movement behaviors with respect to terrain/habitat features
   #'  associated with hunting mode
-  coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
+  coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time3, trans_formula_wtr_OK_noMD, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -837,7 +851,7 @@
   coy_HMM_smr_NE_WTD <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
   coy_HMM_smr_NE_wc <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_smr_NE, fits = 1)
-  coy_HMM_smr_NE <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_smr_NE, fits = 1)
+  coy_HMM_smr_NE <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time3, trans_formula_smr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -858,7 +872,7 @@
   coy_HMM_wtr_NE_WTD <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
   coy_HMM_wtr_NE_wc <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_NE, fits = 1)
-  coy_HMM_wtr_NE <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_NE, fits = 1)
+  coy_HMM_wtr_NE <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time3, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -875,15 +889,15 @@
                          wtd_HMM_wtr, coug_HMM_smr_OK, coug_HMM_wtr_OK, coug_HMM_smr_NE, 
                          coug_HMM_wtr_NE, wolf_HMM_smr_OK, wolf_HMM_wtr_OK, 
                          wolf_HMM_smr_NE, wolf_HMM_wtr_NE, bob_HMM_smr_OK, 
-                         bob_HMM_wtr_OK, #bob_HMM_smr_NE, 
+                         #bob_HMM_wtr_OK, #bob_HMM_smr_NE, 
                          bob_HMM_wtr_NE, coy_HMM_smr_OK, coy_HMM_wtr_OK, 
                          coy_HMM_smr_NE, coy_HMM_wtr_NE)
   save(spp_HMM_output, file = paste0("./Outputs/HMM_output/spp_HMM_output_", Sys.Date(), ".RData"))
   
 
   ####  Summarize Results  ####
-  load("./Outputs/HMM_output/spp_HMM_output_2022-02-22.RData")
-  load("./Outputs/Telemetry_covs/crwOut_ALL_wCovs_2022-02-22.RData")
+  load("./Outputs/HMM_output/spp_HMM_output_2022-03-15.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-14.RData")
 
   #'  Review model output
   print(spp_HMM_output[[1]]) # md_HMM_smr
@@ -901,14 +915,14 @@
   print(spp_HMM_output[[13]]) # wolf_HMM_smr_NE
   print(spp_HMM_output[[14]]) # wolf_HMM_wtr_NE
   print(spp_HMM_output[[15]]) # bob_HMM_smr_OK
-  print(spp_HMM_output[[16]]) # bob_HMM_wtr_OK
-  #'  List order changes here if using 2022-02-22 data
+  #'  List order changes here if using 2022-02-22 data or later
+  # print(spp_HMM_output[[16]]) # bob_HMM_wtr_OK
   # print(spp_HMM_output[[17]]) # bob_HMM_smr_NE
-  print(spp_HMM_output[[17]]) # bob_HMM_wtr_NE
-  print(spp_HMM_output[[18]]) # coy_HMM_smr_OK
-  print(spp_HMM_output[[19]]) # coy_HMM_wtr_OK
-  print(spp_HMM_output[[20]]) # coy_HMM_smr_NE
-  print(spp_HMM_output[[21]]) # coy_HMM_wtr_NE
+  print(spp_HMM_output[[16]]) # bob_HMM_wtr_NE
+  print(spp_HMM_output[[17]]) # coy_HMM_smr_OK
+  print(spp_HMM_output[[18]]) # coy_HMM_wtr_OK
+  print(spp_HMM_output[[19]]) # coy_HMM_smr_NE
+  print(spp_HMM_output[[20]]) # coy_HMM_wtr_NE
   
   
   ####  State-Dependent Distributions  ####
@@ -918,7 +932,7 @@
     step_out <- as.data.frame(mod$mle[[1]])
     step_out$Species <- spp
     step_out$Season <- season
-    step_out$StudyArea <- area
+    step_out$StudyArea <- area    #####  UPDATE FOR DAYTIME VARIABLE  ####
     colnames(step_out) <- c("State1 Intercept_mu", "State1 Cos_mu", "State1 Sin_mu", 
                             "State2 Intercept_mu", "State2 Cos_mu", "State2 Sin_mu",
                             "State1 Intercept_sd", "State1 Cos_sd", "State1 Sin_sd", 
@@ -975,7 +989,7 @@
   coug_smr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[9]], spp = "Cougar", season = "Summer", area = "Northeast")
   coug_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[10]], spp = "Cougar", season = "Winter", area = "Northeast")
   #' And NE winter bobcat- note the list order is a little wonky starting here
-  bob_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[17]], spp = "Bobcat", season = "Winter", area = "Northeast")
+  bob_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Northeast")
   
   
   #'  Function to report state-dependent distribution parameters, excluding zero-mass parameters
@@ -1036,13 +1050,13 @@
   wolf_smr_params_NE <- step_turn_parms(spp_HMM_output[[13]], spp = "Wolf", season = "Summer", area = "Northeast")
   wolf_wtr_params_NE <- step_turn_parms(spp_HMM_output[[14]], spp = "Wolf", season = "Winter", area = "Northeast")
   bob_smr_params_OK <- step_turn_parms(spp_HMM_output[[15]], spp = "Bobcat", season = "Summer", area = "Okanogan")
-  bob_wtr_params_OK <- step_turn_parms(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Okanogan")
-  #'  Note the list order gets a little wonky here b/c excluding NE summer bob for now
+  #'  Note the list order gets a little wonky here b/c excluding OK winter & NE summer bob for now
+  # bob_wtr_params_OK <- step_turn_parms(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Okanogan")
   # bob_smr_params_NE <- step_turn_parms(spp_HMM_output[[17]], spp = "Bobcat", season = "Summer", area = "Northeast")
-  coy_smr_params_OK <- step_turn_parms(spp_HMM_output[[18]], spp = "Coyote", season = "Summer", area = "Okanogan")
-  coy_wtr_params_OK <- step_turn_parms(spp_HMM_output[[19]], spp = "Coyote", season = "Winter", area = "Okanogan")
-  coy_smr_params_NE <- step_turn_parms(spp_HMM_output[[20]], spp = "Coyote", season = "Summer", area = "Northeast")
-  coy_wtr_params_NE <- step_turn_parms(spp_HMM_output[[21]], spp = "Coyote", season = "Winter", area = "Northeast")
+  coy_smr_params_OK <- step_turn_parms(spp_HMM_output[[17]], spp = "Coyote", season = "Summer", area = "Okanogan")
+  coy_wtr_params_OK <- step_turn_parms(spp_HMM_output[[18]], spp = "Coyote", season = "Winter", area = "Okanogan")
+  coy_smr_params_NE <- step_turn_parms(spp_HMM_output[[19]], spp = "Coyote", season = "Summer", area = "Northeast")
+  coy_wtr_params_NE <- step_turn_parms(spp_HMM_output[[20]], spp = "Coyote", season = "Winter", area = "Northeast")
   
   #'  Make single giant table of all step length parameters
   all_steps <- bind_rows(md_smr_params[[1]], md_wtr_params[[1]], elk_smr_params[[1]], 
@@ -1145,21 +1159,21 @@
   wolf_smr_hmm_NE <- hmm_out(spp_HMM_output[[13]], "Wolf", "Summer", "Northeast") #wolf_HMM_smr_NE
   wolf_wtr_hmm_NE <- hmm_out(spp_HMM_output[[14]], "Wolf", "Winter", "Northeast") #wolf_HMM_wtr_NE
   bob_smr_hmm_OK <- hmm_out(spp_HMM_output[[15]], "Bobcat", "Summer", "Okanogan") #bob_HMM_smr_OK
-  bob_wtr_hmm_OK <- hmm_out(spp_HMM_output[[16]], "Bobcat", "Winter", "Okanogan") #bob_HMM_wtr_OK
-  #'  Note the list order gets wonky here b/c excluding bob smr NE right now
+  #'  Note the list order gets wonky here b/c excluding bob wtr OK & smr NE right now
+  # bob_wtr_hmm_OK <- hmm_out(spp_HMM_output[[16]], "Bobcat", "Winter", "Okanogan") #bob_HMM_wtr_OK
   # bob_smr_hmm_NE <- hmm_out(spp_HMM_output[[17]], "Bobcat", "Summer", "Northeast") #bob_HMM_smr_NE
-  bob_wtr_hmm_NE <- hmm_out(spp_HMM_output[[17]], "Bobcat", "Winter", "Northeast") #bob_HMM_wtr_NE
-  coy_smr_hmm_OK <- hmm_out(spp_HMM_output[[18]], "Coyote", "Summer", "Okanogan") #coy_HMM_smr_OK
-  coy_wtr_hmm_OK <- hmm_out(spp_HMM_output[[19]], "Coyote", "Winter", "Okanogan") #coy_HMM_wtr_OK
-  coy_smr_hmm_NE <- hmm_out(spp_HMM_output[[20]], "Coyote", "Summer", "Northeast") #coy_HMM_smr_NE
-  coy_wtr_hmm_NE <- hmm_out(spp_HMM_output[[21]], "Coyote", "Winter", "Northeast") #coy_HMM_wtr_NE
+  bob_wtr_hmm_NE <- hmm_out(spp_HMM_output[[16]], "Bobcat", "Winter", "Northeast") #bob_HMM_wtr_NE
+  coy_smr_hmm_OK <- hmm_out(spp_HMM_output[[17]], "Coyote", "Summer", "Okanogan") #coy_HMM_smr_OK
+  coy_wtr_hmm_OK <- hmm_out(spp_HMM_output[[18]], "Coyote", "Winter", "Okanogan") #coy_HMM_wtr_OK
+  coy_smr_hmm_NE <- hmm_out(spp_HMM_output[[19]], "Coyote", "Summer", "Northeast") #coy_HMM_smr_NE
+  coy_wtr_hmm_NE <- hmm_out(spp_HMM_output[[20]], "Coyote", "Winter", "Northeast") #coy_HMM_wtr_NE
   
   #'  Gather prey and predator results to put into a single results table
   results_hmm_TransPr <- rbind(md_smr_hmm, md_wtr_hmm, elk_smr_hmm, elk_wtr_hmm, 
                                wtd_smr_hmm, wtd_wtr_hmm, coug_smr_hmm_OK, coug_wtr_hmm_OK, 
                                coug_smr_hmm_NE, coug_wtr_hmm_NE, wolf_smr_hmm_OK, 
                                wolf_wtr_hmm_OK, wolf_smr_hmm_NE, wolf_wtr_hmm_NE, 
-                               bob_smr_hmm_OK, bob_wtr_hmm_OK, #bob_smr_hmm_NE, 
+                               bob_smr_hmm_OK, #bob_wtr_hmm_OK, #bob_smr_hmm_NE, 
                                bob_wtr_hmm_NE, coy_smr_hmm_OK, coy_wtr_hmm_OK, 
                                coy_smr_hmm_NE, coy_wtr_hmm_NE)
   results_hmm_TransPr_prey <- rbind(md_smr_hmm, md_wtr_hmm, elk_smr_hmm, elk_wtr_hmm, 
@@ -1167,7 +1181,7 @@
   results_hmm_TransPr_pred <- rbind(coug_smr_hmm_OK, coug_wtr_hmm_OK, coug_smr_hmm_NE, 
                                     coug_wtr_hmm_NE, wolf_smr_hmm_OK, wolf_wtr_hmm_OK, 
                                     wolf_smr_hmm_NE, wolf_wtr_hmm_NE, bob_smr_hmm_OK, 
-                                    bob_wtr_hmm_OK, #bob_smr_hmm_NE, 
+                                    #bob_wtr_hmm_OK, #bob_smr_hmm_NE, 
                                     bob_wtr_hmm_NE, coy_smr_hmm_OK, coy_wtr_hmm_OK, 
                                     coy_smr_hmm_NE, coy_wtr_hmm_NE)
   
@@ -1199,7 +1213,7 @@
     arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer")))
 
   
-  # write.csv(results_hmm_wide_TransPr_prey, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_wide", Sys.Date(), ".csv"))
+  write.csv(results_hmm_wide_TransPr_prey, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_wide", Sys.Date(), ".csv"))
   
   #'  Predators HMM results
   results_hmm_wide_TransPr_pred <- results_hmm_TransPr_pred %>% 
@@ -1223,10 +1237,10 @@
     separate("MD_RSF", c("Pr(Mule Deer) (SE)", "Pr(Mule Deer) 95% CI"), sep = "_") %>%
     separate("ELK_RSF", c("Pr(Elk) (SE)", "Pr(Elk) 95% CI"), sep = "_") %>%
     separate("WTD_RSF", c("Pr(White-tailed Deer) (SE)", "Pr(White-tailed Deer) 95% CI"), sep = "_") %>%
-    arrange(match(Species, c("Bobcat", "Cougar", "Coyote", "Wolf"))) 
-  # arrange(match(Season, c("Summer", "Winter")))
+    arrange(match(Species, c("Bobcat", "Cougar", "Coyote", "Wolf"))) #%>%
+    #arrange(match(Season, c("Summer", "Winter")))
   
-  # write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
+  write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
   
   
   ####  Back-transformed Results  ####
@@ -1334,14 +1348,14 @@
   wolf_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[13]], spp = "Wolf", season = "Summer", area = "Northeast")
   wolf_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[14]], spp = "Wolf", season = "Winter", area = "Northeast")
   bob_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[15]], spp = "Bobcat", season = "Summer", area = "Okanogan")
-  bob_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Okanogan")
   #'  List order changes when using von Mises distribution
+  # bob_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Okanogan")
   # bob_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[17]], spp = "Bobcat", season = "Summer", area = "Northeast")
-  bob_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[17]], spp = "Bobcat", season = "Winter", area = "Northeast")
-  coy_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[18]], spp = "Coyote", season = "Summer", area = "Okanogan")
-  coy_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[19]], spp = "Coyote", season = "Winter", area = "Okanogan")
-  coy_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[20]], spp = "Coyote", season = "Summer", area = "Northeast")
-  coy_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[21]], spp = "Coyote", season = "Winter", area = "Northeast")
+  bob_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Northeast")
+  coy_smr_backtrans_OK <- backtrans_params(spp_HMM_output[[17]], spp = "Coyote", season = "Summer", area = "Okanogan")
+  coy_wtr_backtrans_OK <- backtrans_params(spp_HMM_output[[18]], spp = "Coyote", season = "Winter", area = "Okanogan")
+  coy_smr_backtrans_NE <- backtrans_params(spp_HMM_output[[19]], spp = "Coyote", season = "Summer", area = "Northeast")
+  coy_wtr_backtrans_NE <- backtrans_params(spp_HMM_output[[20]], spp = "Coyote", season = "Winter", area = "Northeast")
   
   
   #'  Table for back-transformed step lengths
@@ -1352,8 +1366,8 @@
                                    coug_smr_backtrans_NE[[1]], coug_wtr_backtrans_NE[[1]], 
                                    wolf_smr_backtrans_OK[[1]], wolf_wtr_backtrans_OK[[1]], 
                                    wolf_smr_backtrans_NE[[1]], wolf_wtr_backtrans_NE[[1]], 
-                                   bob_smr_backtrans_OK[[1]], bob_wtr_backtrans_OK[[1]], 
-                                   # bob_smr_backtrans_NE[[1]], 
+                                   bob_smr_backtrans_OK[[1]], 
+                                   # bob_wtr_backtrans_OK[[1]], bob_smr_backtrans_NE[[1]], 
                                    bob_wtr_backtrans_NE[[1]], 
                                    coy_smr_backtrans_OK[[1]], coy_wtr_backtrans_OK[[1]], 
                                    coy_smr_backtrans_NE[[1]], coy_wtr_backtrans_NE[[1]]) %>%
@@ -1371,8 +1385,8 @@
                                    coug_smr_backtrans_NE[[2]], coug_wtr_backtrans_NE[[2]], 
                                    wolf_smr_backtrans_OK[[2]], wolf_wtr_backtrans_OK[[2]], 
                                    wolf_smr_backtrans_NE[[2]], wolf_wtr_backtrans_NE[[2]], 
-                                   bob_smr_backtrans_OK[[2]], bob_wtr_backtrans_OK[[2]], 
-                                   # bob_smr_backtrans_NE[[2]], 
+                                   bob_smr_backtrans_OK[[2]], 
+                                   # bob_wtr_backtrans_OK[[2]], bob_smr_backtrans_NE[[2]], 
                                    bob_wtr_backtrans_NE[[2]], 
                                    coy_smr_backtrans_OK[[2]], coy_wtr_backtrans_OK[[2]], 
                                    coy_smr_backtrans_NE[[2]], coy_wtr_backtrans_NE[[2]]) %>%
@@ -1388,8 +1402,8 @@
                                    coug_smr_backtrans_NE[[3]], coug_wtr_backtrans_NE[[3]], 
                                    wolf_smr_backtrans_OK[[3]], wolf_wtr_backtrans_OK[[3]], 
                                    wolf_smr_backtrans_NE[[3]], wolf_wtr_backtrans_NE[[3]], 
-                                   bob_smr_backtrans_OK[[3]], bob_wtr_backtrans_OK[[3]], 
-                                   # bob_smr_backtrans_NE[[3]], 
+                                   bob_smr_backtrans_OK[[3]], 
+                                   # bob_wtr_backtrans_OK[[3]], bob_smr_backtrans_NE[[3]], 
                                    bob_wtr_backtrans_NE[[3]], 
                                    coy_smr_backtrans_OK[[3]], coy_wtr_backtrans_OK[[3]], 
                                    coy_smr_backtrans_NE[[3]], coy_wtr_backtrans_NE[[3]]) %>%
@@ -1455,9 +1469,9 @@
   stay_wolf_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[11]])
   stay_wolf_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[12]])
   stay_bob_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[15]])
-  stay_bob_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[16]])
-  stay_coy_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[18]])
-  stay_coy_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[19]])
+  # stay_bob_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[16]])
+  stay_coy_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[17]])
+  stay_coy_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[18]])
   
   #'  Stationary state probabilities for predators in the Northeast
   stay_probs_pred_NE <- function(hmmm) {
@@ -1482,9 +1496,9 @@
   stay_wolf_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[13]])
   stay_wolf_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[14]])
   # stay_bob_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[17]])
-  stay_bob_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[17]])
-  stay_coy_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[20]])
-  stay_coy_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[21]])
+  stay_bob_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[16]])
+  stay_coy_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[19]])
+  stay_coy_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[20]])
   
   
   ####  Prettier Plots for Stationary State Probabilities  ####
@@ -1721,7 +1735,7 @@
                       subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
   
   
-  pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots.pdf")
+  pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots_030922.pdf")
   plot(md_smr_patch, main = "Stationary State Probabilties for Summer Mule Deer")
   plot(md_wtr_patch, main = "Stationary State Probabilties for Winter Mule Deer")
   plot(elk_smr_patch, main = "Stationary State Probabilties for Summer Elk")
@@ -1763,6 +1777,10 @@
   png(file="./Outputs/Figures for ms/WTD_smr_COY.png", width = 700, height = 500)
   (wtd_smr_coy <- wtd_smr_fig[[7]] + plot_annotation(title = 'Summer White-tailed Deer Stationary State Probabilities', subtitle = '     Okanogan 2018 - 2021'))
   dev.off()
+  png(file="./Outputs/Figures for ms/ELK_wtr_WOLF.png", width = 700, height = 500)
+  (elk_wtr_wolf <- elk_wtr_fig[[6]] + plot_annotation(title = 'Winter Elk Stationary State Probabilities', subtitle = '     Northeast 2018 - 2021'))
+  dev.off()
+  
   
   ####  Viterbi Algorithm  ####
   #'  Function to extract most likely state sequence for all locations based on
