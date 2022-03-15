@@ -47,12 +47,12 @@
   
   #'  Load crwOut animal location data for each species (takes a hot minute)
   # load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData") #2022-02-18 included 2 hr fixes when collars switch schedules
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-13.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData")
   
-  #'  Read in previously extracted NDVI data from GEE
-  #'  Note: NDVIsmr is for summer locs ONLY, NDVImax is for winter locs ONLY
-  load("./Outputs/Telemetry_covs/ee_NDVIsmr_list_2022-02-20.RData")
-  load("./Outputs/Telemetry_covs/ee_NDVImax_list_2022-02-20.RData")
+  #' #'  Read in previously extracted NDVI data from GEE
+  #' #'  Note: NDVIsmr is for summer locs ONLY, NDVImax is for winter locs ONLY
+  #' load("./Outputs/Telemetry_covs/ee_NDVIsmr_list_2022-02-20.RData") # 2022-02-20 included 2hr fixes
+  #' load("./Outputs/Telemetry_covs/ee_NDVImax_list_2022-02-20.RData") # 2022-02-20 included 2hr fixes
   
   #'  Read in spatial data
   TRI <- rast("./Shapefiles/WA DEM rasters/WPPP_TRI.tif")
@@ -125,50 +125,40 @@
   }
   sf_locs <- lapply(crwOut_ALL, spatial_locs)
   
-  #' #'  Reproject sf objects to match WGS84 rasters
-  #' sf_reproj <- function(locs) {
-  #'   locs_wgs84 <- st_transform(locs, crs = wgs84)
-  #'   return(locs_wgs84)
+  #' #'  Reformat NDVI data so they have matching columns
+  #' #'  Summer NDVI values
+  #' NDVI_smr <- function(ee_NDVI_summer) {
+  #'   NDVIsmr <- transmute(ee_NDVI_summer, obs = ID, AnimalID = AnimalID, Season = Season, 
+  #'                        StudyArea = StudyArea, time = times, NDVI = NDVI) %>%
+  #'     mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8")) #NDVIsmr
+  #'   return(NDVIsmr)
   #' }
-  #' sf_locs_wgs84 <- lapply(sf_locs, sf_reproj)
+  #' NDVIsmr <- lapply(ee_NDVIsmr_list, NDVI_smr)
+  #' #'  Max NDVI  values at winter locations
+  #' NDVI_max <- function(ee_NDVI_max) {
+  #'   NDVImax <- transmute(ee_NDVI_max, obs = ID, AnimalID = AnimalID, Season = Season, 
+  #'                        StudyArea = StudyArea, time = times, NDVI = maxNDVI) %>%
+  #'     mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8"))
+  #'   return(NDVImax)
+  #' }
+  #' NDVImax <- lapply(ee_NDVImax_list, NDVI_max)
   #' 
-  #' tst <- sf_locs[[10]]
-  #' tst_wgs84 <- sf_locs_wgs84[[10]]
-  
-  #'  Reformat NDVI data so they have matching columns
-  #'  Summer NDVI values
-  NDVI_smr <- function(ee_NDVI_summer) {
-    NDVIsmr <- transmute(ee_NDVI_summer, obs = ID, AnimalID = AnimalID, Season = Season, 
-                         StudyArea = StudyArea, time = times, NDVI = NDVI) %>%
-      mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8")) #NDVIsmr
-    return(NDVIsmr)
-  }
-  NDVIsmr <- lapply(ee_NDVIsmr_list, NDVI_smr)
-  #'  Max NDVI  values at winter locations
-  NDVI_max <- function(ee_NDVI_max) {
-    NDVImax <- transmute(ee_NDVI_max, obs = ID, AnimalID = AnimalID, Season = Season, 
-                         StudyArea = StudyArea, time = times, NDVI = maxNDVI) %>%
-      mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8"))
-    return(NDVImax)
-  }
-  NDVImax <- lapply(ee_NDVImax_list, NDVI_max)
-  
-  #'  Split seasonal NDVI data by study area
-  #'  NOTE: ELK & WTD lists will be empty after NDVI_OK & MD lists will be empty after NDVI_NE
-  #'  Okanogan summer & max NDVI values
-  NDVI_OK <- function(ndvi){
-    OK_only <- ndvi[ndvi$StudyArea == "OK",]
-    return(OK_only)
-  }
-  NDVIsmr_OK <- lapply(NDVIsmr, NDVI_OK)
-  NDVImax_OK <- lapply(NDVImax, NDVI_OK)
-  #'  Northeast summer & max NDVI values
-  NDVI_NE <- function(ndvi){
-    NE_only <- ndvi[ndvi$StudyArea == "NE",]
-    return(NE_only)
-  }
-  NDVIsmr_NE <- lapply(NDVIsmr, NDVI_NE)
-  NDVImax_NE <- lapply(NDVImax, NDVI_NE)
+  #' #'  Split seasonal NDVI data by study area
+  #' #'  NOTE: ELK & WTD lists will be empty after NDVI_OK & MD lists will be empty after NDVI_NE
+  #' #'  Okanogan summer & max NDVI values
+  #' NDVI_OK <- function(ndvi){
+  #'   OK_only <- ndvi[ndvi$StudyArea == "OK",]
+  #'   return(OK_only)
+  #' }
+  #' NDVIsmr_OK <- lapply(NDVIsmr, NDVI_OK)
+  #' NDVImax_OK <- lapply(NDVImax, NDVI_OK)
+  #' #'  Northeast summer & max NDVI values
+  #' NDVI_NE <- function(ndvi){
+  #'   NE_only <- ndvi[ndvi$StudyArea == "NE",]
+  #'   return(NE_only)
+  #' }
+  #' NDVIsmr_NE <- lapply(NDVIsmr, NDVI_NE)
+  #' NDVImax_NE <- lapply(NDVImax, NDVI_NE)
   
   
   #'  -------------------------------------------
@@ -446,6 +436,12 @@
   }
   #'  Run list of species location data through function in parallel
   spp_telem_covs <- lapply(sf_locs, cov_extract) # non-parallel approach
+  # mds_telem_covs <- cov_extract(sf_locs[[1]])
+  # mdw_telem_covs <- cov_extract(sf_locs[[2]])
+  # elks_telem_covs <- cov_extract(sf_locs[[3]])
+  # elkw_telem_covs <- cov_extract(sf_locs[[4]])
+  # wtds_telem_covs <- cov_extract(sf_locs[[5]])
+  # wtdw_telem_covs <- cov_extract(sf_locs[[6]])
   # spp_telem_covs <- future_lapply(sf_locs, cov_extract)
   
   
@@ -479,18 +475,24 @@
   remove_wtr_covs <- function(covs) {
     smr_data <- dplyr::select(covs, -c("MD_wtr", "ELK_wtr", "WTD_wtr", "COUG_wtr", 
                                            "WOLF_wtr", "BOB_wtr", "COY_wtr")) %>%
-      #'  Add columns for location hour and whether it's day or night based on 
-      #'  sunrise and sunset times over course of each month
+      #'  Add columns for location hour, re-factored hour, & whether it's day or 
+      #'  night based on sunrise/sunset times over course of each month
       mutate(hour = as.integer(strftime(time, format = "%H", tz="Etc/GMT+8")),
+             hour2 = as.numeric(as.factor(hour)),
+             hour3 = ifelse(hour <= 2, 1, 6),
+             hour3 = ifelse(hour >= 4 & hour <= 6, 2, hour3),
+             hour3 = ifelse(hour >= 8 & hour <= 10, 3, hour3),
+             hour3 = ifelse(hour >= 12 & hour <= 14, 4, hour3),
+             hour3 = ifelse(hour >= 16 & hour <= 18, 5, hour3),
              month = as.integer(strftime(time, format = "%m", tz="Etc/GMT+8")),
-             #' For July - Aug, hours between 5am and 9pm are daytime (0), else nightime (1)
-             daytime = ifelse(month < 9 & hour < 5 | hour > 21, 0, 1),
-             #'  For Sept, hours between 7am and 7pm are daytime (0), else nightime (1)
-             daytime = ifelse(month == 9 & hour < 7 | hour > 19, 0, daytime))
+             #' For July - Aug, hours between 5am and 9pm are daytime (1), else nightime (0)
+             daytime = ifelse(month < 9 & hour < 5 | hour > 21, 1, 0),
+             #'  For Sept, hours between 7am and 7pm are daytime (1), else nightime (0)
+             daytime = ifelse(month == 9 & hour < 7 | hour > 19, 1, daytime))
     names(smr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
                      "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF", "hour", 
-                     "month", "daytime")
+                     "hour2", "hour3", "month", "daytime")
     return(smr_data)
   }
   smr_telem_data <- lapply(smr_covs, remove_wtr_covs)
@@ -499,68 +501,84 @@
   remove_smr_covs <- function(covs) {
     wtr_data <- dplyr::select(covs, -c("MD_smr", "ELK_smr", "WTD_smr", "COUG_smr",  
                                            "WOLF_smr", "BOB_smr", "COY_smr")) %>%
-      #'  Add columns for location hour and whether it's day or night based on 
-      #'  sunrise and sunset times over course of each month
+      #'  Add columns for location hour, re-factored hour, & whether it's day or 
+      #'  night based on sunrise/sunset times over course of each month
       mutate(hour = as.integer(strftime(time, format = "%H", tz="Etc/GMT+8")),
+             hour2 = as.numeric(as.factor(hour)),
+             hour3 = ifelse(hour <= 2, 1, 6),
+             hour3 = ifelse(hour >= 4 & hour <= 6, 2, hour3),
+             hour3 = ifelse(hour >= 8 & hour <= 10, 3, hour3),
+             hour3 = ifelse(hour >= 12 & hour <= 14, 4, hour3),
+             hour3 = ifelse(hour >= 16 & hour <= 18, 5, hour3),
              month = as.integer(strftime(time, format = "%m", tz="Etc/GMT+8")),
-             #' For Dec, hours between 7:30am and 4:20pm are daytime (0), else nightime (1)
-             daytime = ifelse(month == 12 & hour < 7 | hour > 16, 0, 1),
-             #' For Jan, hours between 8am and 4:20pm are daytime (0), else nightime (1)
-             daytime = ifelse(month == 1 & hour < 8 | hour > 16, 0, daytime),
-             #'  For Feb, hours between 7:30am and 5pm are daytime (0), else nightime (1)
-             daytime = ifelse(month == 2 & hour < 7 | hour > 17, 0, daytime))
+             #' For Dec, hours between 7:30am and 4:20pm are daytime (1), else nightime (0)
+             daytime = ifelse(month == 12 & hour < 7 | hour > 16, 1, 0),
+             #' For Jan, hours between 8am and 4:20pm are daytime (1), else nightime (0)
+             daytime = ifelse(month == 1 & hour < 8 | hour > 16, 1, daytime),
+             #'  For Feb, hours between 7:30am and 5pm are daytime (1), else nightime (0)
+             daytime = ifelse(month == 2 & hour < 7 | hour > 17, 1, daytime))
     names(wtr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
                      "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF", "hour", 
-                     "month", "daytime")
+                     "hour2", "hour3", "month", "daytime")
     return(wtr_data)
   }
   wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
- 
-  
-  
-  #'  Reorder NDVI lists to match species, season, & study area-specific covariate
-  #'  lists --- KEEP TRACK OF THIS ORDER!!!!
-  #'  NDVI_smr list order: 1) MD smr, 2) ELK smr, 3) WTD smr, 4) COUG smr OK,
-  #'  5) COUG smr NE, 6) WOLF smr OK, 7) WOLF smr NE, 8) BOB smr OK, 9) BOB smr NE,
-  #'  10) COY smr OK, 11) COY smr NE
-  #'  NDVI_max list order: 1) MD wtr, 2) ELK wtr, 3) WTD wtr, 4) COUG wtr OK,
-  #'  5) COUG wtr NE, 6) WOLF wtr OK, 7) WOLF wtr NE, 8) BOB wtr OK, 9) BOB wtr NE,
-  #'  10) COY wtr OK, 11) COY wtr NE
-  NDVI_smr <- list(NDVIsmr_OK[[1]], NDVIsmr_NE[[2]], NDVIsmr_NE[[3]], NDVIsmr_OK[[4]],
-                   NDVIsmr_NE[[5]], NDVIsmr_OK[[6]], NDVIsmr_NE[[7]], NDVIsmr_OK[[8]],
-                   NDVIsmr_NE[[9]], NDVIsmr_OK[[10]], NDVIsmr_NE[[11]])
 
-  NDVI_max <- list(NDVImax_OK[[1]], NDVImax_NE[[2]], NDVImax_NE[[3]], NDVImax_OK[[4]],
-                   NDVImax_NE[[5]], NDVImax_OK[[6]], NDVImax_NE[[7]], NDVImax_OK[[8]],
-                   NDVImax_NE[[9]], NDVImax_OK[[10]], NDVImax_NE[[11]])
-
-  #'  Add NDVI data to covariate data frames based on species and season
-  #'  Remember: NDVIsmr are the spatio-temporally matched NDVI values for summer locs
-  #'  NDVImax are the maximum NDVI value from previous growing season for each winter loc
-  add_ndvi <- function(covs, ndvi) {
-    full_covs <- full_join(covs, ndvi, by = c("AnimalID", "Season", "StudyArea", "time")) %>%
-      relocate(NDVI, .after = Dist2Road) %>%
-      dplyr::select(-obs.y)
-    names(full_covs)[names(full_covs) == "obs.x"] <- "obs"
-    return(full_covs)
-  }
-  #'  Append species and season specific NDVI data to covariate datasets
-  #'  FYI: mapply allows each call of the add_ndvi function to get the 1st, 2nd,
-  #'  3rd, etc. element of BOTH lists, SIMPLIFY keeps output in list format
-  smr_cov_data <- mapply(add_ndvi, smr_telem_data, NDVI_smr, SIMPLIFY = FALSE)
-  wtr_cov_data <- mapply(add_ndvi, wtr_telem_data, NDVI_max, SIMPLIFY = FALSE)
+  
+  #' #'  Reorder NDVI lists to match species, season, & study area-specific covariate
+  #' #'  lists --- KEEP TRACK OF THIS ORDER!!!!
+  #' #'  NDVI_smr list order: 1) MD smr, 2) ELK smr, 3) WTD smr, 4) COUG smr OK,
+  #' #'  5) COUG smr NE, 6) WOLF smr OK, 7) WOLF smr NE, 8) BOB smr OK, 9) BOB smr NE,
+  #' #'  10) COY smr OK, 11) COY smr NE
+  #' #'  NDVI_max list order: 1) MD wtr, 2) ELK wtr, 3) WTD wtr, 4) COUG wtr OK,
+  #' #'  5) COUG wtr NE, 6) WOLF wtr OK, 7) WOLF wtr NE, 8) BOB wtr OK, 9) BOB wtr NE,
+  #' #'  10) COY wtr OK, 11) COY wtr NE
+  #' NDVI_smr <- list(NDVIsmr_OK[[1]], NDVIsmr_NE[[2]], NDVIsmr_NE[[3]], NDVIsmr_OK[[4]],
+  #'                  NDVIsmr_NE[[5]], NDVIsmr_OK[[6]], NDVIsmr_NE[[7]], NDVIsmr_OK[[8]],
+  #'                  NDVIsmr_NE[[9]], NDVIsmr_OK[[10]], NDVIsmr_NE[[11]])
+  #' 
+  #' NDVI_max <- list(NDVImax_OK[[1]], NDVImax_NE[[2]], NDVImax_NE[[3]], NDVImax_OK[[4]],
+  #'                  NDVImax_NE[[5]], NDVImax_OK[[6]], NDVImax_NE[[7]], NDVImax_OK[[8]],
+  #'                  NDVImax_NE[[9]], NDVImax_OK[[10]], NDVImax_NE[[11]])
+  #' 
+  #' #'  Add NDVI data to covariate data frames based on species and season
+  #' #'  Remember: NDVIsmr are the spatio-temporally matched NDVI values for summer locs
+  #' #'  NDVImax are the maximum NDVI value from previous growing season for each winter loc
+  #' add_ndvi <- function(covs, ndvi) {
+  #'   full_covs <- full_join(covs, ndvi, by = c("AnimalID", "Season", "StudyArea", "time")) %>%
+  #'     relocate(NDVI, .after = Dist2Road) %>%
+  #'     dplyr::select(-obs.y)
+  #'   names(full_covs)[names(full_covs) == "obs.x"] <- "obs"
+  #'   return(full_covs)
+  #' }
+  #' #'  Append species and season specific NDVI data to covariate datasets
+  #' #'  FYI: mapply allows each call of the add_ndvi function to get the 1st, 2nd,
+  #' #'  3rd, etc. element of BOTH lists, SIMPLIFY keeps output in list format
+  #' smr_cov_data <- mapply(add_ndvi, smr_telem_data, NDVI_smr, SIMPLIFY = FALSE)
+  #' wtr_cov_data <- mapply(add_ndvi, wtr_telem_data, NDVI_max, SIMPLIFY = FALSE)
+  #' 
+  #' #'  List covariates by study area
+  #' #'  Include only species collared in respective study area
+  #' #'  Okanogan: 1:2) MD, 3:4) COUG, 5:6) WOLF, 7:8) BOB, 9:10) COY
+  #' OK_covs <- list(smr_cov_data[[1]], wtr_cov_data[[1]], smr_cov_data[[4]], wtr_cov_data[[4]],
+  #'                 smr_cov_data[[6]], wtr_cov_data[[6]], smr_cov_data[[8]], wtr_cov_data[[8]],
+  #'                 smr_cov_data[[10]], wtr_cov_data[[10]])
+  #' #'  Northeast: 1:2) ELK, 3:4) WTD, 5:6) COUG, 7:8) WOLF, 9:10) BOB, 11:12) COY
+  #' NE_covs <- list(smr_cov_data[[2]], wtr_cov_data[[2]], smr_cov_data[[3]], wtr_cov_data[[3]],
+  #'                 smr_cov_data[[5]], wtr_cov_data[[5]], smr_cov_data[[7]], wtr_cov_data[[7]],
+  #'                 smr_cov_data[[9]], wtr_cov_data[[9]], smr_cov_data[[11]], wtr_cov_data[[11]])
   
   #'  List covariates by study area
   #'  Include only species collared in respective study area
   #'  Okanogan: 1:2) MD, 3:4) COUG, 5:6) WOLF, 7:8) BOB, 9:10) COY
-  OK_covs <- list(smr_cov_data[[1]], wtr_cov_data[[1]], smr_cov_data[[4]], wtr_cov_data[[4]],
-                  smr_cov_data[[6]], wtr_cov_data[[6]], smr_cov_data[[8]], wtr_cov_data[[8]],
-                  smr_cov_data[[10]], wtr_cov_data[[10]])
+  OK_covs <- list(smr_telem_data[[1]], wtr_telem_data[[1]], smr_telem_data[[4]], wtr_telem_data[[4]],
+                  smr_telem_data[[6]], wtr_telem_data[[6]], smr_telem_data[[8]], wtr_telem_data[[8]],
+                  smr_telem_data[[10]], wtr_telem_data[[10]])
   #'  Northeast: 1:2) ELK, 3:4) WTD, 5:6) COUG, 7:8) WOLF, 9:10) BOB, 11:12) COY
-  NE_covs <- list(smr_cov_data[[2]], wtr_cov_data[[2]], smr_cov_data[[3]], wtr_cov_data[[3]],
-                  smr_cov_data[[5]], wtr_cov_data[[5]], smr_cov_data[[7]], wtr_cov_data[[7]],
-                  smr_cov_data[[9]], wtr_cov_data[[9]], smr_cov_data[[11]], wtr_cov_data[[11]])
+  NE_covs <- list(smr_telem_data[[2]], wtr_telem_data[[2]], smr_telem_data[[3]], wtr_telem_data[[3]],
+                  smr_telem_data[[5]], wtr_telem_data[[5]], smr_telem_data[[7]], wtr_telem_data[[7]],
+                  smr_telem_data[[9]], wtr_telem_data[[9]], smr_telem_data[[11]], wtr_telem_data[[11]])
   
   #'  Remove MD & ELK/WTD data from NE & OK covariates, respectively
   #'  These columns of pure NAs will cause problems when merging covariate data
