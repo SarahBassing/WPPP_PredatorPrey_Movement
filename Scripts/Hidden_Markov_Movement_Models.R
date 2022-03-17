@@ -27,7 +27,7 @@
 
   #'  Load crwOut & covaraite data
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData")    # 2022-02-03 missing some bobcats & coyotes
-  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-03-14.RData")  # 2022-02-14 missing some bobcats & coyotes
+  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-03-16.RData")  # 2022-02-14 missing some bobcats & coyotes
   
   
   #'  Merge datasets and create momentuHMMData object
@@ -57,13 +57,13 @@
     crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
     crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
     crwlMerge$crwPredict$hour <- as.integer(crwlMerge$crwPredict$hour)
-    crwlMerge$crwPredict$hour2 <- as.integer(crwlMerge$crwPredict$hour2)
+    crwlMerge$crwPredict$hour_fix <- as.integer(crwlMerge$crwPredict$hour_fix)
     crwlMerge$crwPredict$hour3 <- as.integer(crwlMerge$crwPredict$hour3)
     #'  Prep crwlMerge data for fitHMM function
     Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", "NDVI", 
                                                     "SnowCover", "TRI", "MD_RSF", 
                                                     "COUG_RSF", "WOLF_RSF", "BOB_RSF", 
-                                                    "COY_RSF", "hour", "hour2",
+                                                    "COY_RSF", "hour", "hour_fix",
                                                     "hour3", "daytime", "Sex", 
                                                     "StudyArea", "Season"))  # "ELK_RSF", "WTD_RSF", 
     return(Data)
@@ -106,14 +106,14 @@
     crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
     crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
     crwlMerge$crwPredict$hour <- as.integer(crwlMerge$crwPredict$hour)
-    crwlMerge$crwPredict$hour2 <- as.integer(crwlMerge$crwPredict$hour2)
+    crwlMerge$crwPredict$hour_fix <- as.integer(crwlMerge$crwPredict$hour_fix)
     crwlMerge$crwPredict$hour3 <- as.integer(crwlMerge$crwPredict$hour3)
     #'  Prep crwlMerge data for fitHMM function
     Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", "NDVI", 
                                                     "SnowCover", "TRI", "ELK_RSF", 
                                                     "WTD_RSF", "COUG_RSF", "WOLF_RSF",
                                                     "BOB_RSF", "COY_RSF", "hour", 
-                                                    "hour2", "hour3", "daytime",
+                                                    "hour_fix", "hour3", "daytime",
                                                     "Sex", "StudyArea", "Season")) # "MD_RSF",
     return(Data)
   }
@@ -141,7 +141,7 @@
                    bobData_wtr_NE, coyData_smr_OK, coyData_wtr_OK, coyData_smr_NE, 
                    coyData_wtr_NE)
   save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_", Sys.Date(), ".RData"))
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-14.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-16.RData")
   
   
   #'  Correlation Matrix
@@ -293,11 +293,8 @@
   #'  Create pseudo-design matrices for state-dependent distributions
   DM_null <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
   DM_null_ZeroMass <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
-  DM_time <- list(step = list(mean = ~cosinor(hour, period = 24), sd = ~cosinor(hour, period = 24)), angle = list(concentration = ~1))
-  DM_timeday <- list(step = list(mean = ~daynight + cosinor(hour, period = 24), sd = ~daynight + cosinor(hour, period = 24)), angle = list(concentration = ~1))
-  DM_Zerotime <- list(step = list(mean = ~daynight + cosinor(hour, period = 24), sd = ~daynight + cosinor(hour, period = 24), zeromass = ~daynight + cosinor(hour, period = 24)), angle = list(concentration = ~1)) # includes zeromass parameters
-  DM_time3 <- list(step = list(mean = ~daytime + cosinor(hour2, period = 6), sd = ~daytime + cosinor(hour2, period = 6)), angle = list(concentration = ~1))
-  DM_Zerotime3 <- list(step = list(mean = ~daytime + cosinor(hour2, period = 6), sd = ~daytime + cosinor(hour2, period = 6), zeromass = ~daytime + cosinor(hour2, period = 6)), angle = list(concentration = ~1)) # includes zeromass parameters
+  DM_time <- list(step = list(mean = ~daytime + cosinor(hour, period = 6), sd = ~daytime + cosinor(hour, period = 6)), angle = list(concentration = ~1))
+  DM_Zerotime <- list(step = list(mean = ~daytime + cosinor(hour, period = 6), sd = ~daytime + cosinor(hour, period = 6), zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
   
   
   ####  Models describing Transition Probabilities  ####
@@ -400,11 +397,11 @@
   #'  COY & TRI highly correlated (-0.75) so running models with TRI & MD separately
   #'  Will use AIC to choose final model  
   md_HMM_smr_wc <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
-  md_HMM_smr_noCoy <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime3, trans_formula_smr_all_noCoy, fits = 1)
-  md_HMM_smr_noTRI <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime3, trans_formula_smr_all_noTRI, fits = 1)
+  md_HMM_smr_noCoy <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
+  md_HMM_smr_noTRI <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noTRI, fits = 1)
   AIC(md_HMM_smr_noTRI, md_HMM_smr_noCoy)
   #'  Final model based on AIC above (noCoy has lower AIC by 55)
-  md_HMM_smr <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime3, trans_formula_smr_all_noCoy, fits = 1)
+  md_HMM_smr <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
   #'  QQplot of residuals
   plotPR(md_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better? NOPE looks real bad on step length
@@ -429,7 +426,7 @@
   #'  Removed cosinor parameters on trans prob. due to poor convergence of SE and 
   #'  95% CI on Sin effect on Pr(2 -> 1) in univariate time model
   md_HMM_wtr_wc <- HMM_fit(mdData_wtr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_wtr_all, fits = 1)
-  md_HMM_wtr <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime3, trans_formula_wtr_all, fits = 1)
+  md_HMM_wtr <- HMM_fit(mdData_wtr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_wtr_all, fits = 1)
   #'  QQplot of residuals
   plotPR(md_HMM_wtr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -452,7 +449,7 @@
   elk_HMM_smr_COY <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
   elk_HMM_smr_wc <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all, fits = 1)
-  elk_HMM_smr <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime3, trans_formula_smr_all, fits = 1)
+  elk_HMM_smr <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all, fits = 1)
   #'  QQplot of residuals
   plotPR(elk_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -475,7 +472,7 @@
   elk_HMM_wtr_COY <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
   elk_HMM_wtr_wc <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all, fits = 1)
-  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime3, trans_formula_wtr_all, fits = 1)
+  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all, fits = 1)
   #'  QQplot of residuals
   plotPR(elk_HMM_wtr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -499,7 +496,7 @@
   wtd_HMM_smr_COY <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
   wtd_HMM_smr_wc <- HMM_fit(wtdData_smr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_smr_all, fits = 1)
-  wtd_HMM_smr <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime3, trans_formula_smr_all, fits = 1)
+  wtd_HMM_smr <- HMM_fit(wtdData_smr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_smr_all, fits = 1)
   #'  QQplot of residuals
   plotPR(wtd_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -522,7 +519,7 @@
   wtd_HMM_wtr_COY <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
   wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_wc, Par0_m1_wtd, DM_Zerotime, trans_formula_wtr_all, fits = 1)
-  wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime3, trans_formula_wtr_all, fits = 1)
+  wtd_HMM_wtr <- HMM_fit(wtdData_wtr, dists_vm, Par0_m1_wtd, DM_Zerotime, trans_formula_wtr_all, fits = 1)
   #'  QQplot of residuals
   plotPR(wtd_HMM_wtr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -543,7 +540,7 @@
   coug_HMM_smr_OK_MD <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_md, fits = 1)
   #'  Global model
   coug_HMM_smr_OK_wc <- HMM_fit(cougData_smr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_smr_OK, fits = 1)
-  coug_HMM_smr_OK <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_smr_OK, fits = 1)
+  coug_HMM_smr_OK <- HMM_fit(cougData_smr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_smr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(coug_HMM_smr_OK, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -564,13 +561,13 @@
   #'  MD & TRI highly correlated (0.76) so running models with TRI & MD separately
   #'  Will use AIC to choose final model
   coug_HMM_wtr_OK_wc <- HMM_fit(cougData_wtr_OK, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
-  coug_HMM_wtr_OK_noMD <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_wtr_OK_noMD, fits = 1)
-  coug_HMM_wtr_OK_noTRI <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_wtr_OK_noTRI, fits = 1)
+  coug_HMM_wtr_OK_noMD <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  coug_HMM_wtr_OK_noTRI <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noTRI, fits = 1)
   AIC(coug_HMM_wtr_OK_noMD, coug_HMM_wtr_OK_noTRI)
   #'  Final model based on AIC above (noMD has lower AIC by 14) plus more
   #'  interested in movement behaviors with respect to terrain/habitat features
   #'  associated with hunting mode
-  coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_wtr_OK_noMD, fits = 1)
+  coug_HMM_wtr_OK <- HMM_fit(cougData_wtr_OK, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
   #'  QQplot of residuals
   plotPR(coug_HMM_wtr_OK, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -590,7 +587,7 @@
   coug_HMM_smr_NE_WTD <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtd, fits = 1)
   #'  Global model
   coug_HMM_smr_NE_wc <- HMM_fit(cougData_smr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_smr_NE, fits = 1)
-  coug_HMM_smr_NE <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_smr_NE, fits = 1)
+  coug_HMM_smr_NE <- HMM_fit(cougData_smr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_smr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(coug_HMM_smr_NE, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -611,7 +608,7 @@
   coug_HMM_wtr_WTD <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtd, fits = 1)
   #'  Global model
   coug_HMM_wtr_NE_wc <- HMM_fit(cougData_wtr_NE, dists_wc, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_NE, fits = 1)
-  coug_HMM_wtr_NE <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime3, trans_formula_wtr_NE, fits = 1)
+  coug_HMM_wtr_NE <- HMM_fit(cougData_wtr_NE, dists_vm, Par0_m1_coug, DM_Zerotime, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(coug_HMM_wtr_NE, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -632,7 +629,7 @@
   wolf_HMM_smr_OK_MD <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_md, fits = 1)
   #'  Global model
   wolf_HMM_smr_OK_wc <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_OK, fits = 1)
-  wolf_HMM_smr_OK <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time3, trans_formula_smr_OK, fits = 1)
+  wolf_HMM_smr_OK <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_smr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_smr_OK, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -653,7 +650,7 @@
   #'  Global model
   wolf_HMM_wtr_OK_wc <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
   wolf_HMM_wtr_OK_og <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
-  wolf_HMM_wtr_OK_new <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time3, trans_formula_wtr_OK, fits = 1)
+  wolf_HMM_wtr_OK_new <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -673,7 +670,7 @@
   wolf_HMM_smr_NE_WTD <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
   wolf_HMM_smr_NE_wc <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_NE, fits = 1)
-  wolf_HMM_smr_NE <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time3, trans_formula_smr_NE, fits = 1)
+  wolf_HMM_smr_NE <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_smr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -694,7 +691,7 @@
   wolf_HMM_wtr_NE_WTD <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
   wolf_HMM_wtr_NE_wc <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_NE, fits = 1)
-  wolf_HMM_wtr_NE <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time3, trans_formula_wtr_NE, fits = 1)
+  wolf_HMM_wtr_NE <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -715,7 +712,7 @@
   bob_HMM_smr_OK_MD <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob, DM_time, trans_formula_md, fits = 1)
   #'  Global model
   bob_HMM_smr_OK_wc <- HMM_fit(bobData_smr_OK, dists_wc, Par0_m1_bob_zmass, DM_Zerotime, trans_formula_smr_OK, fits = 1)
-  bob_HMM_smr_OK <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob_zmass, DM_Zerotime3, trans_formula_smr_OK, fits = 1)
+  bob_HMM_smr_OK <- HMM_fit(bobData_smr_OK, dists_vm, Par0_m1_bob_zmass, DM_Zerotime, trans_formula_smr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(bob_HMM_smr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -737,7 +734,7 @@
   #' #'  Error in nlm(nLogLike, optPar, nbStates, newformula, p$bounds, p$parSize,  : 
   #' #'  non-finite value supplied by 'nlm'
   #' bob_HMM_wtr_OK_wc <- HMM_fit(bobData_wtr_OK, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_OK, fits = 3)
-  #' bob_HMM_wtr_OK <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob_zmass, DM_Zerotime3, trans_formula_wtr_OK, fits = 3)
+  #' bob_HMM_wtr_OK <- HMM_fit(bobData_wtr_OK, dists_vm, Par0_m1_bob_zmass, DM_Zerotime, trans_formula_wtr_OK, fits = 3)
   #' #'  QQplot of residuals
   #' plotPR(bob_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #' #'  Does temporal autocorrelation look any better?
@@ -761,7 +758,7 @@
   #' #'  CURRENTLY THROWING AN ERROR
   #' #'  Error in nlm(nLogLike, optPar, nbStates, newformula, p$bounds, p$parSize,  : 
   #' #'  non-finite value supplied by 'nlm'
-  #' bob_HMM_smr_NE <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time3, trans_formula_smr_NE, fits = 3)
+  #' bob_HMM_smr_NE <- HMM_fit(bobData_smr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_smr_NE, fits = 3)
   #' #'  QQplot of residuals
   #' plotPR(bob_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #' #'  Does temporal autocorrelation look any better?
@@ -782,7 +779,7 @@
   bob_HMM_wtr_NE_WTD <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
   bob_HMM_wtr_NE_wc <- HMM_fit(bobData_wtr_NE, dists_wc, Par0_m1_bob, DM_time, trans_formula_wtr_NE, fits = 1)
-  bob_HMM_wtr_NE <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time3, trans_formula_wtr_NE, fits = 1)
+  bob_HMM_wtr_NE <- HMM_fit(bobData_wtr_NE, dists_vm, Par0_m1_bob, DM_time, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(bob_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -803,7 +800,7 @@
   coy_HMM_smr_OK_MD <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_md, fits = 1)
   #'  Global model
   coy_HMM_smr_OK_wc <- HMM_fit(coyData_smr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_smr_OK, fits = 1)
-  coy_HMM_smr_OK <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time3, trans_formula_smr_OK, fits = 1)
+  coy_HMM_smr_OK <- HMM_fit(coyData_smr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_smr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_smr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -825,13 +822,13 @@
   #'  MD & TRI highly correlated (0.71) so running models with TRI & MD separately
   #'  Will use AIC to choose final model 
   coy_HMM_wtr_OK_wc <- HMM_fit(coyData_wtr_OK, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
-  coy_HMM_wtr_OK_noMD <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time3, trans_formula_wtr_OK_noMD, fits = 1)
-  coy_HMM_wtr_OK_noTRI <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time3, trans_formula_wtr_OK_noTRI, fits = 1)
+  coy_HMM_wtr_OK_noMD <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
+  coy_HMM_wtr_OK_noTRI <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noTRI, fits = 1)
   AIC(coy_HMM_wtr_OK_noTRI, coy_HMM_wtr_OK_noMD)
   #'  Final model based on AIC above (noMD has lower AIC by 3.8) plus more
   #'  interested in movement behaviors with respect to terrain/habitat features
   #'  associated with hunting mode
-  coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time3, trans_formula_wtr_OK_noMD, fits = 1)
+  coy_HMM_wtr_OK <- HMM_fit(coyData_wtr_OK, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_OK_noMD, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -851,7 +848,7 @@
   coy_HMM_smr_NE_WTD <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
   coy_HMM_smr_NE_wc <- HMM_fit(coyData_smr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_smr_NE, fits = 1)
-  coy_HMM_smr_NE <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time3, trans_formula_smr_NE, fits = 1)
+  coy_HMM_smr_NE <- HMM_fit(coyData_smr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_smr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_smr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -872,7 +869,7 @@
   coy_HMM_wtr_NE_WTD <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtd, fits = 1)
   #'  Global model
   coy_HMM_wtr_NE_wc <- HMM_fit(coyData_wtr_NE, dists_wc, Par0_m1_coy, DM_time, trans_formula_wtr_NE, fits = 1)
-  coy_HMM_wtr_NE <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time3, trans_formula_wtr_NE, fits = 1)
+  coy_HMM_wtr_NE <- HMM_fit(coyData_wtr_NE, dists_vm, Par0_m1_coy, DM_time, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(coy_HMM_wtr_NE, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
