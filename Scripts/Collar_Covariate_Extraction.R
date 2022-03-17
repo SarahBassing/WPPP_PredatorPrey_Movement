@@ -478,7 +478,12 @@
       #'  Add columns for location hour, re-factored hour, & whether it's day or 
       #'  night based on sunrise/sunset times over course of each month
       mutate(hour = as.integer(strftime(time, format = "%H", tz="Etc/GMT+8")),
-             hour2 = as.numeric(as.factor(hour)),
+             hour_fix = ifelse(hour == 0 | hour == 2, 2, 22),
+             hour_fix = ifelse(hour == 4 | hour == 6, 6, hour_fix),
+             hour_fix = ifelse(hour == 8 | hour == 10, 10, hour_fix),
+             hour_fix = ifelse(hour == 12 | hour == 14, 14, hour_fix),
+             hour_fix = ifelse(hour == 16 | hour  == 18, 18, hour_fix),
+             # hour2 = as.numeric(as.factor(hour)),
              hour3 = ifelse(hour <= 2, 1, 6),
              hour3 = ifelse(hour >= 4 & hour <= 6, 2, hour3),
              hour3 = ifelse(hour >= 8 & hour <= 10, 3, hour3),
@@ -492,7 +497,7 @@
     names(smr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
                      "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF", "hour", 
-                     "hour2", "hour3", "month", "daytime")
+                     "hour_fix", "hour3", "month", "daytime")
     return(smr_data)
   }
   smr_telem_data <- lapply(smr_covs, remove_wtr_covs)
@@ -504,7 +509,12 @@
       #'  Add columns for location hour, re-factored hour, & whether it's day or 
       #'  night based on sunrise/sunset times over course of each month
       mutate(hour = as.integer(strftime(time, format = "%H", tz="Etc/GMT+8")),
-             hour2 = as.numeric(as.factor(hour)),
+             hour_fix = ifelse(hour == 0 | hour == 2, 2, 22),
+             hour_fix = ifelse(hour == 4 | hour == 6, 6, hour_fix),
+             hour_fix = ifelse(hour == 8 | hour == 10, 10, hour_fix),
+             hour_fix = ifelse(hour == 12 | hour == 14, 14, hour_fix),
+             hour_fix = ifelse(hour == 16 | hour  == 18, 18, hour_fix),
+             # hour2 = as.numeric(as.factor(hour)),
              hour3 = ifelse(hour <= 2, 1, 6),
              hour3 = ifelse(hour >= 4 & hour <= 6, 2, hour3),
              hour3 = ifelse(hour >= 8 & hour <= 10, 3, hour3),
@@ -520,7 +530,7 @@
     names(wtr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
                      "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF", "hour", 
-                     "hour2", "hour3", "month", "daytime")
+                     "hour_fix", "hour3", "month", "daytime")
     return(wtr_data)
   }
   wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
