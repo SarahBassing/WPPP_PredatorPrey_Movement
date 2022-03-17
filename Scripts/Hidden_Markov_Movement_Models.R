@@ -933,12 +933,12 @@
     step_out$Species <- spp
     step_out$Season <- season
     step_out$StudyArea <- area    #####  UPDATE FOR DAYTIME VARIABLE  ####
-    colnames(step_out) <- c("State1 Intercept_mu", "State1 Cos_mu", "State1 Sin_mu", 
-                            "State2 Intercept_mu", "State2 Cos_mu", "State2 Sin_mu",
-                            "State1 Intercept_sd", "State1 Cos_sd", "State1 Sin_sd", 
-                            "State2 Intercept_sd", "State2 Cos_sd", "State2 Sin_sd",
-                            "State1 Intercept_zmass", "State1 Cos_zmass", "State1 Sin_zmass", 
-                            "State2 Intercept_zmass", "State2 Cos_zmass", "State2 Sin_zmass", 
+    colnames(step_out) <- c("State1 Intercept_mu", "State1 Daylight_mu", "State1 Cos_mu", "State1 Sin_mu", 
+                            "State2 Intercept_mu", "State2 Daylight_mu", "State2 Cos_mu", "State2 Sin_mu",
+                            "State1 Intercept_sd", "State1 Daylight_sd", "State1 Cos_sd", "State1 Sin_sd", 
+                            "State2 Intercept_sd", "State2 Daylight_sd", "State2 Cos_sd", "State2 Sin_sd",
+                            "State1 Intercept_zmass", "State1 Daylight_zmass", "State1 Cos_zmass", "State1 Sin_zmass", 
+                            "State2 Intercept_zmass", "State2 Daylight_zmass", "State2 Cos_zmass", "State2 Sin_zmass", 
                             "Species", "Season", "StudyArea")
     #'  Wrangle parameters into an interpret-able table
     step_table <- step_out %>%
@@ -988,8 +988,8 @@
   coug_wtr_params_OK <- step_turn_parms_zmass(spp_HMM_output[[8]], spp = "Cougar", season = "Winter", area = "Okanogan")
   coug_smr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[9]], spp = "Cougar", season = "Summer", area = "Northeast")
   coug_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[10]], spp = "Cougar", season = "Winter", area = "Northeast")
-  #' And NE winter bobcat- note the list order is a little wonky starting here
-  bob_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Northeast")
+  #' #' And NE winter bobcat- note the list order is a little wonky starting here
+  #' bob_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Northeast")
   
   
   #'  Function to report state-dependent distribution parameters, excluding zero-mass parameters
@@ -999,10 +999,10 @@
     step_out$Species <- spp
     step_out$Season <- season
     step_out$StudyArea <- area
-    colnames(step_out) <- c("State1 Intercept_mu", "State1 Cos_mu", "State1 Sin_mu", 
-                            "State2 Intercept_mu", "State2 Cos_mu", "State2 Sin_mu",
-                            "State1 Intercept_sd", "State1 Cos_sd", "State1 Sin_sd", 
-                            "State2 Intercept_sd", "State2 Cos_sd", "State2 Sin_sd",
+    colnames(step_out) <- c("State1 Intercept_mu", "State1 Daylight_mu", "State1 Cos_mu", "State1 Sin_mu", 
+                            "State2 Intercept_mu", "State2 Daylight_mu", "State2 Cos_mu", "State2 Sin_mu",
+                            "State1 Intercept_sd", "State1 Daylight_sd", "State1 Cos_sd", "State1 Sin_sd", 
+                            "State2 Intercept_sd", "State2 Daylight_sd", "State2 Cos_sd", "State2 Sin_sd",
                             "Species", "Season", "StudyArea")
     #'  Wrangle parameters into an interpret-able table
     step_table <- step_out %>%
@@ -1053,6 +1053,7 @@
   #'  Note the list order gets a little wonky here b/c excluding OK winter & NE summer bob for now
   # bob_wtr_params_OK <- step_turn_parms(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Okanogan")
   # bob_smr_params_NE <- step_turn_parms(spp_HMM_output[[17]], spp = "Bobcat", season = "Summer", area = "Northeast")
+  bob_wtr_params_NE <- step_turn_parms(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Northeast")
   coy_smr_params_OK <- step_turn_parms(spp_HMM_output[[17]], spp = "Coyote", season = "Summer", area = "Okanogan")
   coy_wtr_params_OK <- step_turn_parms(spp_HMM_output[[18]], spp = "Coyote", season = "Winter", area = "Okanogan")
   coy_smr_params_NE <- step_turn_parms(spp_HMM_output[[19]], spp = "Coyote", season = "Summer", area = "Northeast")
@@ -1065,8 +1066,8 @@
                          coug_smr_params_NE[[1]], coug_wtr_params_NE[[1]], 
                          wolf_smr_params_OK[[1]], wolf_wtr_params_OK[[1]], 
                          wolf_smr_params_NE[[1]], wolf_wtr_params_NE[[1]], 
-                         bob_smr_params_OK[[1]], bob_wtr_params_OK[[1]], 
-                         # bob_smr_params_NE[[1]], 
+                         bob_smr_params_OK[[1]],  
+                         # bob_wtr_params_OK[[1]],bob_smr_params_NE[[1]], 
                          bob_wtr_params_NE[[1]], 
                          coy_smr_params_OK[[1]], coy_wtr_params_OK[[1]], 
                          coy_smr_params_NE[[1]], coy_wtr_params_NE[[1]]) %>%
@@ -1082,8 +1083,8 @@
                          coug_smr_params_NE[[2]], coug_wtr_params_NE[[2]], 
                          wolf_smr_params_OK[[2]], wolf_wtr_params_OK[[2]], 
                          wolf_smr_params_NE[[2]], wolf_wtr_params_NE[[2]], 
-                         bob_smr_params_OK[[2]], bob_wtr_params_OK[[2]], 
-                         # bob_smr_params_NE[[2]], 
+                         bob_smr_params_OK[[2]], 
+                         # bob_wtr_params_OK[[2]], bob_smr_params_NE[[2]], 
                          bob_wtr_params_NE[[2]], 
                          coy_smr_params_OK[[2]], coy_wtr_params_OK[[2]], 
                          coy_smr_params_NE[[2]], coy_wtr_params_NE[[2]]) %>%
@@ -1237,8 +1238,9 @@
     separate("MD_RSF", c("Pr(Mule Deer) (SE)", "Pr(Mule Deer) 95% CI"), sep = "_") %>%
     separate("ELK_RSF", c("Pr(Elk) (SE)", "Pr(Elk) 95% CI"), sep = "_") %>%
     separate("WTD_RSF", c("Pr(White-tailed Deer) (SE)", "Pr(White-tailed Deer) 95% CI"), sep = "_") %>%
-    arrange(match(Species, c("Bobcat", "Cougar", "Coyote", "Wolf"))) #%>%
-    #arrange(match(Season, c("Summer", "Winter")))
+    group_by(Species) %>%
+    arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
+    ungroup()
   
   write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
   
@@ -1735,7 +1737,7 @@
                       subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
   
   
-  pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots_030922.pdf")
+  pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots_03.15.22.pdf")
   plot(md_smr_patch, main = "Stationary State Probabilties for Summer Mule Deer")
   plot(md_wtr_patch, main = "Stationary State Probabilties for Winter Mule Deer")
   plot(elk_smr_patch, main = "Stationary State Probabilties for Summer Elk")
@@ -1780,6 +1782,67 @@
   png(file="./Outputs/Figures for ms/ELK_wtr_WOLF.png", width = 700, height = 500)
   (elk_wtr_wolf <- elk_wtr_fig[[6]] + plot_annotation(title = 'Winter Elk Stationary State Probabilities', subtitle = '     Northeast 2018 - 2021'))
   dev.off()
+  
+  
+
+  ####  Tables for manuscript  ####
+  #'  Reformat transition probability tables for manuscript
+  #'  Prey HMM results
+  results_hmm_TransPr_prey_ms <- results_hmm_TransPr_prey %>%  
+    unite(CI95, Lower, Upper, sep = ", ") %>%
+    unite(Est_CI, Estimate, CI95, sep = "_") %>%
+    dplyr::select(-SE) %>%
+    spread(Parameter, Est_CI) %>%
+    separate("(Intercept)", c("Intercept", "Intercept 95% CI"), sep = "_") %>%
+    separate("TRI", c("TRI", "TRI 95% CI"), sep = "_") %>%
+    separate("PercOpen", c("Percent Open", "Percent Open 95% CI"), sep = "_") %>%
+    separate("Dist2Road", c("Nearest Road", "Nearest Road 95% CI"), sep = "_") %>%
+    separate("SnowCover1", c("Snow Cover (Y)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
+    separate("COUG_RSF", c("Pr(Cougar)", "Pr(Cougar) 95% CI"), sep = "_") %>%
+    separate("WOLF_RSF", c("Pr(Wolf)", "Pr(Wolf) 95% CI"), sep = "_") %>%
+    separate("BOB_RSF", c("Pr(Bobcat)", "Pr(Bobcat) 95% CI"), sep = "_") %>%
+    separate("COY_RSF", c("Pr(Coyote)", "Pr(Coyote) 95% CI"), sep = "_") %>%
+    arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer")))
+  
+  write.csv(results_hmm_TransPr_prey_ms, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_forMS_", Sys.Date(), ".csv"))
+  
+  #'  Predators HMM results
+  results_hmm_TransPr_pred_ms <- results_hmm_TransPr_pred %>% 
+    unite(CI95, Lower, Upper, sep = ", ") %>%
+    unite(Est_CI, Estimate, CI95, sep = "_") %>%
+    dplyr::select(-SE) %>%
+    spread(Parameter, Est_CI) %>%
+    separate("(Intercept)", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
+    separate("TRI", c("TRI (SE)", "TRI 95% CI"), sep = "_") %>%
+    separate("PercOpen", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
+    separate("Dist2Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
+    separate("SnowCover1", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
+    separate("MD_RSF", c("Pr(Mule Deer) (SE)", "Pr(Mule Deer) 95% CI"), sep = "_") %>%
+    separate("ELK_RSF", c("Pr(Elk) (SE)", "Pr(Elk) 95% CI"), sep = "_") %>%
+    separate("WTD_RSF", c("Pr(White-tailed Deer) (SE)", "Pr(White-tailed Deer) 95% CI"), sep = "_") %>%
+    filter(!Species == "Bobcat") %>%
+    group_by(Species) %>%
+    arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
+    ungroup()
+  
+  write.csv(results_hmm_TransPr_pred_ms, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_forMS_", Sys.Date(), ".csv"))
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   
   ####  Viterbi Algorithm  ####
