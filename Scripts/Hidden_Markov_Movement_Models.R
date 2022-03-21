@@ -293,9 +293,10 @@
   #'  Create pseudo-design matrices for state-dependent distributions
   DM_null <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
   DM_null_ZeroMass <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
-  DM_time <- list(step = list(mean = ~daytime + cosinor(hour, period = 6), sd = ~daytime + cosinor(hour, period = 6)), angle = list(concentration = ~1))
-  DM_Zerotime <- list(step = list(mean = ~daytime + cosinor(hour, period = 6), sd = ~daytime + cosinor(hour, period = 6), zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
+  DM_time <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 6), sd = ~daytime + cosinor(hour_fix, period = 6)), angle = list(concentration = ~1))
+  DM_Zerotime <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 6), sd = ~daytime + cosinor(hour_fix, period = 6), zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
   
+  # period = 6   # period = 12   # period = 24
   
   ####  Models describing Transition Probabilities  ####
   #'  Define formula(s) to be applied to transition probabilities
@@ -406,7 +407,7 @@
   plotPR(md_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better? NOPE looks real bad on step length
   pr_md_HMM_smr <- pseudoRes(md_HMM_smr)
-  acf(pr_md_HMM_smr$stepRes[is.finite(pr_md_HMM_smr$stepRes)], lag.max = 300)
+  acf(pr_md_HMM_smr$stepRes[is.finite(pr_md_HMM_smr$stepRes)], lag.max = 100)
   plot(md_HMM_smr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
   
@@ -431,7 +432,7 @@
   plotPR(md_HMM_wtr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
   pr_md_HMM_wtr <- pseudoRes(md_HMM_wtr)
-  acf(pr_md_HMM_wtr$stepRes[is.finite(pr_md_HMM_wtr$stepRes)], lag.max = 300)
+  acf(pr_md_HMM_wtr$stepRes[is.finite(pr_md_HMM_wtr$stepRes)], lag.max = 100)
   plot(md_HMM_wtr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
   
@@ -1174,14 +1175,57 @@
                                bob_smr_hmm_OK, #bob_wtr_hmm_OK, #bob_smr_hmm_NE, 
                                bob_wtr_hmm_NE, coy_smr_hmm_OK, coy_wtr_hmm_OK, 
                                coy_smr_hmm_NE, coy_wtr_hmm_NE)
+  
   results_hmm_TransPr_prey <- rbind(md_smr_hmm, md_wtr_hmm, elk_smr_hmm, elk_wtr_hmm, 
-                                    wtd_smr_hmm, wtd_wtr_hmm)
+                                    wtd_smr_hmm, wtd_wtr_hmm) %>%
+    unite(CI95, Lower, Upper, sep = ", ") %>%
+    dplyr::select(-SE) %>%
+    mutate(
+      Parameter = ifelse(Parameter == "(Intercept)", "Intercept", Parameter),
+      Parameter = ifelse(Parameter == "TRI", "Terrain Ruggedness", Parameter),
+      Parameter = ifelse(Parameter == "PercOpen", "Percent Open", Parameter),
+      Parameter = ifelse(Parameter == "Dist2Road", "Nearest Road", Parameter),
+      Parameter = ifelse(Parameter == "SnowCover1", "Snow Cover (Y)", Parameter),
+      Parameter = ifelse(Parameter == "COUG_RSF", "Pr(Cougar)", Parameter),
+      Parameter = ifelse(Parameter == "WOLF_RSF", "Pr(Wolf)", Parameter),
+      Parameter = ifelse(Parameter == "BOB_RSF", "Pr(Bobcat)", Parameter),
+      Parameter = ifelse(Parameter == "COY_RSF", "Pr(Coyote)", Parameter)
+    ) #%>%
+    # group_by(Species) %>%
+    # arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
+    # ungroup()
+  colnames(results_hmm_TransPr_prey) <- c("Species", "Season", "Study Area", 
+                                          "Transition", "Parameter", "Estimate", "95% CI")
   results_hmm_TransPr_pred <- rbind(coug_smr_hmm_OK, coug_wtr_hmm_OK, coug_smr_hmm_NE, 
                                     coug_wtr_hmm_NE, wolf_smr_hmm_OK, wolf_wtr_hmm_OK, 
                                     wolf_smr_hmm_NE, wolf_wtr_hmm_NE, bob_smr_hmm_OK, 
                                     #bob_wtr_hmm_OK, #bob_smr_hmm_NE, 
                                     bob_wtr_hmm_NE, coy_smr_hmm_OK, coy_wtr_hmm_OK, 
-                                    coy_smr_hmm_NE, coy_wtr_hmm_NE)
+                                    coy_smr_hmm_NE, coy_wtr_hmm_NE) %>%
+    unite(CI95, Lower, Upper, sep = ", ") %>%
+    dplyr::select(-SE) %>%
+    mutate(
+      Parameter = ifelse(Parameter == "(Intercept)", "Intercept", Parameter),
+      Parameter = ifelse(Parameter == "TRI", "Terrain Ruggedness", Parameter),
+      Parameter = ifelse(Parameter == "PercOpen", "Percent Open", Parameter),
+      Parameter = ifelse(Parameter == "Dist2Road", "Nearest Road", Parameter),
+      Parameter = ifelse(Parameter == "SnowCover1", "Snow Cover (Y)", Parameter),
+      Parameter = ifelse(Parameter == "MD_RSF", "Pr(Mule Deer)", Parameter),
+      Parameter = ifelse(Parameter == "ELK_RSF", "Pr(Elk)", Parameter),
+      Parameter = ifelse(Parameter == "WTD_RSF", "Pr(White-tailed Deer)", Parameter)
+    ) %>%
+    filter(!Species == "Bobcat") %>%
+    # group_by(Species) %>%
+    # arrange(Parameter, Season, `Study Area`) %>% 
+    # arrange(match(Transition, c("Trans.1->2", "Trans.2->1")), .by_group = TRUE) %>%
+    # arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
+    # ungroup()
+  colnames(results_hmm_TransPr_pred) <- c("Species", "Season", "Study Area", 
+                                          "Transition", "Parameter", "Estimate", "95% CI")
+  
+  write.csv(results_hmm_TransPr_prey, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_long", Sys.Date(), ".csv"))
+  write.csv(results_hmm_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_long", Sys.Date(), ".csv"))
+  
   
   #'  Spread results so the coefficient effects are easier to compare between 
   #'  transition probabilities and across species
