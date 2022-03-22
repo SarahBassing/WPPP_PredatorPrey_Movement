@@ -895,7 +895,7 @@
 
   ####  Summarize Results  ####
   load("./Outputs/HMM_output/spp_HMM_output_2022-03-15.RData")
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-14.RData")
+  # load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-16.RData") #2022-03-14
 
   #'  Review model output
   print(spp_HMM_output[[1]]) # md_HMM_smr
