@@ -32,7 +32,7 @@
   rgee::ee_Initialize(drive = T)  # ignore the Welcome to the Earth Engine client blurb
 
   #'  Load crwOut processed movement data
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData") #2022-02-03 missing bobcats and coyote
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData") #2022-02-18 included 2hr fixes
 
   
   #'  Prepare telemetry data for ee
