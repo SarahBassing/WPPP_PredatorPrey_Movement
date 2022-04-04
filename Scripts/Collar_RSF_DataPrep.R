@@ -103,7 +103,7 @@
   avail_pts_3rd <- function(locs, ex, plotit = F) {
     #'  1. Make each animal's locations spatial
     #'  ---------------------------------------------------------
-    locs_sp <- SpatialPoints(locs[,c("x", "y")], proj4string = sa_proj) 
+    locs_sp <- SpatialPoints(locs[,c("x", "y")], proj4string = CRS(sa_proj)) 
     #'  Plot to make sure step 1 worked
     if(plotit) {
       plot(locs_sp, col = "blue", pch = 19, main = locs$FullID)
@@ -134,7 +134,7 @@
     # set.seed(2021)
     rndpts <- spsample(UD95_clip, navailable, type = "random")
     #'  Turn them into spatial points
-    rndpts_sp <- SpatialPoints(rndpts, proj4string = sa_proj)
+    rndpts_sp <- SpatialPoints(rndpts, proj4string = CRS(sa_proj))
     #' Plot to make sure step 3 worked
     if(plotit) {
       plot(rndpts_sp, col = "red", pch = 19)
