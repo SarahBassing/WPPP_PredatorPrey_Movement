@@ -587,7 +587,7 @@
                                 Area = ifelse(grepl("W110M", ID), "OK", Area))
   # wolf_avail_covs[[2]]$Area <- "NE"
   wolf_avail_covs[[2]] <- mutate(wolf_avail_covs[[2]],
-                                 Area = ifelse(grepl("W61M", ID), "OK", Area),
+                                 Area = ifelse(grepl("W61M", ID), "OK", "NE"),
                                  Area = ifelse(grepl("W88M", ID), "OK", Area),
                                  Area = ifelse(grepl("W93M", ID), "OK", Area),
                                  Area = ifelse(grepl("W94M", ID), "OK", Area),
