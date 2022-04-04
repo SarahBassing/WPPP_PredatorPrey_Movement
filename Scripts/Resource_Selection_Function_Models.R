@@ -37,9 +37,11 @@
   load("./Outputs/RSF_pts/elk_dat_all_2022-01-23.RData")
   load("./Outputs/RSF_pts/wtd_dat_all_2022-01-23.RData")
   load("./Outputs/RSF_pts/coug_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/wolf_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/wolf_dat_all_2022-04-04.RData") #2022-01-23 had incorrect study areas for available points- not a big deal b/c RSFs not study area specific and no area effect
   load("./Outputs/RSF_pts/bob_dat_all_2022-01-23.RData")
   load("./Outputs/RSF_pts/coy_dat_all_2022-01-23.RData")
+  #'  For TRG
+  load("./Outputs/RSF_pts/wolf_dat_all_Spokane_2022-04-04.RData")
   
   
   #'  Function to re-classify landcover into fewer categories
@@ -317,7 +319,7 @@
   load("./Outputs/RSF_output/RSF_ELK_list_2022-01-24.RData")
   load("./Outputs/RSF_output/RSF_WTD_list_2022-01-24.RData")
   load("./Outputs/RSF_output/RSF_COUG_list_2022-01-24.RData")
-  load("./Outputs/RSF_output/RSF_WOLF_list_2022-01-24.RData")
+  load("./Outputs/RSF_output/RSF_WOLF_list_2022-04-04.RData")
   load("./Outputs/RSF_output/RSF_BOB_list_2022-01-24.RData")
   load("./Outputs/RSF_output/RSF_COY_list_2022-01-24.RData")
   
