@@ -115,13 +115,21 @@
     #'  when estimating UDs (throws an error about grid being too small to 
     #'  estimate home range otherwise)
     UD <- kernelUD(locs_sp, kern = "bivnorm", extent = ex) 
+    UD50 <- getverticeshr(UD, 50)
+    UD75 <- getverticeshr(UD, 75)
+    UD90 <- getverticeshr(UD, 90)
     UD95 <- getverticeshr(UD, 95)
     #'  Intersect and clip water body polygons from MCP polygons so large bodies
     #'  of water are not available to collared animals
     UD95_clip <- rgeos::gDifference(UD95, bigwater_sp)
     #'  Plot to make sure step 2 worked
     if(plotit) {
-      plot(UD95_clip, border = "darkgreen", col = NA)
+      plot(UD95, border = "darkgreen", col = NA)
+      plot(locs_sp, col = "blue", pch = 19, cex = 0.75, add = T)
+      plot(UD50, border = "green", col = NA, add = T)
+      plot(UD75, border = "green", col = NA, add = T)
+      plot(UD90, border = "green", col = NA, add = T)
+      plot(UD95_clip, border = "red", col = NA, add = T)
     }
     
     #'  3. Randomly select points within each home range
@@ -137,7 +145,7 @@
     rndpts_sp <- SpatialPoints(rndpts, proj4string = CRS(sa_proj))
     #' Plot to make sure step 3 worked
     if(plotit) {
-      plot(rndpts_sp, col = "red", pch = 19)
+      plot(rndpts_sp, col = "red", pch = 19, cex = 0.75)
     }
     
     #'  4. Make list of locations non-spatial
