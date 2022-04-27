@@ -26,8 +26,8 @@
   library(tidyverse)
 
   #'  Load crwOut & covaraite data
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData")    # 2022-02-03 missing some bobcats & coyotes
-  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-03-16.RData")  # 2022-02-14 missing some bobcats & coyotes
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData")    
+  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-03-16.RData")  
   
   
   #'  Merge datasets and create momentuHMMData object
@@ -46,7 +46,7 @@
     crwlMerge$crwPredict$daytime <- as.factor(crwlMerge$crwPredict$daytime)
     #'  Standardize continuous variables
     crwlMerge$crwPredict$Dist2Road <- scale(crwlMerge$crwPredict$Dist2Road)
-    crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
+    # crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
     crwlMerge$crwPredict$PercOpen <- scale(crwlMerge$crwPredict$PercOpen)
     crwlMerge$crwPredict$TRI <- scale(crwlMerge$crwPredict$TRI)
     crwlMerge$crwPredict$MD_RSF <- scale(crwlMerge$crwPredict$MD_RSF)
@@ -60,7 +60,7 @@
     crwlMerge$crwPredict$hour_fix <- as.integer(crwlMerge$crwPredict$hour_fix)
     crwlMerge$crwPredict$hour3 <- as.integer(crwlMerge$crwPredict$hour3)
     #'  Prep crwlMerge data for fitHMM function
-    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", "NDVI", 
+    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", #"NDVI", 
                                                     "SnowCover", "TRI", "MD_RSF", 
                                                     "COUG_RSF", "WOLF_RSF", "BOB_RSF", 
                                                     "COY_RSF", "hour", "hour_fix",
@@ -95,7 +95,7 @@
     crwlMerge$crwPredict$daytime <- as.factor(crwlMerge$crwPredict$daytime)
     #' #'  Standardize continuous variables
     crwlMerge$crwPredict$Dist2Road <- scale(crwlMerge$crwPredict$Dist2Road)
-    crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
+    # crwlMerge$crwPredict$NDVI <- scale(crwlMerge$crwPredict$NDVI)
     crwlMerge$crwPredict$PercOpen <- scale(crwlMerge$crwPredict$PercOpen)
     crwlMerge$crwPredict$TRI <- scale(crwlMerge$crwPredict$TRI)
     #' crwlMerge$crwPredict$MD_RSF <- scale(crwlMerge$crwPredict$MD_RSF)   # Not in NE data set  
@@ -109,7 +109,7 @@
     crwlMerge$crwPredict$hour_fix <- as.integer(crwlMerge$crwPredict$hour_fix)
     crwlMerge$crwPredict$hour3 <- as.integer(crwlMerge$crwPredict$hour3)
     #'  Prep crwlMerge data for fitHMM function
-    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", "NDVI", 
+    Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", #"NDVI", 
                                                     "SnowCover", "TRI", "ELK_RSF", 
                                                     "WTD_RSF", "COUG_RSF", "WOLF_RSF",
                                                     "BOB_RSF", "COY_RSF", "hour", 
@@ -293,10 +293,10 @@
   #'  Create pseudo-design matrices for state-dependent distributions
   DM_null <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
   DM_null_ZeroMass <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
-  DM_time <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 6), sd = ~daytime + cosinor(hour_fix, period = 6)), angle = list(concentration = ~1))
-  DM_Zerotime <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 6), sd = ~daytime + cosinor(hour_fix, period = 6), zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
+  DM_time <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 4), sd = ~daytime + cosinor(hour_fix, period = 4)), angle = list(concentration = ~1))
+  DM_Zerotime <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 4), sd = ~daytime + cosinor(hour_fix, period = 4), zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
   
-  # period = 6   # period = 12   # period = 24
+  # period = 4   # period = 6   # period = 12   # period = 24
   
   ####  Models describing Transition Probabilities  ####
   #'  Define formula(s) to be applied to transition probabilities
@@ -622,14 +622,14 @@
   
   ####  WOLF HMMS  ####
   #'  Okanogan Summer
-  #'  Univariate models
-  wolf_HMM_smr_OK_time <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time, fits = 1)
-  wolf_HMM_smr_OK_TRI <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI, fits = 1)
-  wolf_HMM_smr_OK_Open <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open, fits = 1)
-  wolf_HMM_smr_OK_Road <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road, fits = 1)
-  wolf_HMM_smr_OK_MD <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_md, fits = 1)
-  #'  Global model
-  wolf_HMM_smr_OK_wc <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_OK, fits = 1)
+  #' #'  Univariate models
+  #' wolf_HMM_smr_OK_time <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time, fits = 1)
+  #' wolf_HMM_smr_OK_TRI <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI, fits = 1)
+  #' wolf_HMM_smr_OK_Open <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open, fits = 1)
+  #' wolf_HMM_smr_OK_Road <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road, fits = 1)
+  #' wolf_HMM_smr_OK_MD <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_md, fits = 1)
+  #' #'  Global model
+  #' wolf_HMM_smr_OK_wc <- HMM_fit(wolfData_smr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_OK, fits = 1)
   wolf_HMM_smr_OK <- HMM_fit(wolfData_smr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_smr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_smr_OK, lag.max = 100, ncores = 4)
@@ -641,17 +641,16 @@
   
   
   #'  Okanogan Winter
-  #'  Univariate models
-  wolf_HMM_wtr_OK_time <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time, fits = 1)
-  wolf_HMM_wtr_OK_TRI <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI, fits = 1)
-  wolf_HMM_wtr_OK_Open <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open, fits = 1)
-  wolf_HMM_wtr_OK_Road <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road, fits = 1)
-  wolf_HMM_wtr_OK_Snow <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Snow, fits = 1)
-  wolf_HMM_wtr_OK_MD <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_md, fits = 1)
-  #'  Global model
-  wolf_HMM_wtr_OK_wc <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
-  wolf_HMM_wtr_OK_og <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
-  wolf_HMM_wtr_OK_new <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
+  #' #'  Univariate models
+  #' wolf_HMM_wtr_OK_time <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time, fits = 1)
+  #' wolf_HMM_wtr_OK_TRI <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI, fits = 1)
+  #' wolf_HMM_wtr_OK_Open <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open, fits = 1)
+  #' wolf_HMM_wtr_OK_Road <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road, fits = 1)
+  #' wolf_HMM_wtr_OK_Snow <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Snow, fits = 1)
+  #' wolf_HMM_wtr_OK_MD <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_md, fits = 1)
+  #' #'  Global model
+  #' wolf_HMM_wtr_OK_wc <- HMM_fit(wolfData_wtr_OK, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
+  wolf_HMM_wtr_OK <- HMM_fit(wolfData_wtr_OK, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_OK, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_wtr_OK, lag.max = NULL, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -662,15 +661,15 @@
   
   
   #'  Northeast Summer
-  #'  Univariate models
-  wolf_HMM_smr_NE_time <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time, fits = 1)
-  wolf_HMM_smr_NE_TRI <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI, fits = 1)
-  wolf_HMM_smr_NE_Open <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open, fits = 1)
-  wolf_HMM_smr_NE_Road <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road, fits = 1)
-  wolf_HMM_smr_NE_ELK <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_elk, fits = 1)
-  wolf_HMM_smr_NE_WTD <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd, fits = 1)
-  #'  Global model
-  wolf_HMM_smr_NE_wc <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_NE, fits = 1)
+  #' #'  Univariate models
+  #' wolf_HMM_smr_NE_time <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time, fits = 1)
+  #' wolf_HMM_smr_NE_TRI <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI, fits = 1)
+  #' wolf_HMM_smr_NE_Open <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open, fits = 1)
+  #' wolf_HMM_smr_NE_Road <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road, fits = 1)
+  #' wolf_HMM_smr_NE_ELK <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_elk, fits = 1)
+  #' wolf_HMM_smr_NE_WTD <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd, fits = 1)
+  #' #'  Global model
+  #' wolf_HMM_smr_NE_wc <- HMM_fit(wolfData_smr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_smr_NE, fits = 1)
   wolf_HMM_smr_NE <- HMM_fit(wolfData_smr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_smr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_smr_NE, lag.max = NULL, ncores = 4)
@@ -682,16 +681,16 @@
   
   
   #'  Northeast Winter
-  #'  Univariate models
-  wolf_HMM_wtr_NE_time <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time, fits = 1)
-  wolf_HMM_wtr_NE_TRI <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI, fits = 1)
-  wolf_HMM_wtr_NE_Open <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open, fits = 1)
-  wolf_HMM_wtr_NE_Road <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road, fits = 1)
-  wolf_HMM_wtr_NE_Snow <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Snow, fits = 1)
-  wolf_HMM_wtr_NE_ELK <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_elk, fits = 1)
-  wolf_HMM_wtr_NE_WTD <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd, fits = 1)
-  #'  Global model
-  wolf_HMM_wtr_NE_wc <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_NE, fits = 1)
+  #' #'  Univariate models
+  #' wolf_HMM_wtr_NE_time <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_time, fits = 1)
+  #' wolf_HMM_wtr_NE_TRI <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_TRI, fits = 1)
+  #' wolf_HMM_wtr_NE_Open <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Open, fits = 1)
+  #' wolf_HMM_wtr_NE_Road <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Road, fits = 1)
+  #' wolf_HMM_wtr_NE_Snow <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_Snow, fits = 1)
+  #' wolf_HMM_wtr_NE_ELK <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_elk, fits = 1)
+  #' wolf_HMM_wtr_NE_WTD <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtd, fits = 1)
+  #' #'  Global model
+  #' wolf_HMM_wtr_NE_wc <- HMM_fit(wolfData_wtr_NE, dists_wc, Par0_m1_wolf, DM_time, trans_formula_wtr_NE, fits = 1)
   wolf_HMM_wtr_NE <- HMM_fit(wolfData_wtr_NE, dists_vm, Par0_m1_wolf, DM_time, trans_formula_wtr_NE, fits = 1)
   #'  QQplot of residuals
   plotPR(wolf_HMM_wtr_NE, lag.max = NULL, ncores = 4)
