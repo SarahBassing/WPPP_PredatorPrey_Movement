@@ -250,6 +250,62 @@
   acf(coyData_wtr_NE$step[!is.na(coyData_wtr_NE$step)],lag.max=100)
   
   
+  #'  What's up with the ACF? Plot step lengths against hour to look for patterns
+  mdData_smr <- hmm_data[[1]] 
+  mdData_wtr <- hmm_data[[2]] 
+  wtdData_smr <- hmm_data[[5]] 
+  wtdData_wtr <- hmm_data[[6]] 
+  cougData_smr_OK <- hmm_data[[7]] 
+  cougData_wtr_OK <- hmm_data[[8]] 
+  wolfData_smr_NE <- hmm_data[[13]] 
+  wolfData_wtr_NE <- hmm_data[[14]] 
+  
+  write.csv(mdData_smr, "./Outputs/Telemetry_crwOut/mdData_smr_crwOut.csv")
+  write.csv(mdData_wtr, "./Outputs/Telemetry_crwOut/mdData_wtr_crwOut.csv")
+  write.csv(wtdData_smr, "./Outputs/Telemetry_crwOut/wtdData_smr_crwOut.csv")
+  write.csv(wtdData_wtr, "./Outputs/Telemetry_crwOut/wtdData_wtr_crwOut.csv")
+  write.csv(cougData_smr_OK, "./Outputs/Telemetry_crwOut/cougData_smr_OK_crwOut.csv")
+  write.csv(cougData_wtr_OK, "./Outputs/Telemetry_crwOut/cougData_wtr_OK_crwOut.csv")
+  write.csv(wolfData_smr_NE, "./Outputs/Telemetry_crwOut/wolfData_smr_NE_crwOut.csv")
+  write.csv(wolfData_wtr_NE, "./Outputs/Telemetry_crwOut/wolfData_wtr_NE_crwOut.csv")
+  
+  pdf(file = "./Outputs/Telemetry_crwOut/Step_Length_by_Hour.pdf")
+  #' Boxplot of step length by hour, EXCLUDES outliers
+  boxplot(step~hour_fix,data=mdData_smr, main="Mule Deer Summer Daily Step Length, no outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)", outline=FALSE)
+  boxplot(step~hour_fix,data=mdData_wtr, main="Mule Deer Winter Daily Step Length, no outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)", outline=FALSE)
+  boxplot(step~hour_fix,data=wtdData_smr, main="White-tailed Deer Summer Daily Step Length, no outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)", outline=FALSE)
+  boxplot(step~hour_fix,data=wtdData_wtr, main="White-tailed Deer Winter Daily Step Length, no outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)", outline=FALSE)
+  boxplot(step~hour_fix,data=cougData_smr_OK, main="Cougar Okanogan Summer Daily Step Length, no outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)", outline=FALSE)
+  boxplot(step~hour_fix,data=cougData_wtr_OK, main="Cougar Okanogan Winter Daily Step Length, no outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)", outline=FALSE)
+  boxplot(step~hour_fix,data=wolfData_smr_NE, main="Wolf Northeast Summer Daily Step Length, no outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)", outline=FALSE)
+  boxplot(step~hour_fix,data=wolfData_wtr_NE, main="Wolf Northeast Winter Daily Step Length, no outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)", outline=FALSE)
+  #' Boxplot of step length by hour, INCLUDES outliers
+  boxplot(step~hour_fix,data=mdData_smr, main="Mule Deer Summer Daily Step Length, w/ outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)")
+  boxplot(step~hour_fix,data=mdData_wtr, main="Mule Deer Winter Daily Step Length, w/ outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)")
+  boxplot(step~hour_fix,data=wtdData_smr, main="White-tailed Deer Summer Daily Step Length, w/ outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)")
+  boxplot(step~hour_fix,data=wtdData_wtr, main="White-tailed Deer Winter Daily Step Length, w/ outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)")
+  boxplot(step~hour_fix,data=cougData_smr_OK, main="Cougar Okanogan Summer Daily Step Length, w/ outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)")
+  boxplot(step~hour_fix,data=cougData_wtr_OK, main="Cougar Okanogan Winter Daily Step Length, w/ outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)")
+  boxplot(step~hour_fix,data=wolfData_smr_NE, main="Wolf Northeast Summer Daily Step Length, w/ outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)")
+  boxplot(step~hour_fix,data=wolfData_wtr_NE, main="Wolf Northeast Winter Daily Step Length, w/ outliers",
+          xlab="GPS Collar Fix Time", ylab="Step Length (m)")
+  dev.off()
+  
   
   ####  Initial model set up  ####
   #'  ============================
