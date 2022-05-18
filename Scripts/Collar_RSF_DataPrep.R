@@ -550,7 +550,10 @@
         Area = ifelse(grepl("ELK", ID), "NE", Area),
         Area = ifelse(grepl("WTD", ID), "NE", Area),
         #'  Indicate whether this location was used = 1 or available = 0
-        Used = 0
+        Used = 0,
+        #'  Add weights to used/available locations (used = 1, available = 5000 
+        #'  per Fieberg et al. 2021)
+        w = 5000
         )
     
     return(telem_covs)
@@ -578,9 +581,10 @@
   
   
   
-  #'  Make sure the used covariates are marked 1
+  #'  Make sure the used covariates and their weight are marked 1
   for(i in 1:length(used_covs)){
     used_covs[[i]]$Used <- 1
+    used_covs[[i]]$w <- 1
   }
   
   #'  Correct study area for wolf data
@@ -624,13 +628,13 @@
       dplyr::select(x, y, AnimalID, Season, ID.1, Season.1, Year, Elev, Slope, TPI,
                     RoadDen, Dist2Water, HumanMod, CanopyCover, Dist2Edge, 
                     PercForMix, PercXGrass, PercXShrub, Landcover, Landcover_type, 
-                    obs, Area, Used) #%>%
-      # mutate(Used = 1)
+                    obs, Area, Used, w) #%>%
+      #mutate(w = 1)
     colnames(used_skinny) <-  c("x", "y", "ID", "Season", "ID.1", "Season.1", 
                                 "Year", "Elev", "Slope", "TPI", "RoadDen", 
                                 "Dist2Water", "HumanMod", "CanopyCover", "Dist2Edge",
                                 "PercForMix", "PercXGrass", "PercXShrub", 
-                                "Landcover", "Landcover_type", "obs", "Area", "Used")
+                                "Landcover", "Landcover_type", "obs", "Area", "Used", "w")
     return(used_skinny)
   }
   #'  Run the list of used locations through function
