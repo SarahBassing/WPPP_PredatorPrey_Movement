@@ -33,13 +33,20 @@
   # library(future.apply)
   
   #'  Load used and available locations, and covariate data
-  load("./Outputs/RSF_pts/md_dat_all_2022-01-23.RData") 
-  load("./Outputs/RSF_pts/elk_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/wtd_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/coug_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/wolf_dat_all_2022-04-04.RData") #2022-01-23 had incorrect study areas for available points- not a big deal b/c RSFs not study area specific and no area effect
-  load("./Outputs/RSF_pts/bob_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/coy_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/md_dat_all_2022-05-17.RData") 
+  load("./Outputs/RSF_pts/elk_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/wtd_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/coug_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/wolf_dat_all_2022-05-17.RData") 
+  load("./Outputs/RSF_pts/bob_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/coy_dat_all_2022-05-17.RData")
+  # load("./Outputs/RSF_pts/md_dat_all_2022-01-23.RData")  #'  Unweighted data
+  # load("./Outputs/RSF_pts/elk_dat_all_2022-01-23.RData")
+  # load("./Outputs/RSF_pts/wtd_dat_all_2022-01-23.RData")
+  # load("./Outputs/RSF_pts/coug_dat_all_2022-01-23.RData")
+  # load("./Outputs/RSF_pts/wolf_dat_all_2022-04-04.RData") 
+  # load("./Outputs/RSF_pts/bob_dat_all_2022-01-23.RData")
+  # load("./Outputs/RSF_pts/coy_dat_all_2022-01-23.RData")
   #'  For TRG
   load("./Outputs/RSF_pts/wolf_dat_all_Spokane_2022-04-04.RData")
   
@@ -147,6 +154,8 @@
     locs$PercForMix <- scale(locs$PercForMix)
     locs$PercXGrass <- scale(locs$PercXGrass)
     locs$PercXShrub <- scale(locs$PercXShrub)
+    #'  Leave weights as is
+    locs$w <- locs$w
     
     locs <- as.data.frame(locs)
     
@@ -245,7 +254,7 @@
   #'  ==================================
   
   glmm_fn <- function(mod, dat) {
-    glmm_mod <- glmer(formula = mod, data = dat, family = binomial(link = "logit"))
+    glmm_mod <- glmer(formula = mod, data = dat, weights = w, family = binomial(link = "logit"))
     print(summary(glmm_mod))
     print(car::vif(glmm_mod))
     
