@@ -40,13 +40,13 @@
   # library(future.apply)
 
   #'  Load used and available locations, and covariate data
-  load("./Outputs/RSF_pts/md_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/elk_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/wtd_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/coug_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/wolf_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/bob_dat_all_2022-01-23.RData")
-  load("./Outputs/RSF_pts/coy_dat_all_2022-01-23.RData")
+  load("./Outputs/RSF_pts/md_dat_all_2022-05-17.RData")  # 2022-01-23 unweighted
+  load("./Outputs/RSF_pts/elk_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/wtd_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/coug_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/wolf_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/bob_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/coy_dat_all_2022-05-17.RData")
   
   #'  Read in study area grids (1km^2)
   NE_1km <- raster("./Shapefiles/NE_1km_grid_mask.tif") 
@@ -94,8 +94,6 @@
   names(SA.covs.Year2) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
                             "HumanMod", "CanopyCover", "Dist2Edge", 
                             "Landcover_type", "StudyArea", "ref_gridID", "x", "y")
-  #'  Note: applying 2019 Dist2Edge and Landcover_type to Year3 data due to lack
-  #'  of 2020 landcover data
   SA.covs.Year3 <- dplyr::select(SA.covs, -c(CanopyCover18, CanopyCover19, Dist2Edge18, Dist2Edge19, Landcover_type18, Landcover_type19))
   names(SA.covs.Year3) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
                             "HumanMod", "CanopyCover", "Dist2Edge", 
@@ -244,6 +242,8 @@
     dat$PercForMix <- scale(dat$PercForMix)
     dat$PercXGrass <- scale(dat$PercXGrass)
     dat$PercXShrub <- scale(dat$PercXShrub)
+    #'  Leave weights as is
+    dat$w <- dat$w
 
     #'  Partition each data set into K folds
     #'  Use groupdata2 package with cat_col = "Used" to balance folds proportional
@@ -392,7 +392,7 @@
   #'  =============================
   #'  Function to run GLMM on K-folded data 
   glmm_fn <- function(dat, mod) {
-    glmm_mod <- glmer(formula = mod, data = dat, family = binomial(link = "logit"))
+    glmm_mod <- glmer(formula = mod, data = dat, weights = w, family = binomial(link = "logit"))
     print(summary(glmm_mod))
     print(car::vif(glmm_mod))
       
@@ -522,20 +522,20 @@
 
   
   #'  Read in saved k-fold trained model results
-  load("./Outputs/RSF_output/Kfold_CV/md_kfold_smr_2022-01-26.RData")
-  load("./Outputs/RSF_output/Kfold_CV/md_kfold_wtr_2022-01-26.RData")
-  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_smr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_smr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-01-27.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-01-27.RData")
+  load("./Outputs/RSF_output/Kfold_CV/md_kfold_smr_2022-05-18.RData")
+  load("./Outputs/RSF_output/Kfold_CV/md_kfold_wtr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_smr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_smr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-05-19.RData")
   
   #'  Function to save parameter estimates from each trained model
   #'  Use coef(mod) to look at random effects estimates
@@ -769,16 +769,11 @@
   bob_smr_Krsf <- lapply(bob_smr_Koutliers, lapply, RSF_rescale)
   bob_wtr_Krsf <- lapply(bob_wtr_Koutliers, lapply, RSF_rescale)
   coy_smr_Krsf <- lapply(coy_smr_Koutliers, lapply, RSF_rescale) 
-  c1.1 <- coy_smr_Krsf[[1]][[1]]
-  c2.1 <- coy_smr_Krsf[[2]][[1]]
-  c3.1 <- coy_smr_Krsf[[3]][[1]]
   coy_wtr_Krsf <- lapply(coy_wtr_Koutliers, lapply, RSF_rescale)
    
   
   #'  Define desired projections
   sa_proj <- projection("EPSG:2855")  # NAD83(HARN) / Washington North
-  dist_proj <- projection("+proj=lcc +lat_0=47 +lon_0=-120.833333333333 +lat_1=47.5 +lat_2=48.7333333333333 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs")
-  wgs84 <- projection("+proj=longlat +datum=WGS84 +no_defs")
   
   #'  Load study area shapefiles
   OK.SA <- st_read("./Shapefiles/fwdstudyareamaps", layer = "METHOW_SA") %>%
@@ -857,7 +852,7 @@
   unique(coy_smr_Kbins[[1]][[1]]@data@values)
   
   #'  Calculate area of each bin by summing number of pixels per bin 
-  #'  Each pixel = 1000^2 so by default area is calculated in square kilometers
+  #'  Each pixel = 1000^2 m so by default area is calculated in square kilometers
   #'  If pixels are different resolution, multiply sum of pixels by raster res
   calc_bin_area <- function(rast){
     #'  Create list of bin intervals
