@@ -324,13 +324,13 @@
   #'  ==============================================
   
   #'  Load RSFs
-  load("./Outputs/RSF_output/RSF_MD_list_2022-01-24.RData") 
-  load("./Outputs/RSF_output/RSF_ELK_list_2022-01-24.RData")
-  load("./Outputs/RSF_output/RSF_WTD_list_2022-01-24.RData")
-  load("./Outputs/RSF_output/RSF_COUG_list_2022-01-24.RData")
-  load("./Outputs/RSF_output/RSF_WOLF_list_2022-04-04.RData")
-  load("./Outputs/RSF_output/RSF_BOB_list_2022-01-24.RData")
-  load("./Outputs/RSF_output/RSF_COY_list_2022-01-24.RData")
+  load("./Outputs/RSF_output/RSF_MD_list_2022-05-17.RData") #2022-01-24
+  load("./Outputs/RSF_output/RSF_ELK_list_2022-05-17.RData")
+  load("./Outputs/RSF_output/RSF_WTD_list_2022-05-17.RData")
+  load("./Outputs/RSF_output/RSF_COUG_list_2022-05-17.RData")
+  load("./Outputs/RSF_output/RSF_WOLF_list_2022-05-17.RData")
+  load("./Outputs/RSF_output/RSF_BOB_list_2022-05-17.RData")
+  load("./Outputs/RSF_output/RSF_COY_list_2022-05-17.RData")
   
   #'  Load spatial libraries
   library(sf)
@@ -338,7 +338,6 @@
   
   #'  Define desired projections
   sa_proj <- projection("EPSG:2855")  # NAD83(HARN) / Washington North
-  # sa_proj <- "+proj=lcc +lat_0=47 +lon_0=-120.833333333333 +lat_1=48.7333333333333 +lat_2=47.5 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs"
   
   #'  Read in study area grids
   NE_1km <- raster("./Shapefiles/NE_1km_grid_mask.tif")
@@ -406,8 +405,6 @@
   names(SA.covs.Year2) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
                             "HumanMod", "CanopyCover", "Dist2Edge", 
                             "Landcover_type", "StudyArea", "ref_gridID", "x", "y")
-  #'  Note: applying 2019 Dist2Edge and Landcover_type to Year3 data due to lack
-  #'  of 2020 landcover data
   SA.covs.Year3 <- dplyr::select(SA.covs, -c(CanopyCover18, CanopyCover19, Dist2Edge18, Dist2Edge19, Landcover_type18, Landcover_type19))
   names(SA.covs.Year3) <- c("ID", "Elev", "Slope", "RoadDen", "Dist2Water",
                             "HumanMod", "CanopyCover", "Dist2Edge", 
@@ -445,8 +442,8 @@
   }
   #'  Summarize raw spp & season-specific covariate values 
   #'  Requires the untransformed covariates for each species & year
-  mdCov_smr_summary <- cov_summary(mdData_smr)
-  mdCov_wtr_summary <- cov_summary(mdData_wtr)
+  mdCov_smr_summary <- cov_summary(mdData_smr) 
+  mdCov_wtr_summary <- cov_summary(mdData_wtr) 
   elkCov_smr_summary <- cov_summary(elkData_smr)
   elkCov_wtr_summary <- cov_summary(elkData_wtr)
   wtdCov_smr_summary <- cov_summary(wtdData_smr)
@@ -636,7 +633,7 @@
                                 coy_smr_rsf_sa, coy_wtr_rsf_sa)
   # save(all_spp_RSF_predicted, file = paste0("./Outputs/RSF_output/all_spp_RSF_predicted_", Sys.Date(), ".RData"))
   
-  load("./Outputs/RSF_output/all_spp_RSF_predicted_2022-01-14.RData") #2022-01-29
+  load("./Outputs/RSF_output/all_spp_RSF_predicted_2022-05-19.RData") #2022-01-29
   
   #'  Function to identify any outliers
   outliers <- function(predicted, title, covs_list) {
