@@ -10,6 +10,8 @@
   library(ggplot2)
   library(tidyverse)  
   library(purrr)
+  #devtools::install_github("thomasp85/scico")
+  library(scico)
   
   #'  Load raw data with standardized covariates
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-05-23.RData")
@@ -425,12 +427,15 @@
   ggplot(coug_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) +
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled Cougar RSF value") +
     ylab("Probability of Exploratory State") +
@@ -448,12 +453,15 @@
   ggplot(wolf_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) +
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
     xlim(-1.5, 2) + ylim(0, 1.0) +
     xlab("Scaled Wolf RSF value") +
     ylab("Probability of Exploratory State") +
@@ -471,12 +479,15 @@
   ggplot(bob_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#E66100", "#5D3A9B")) + 
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#E66100", "#5D3A9B")) +
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled Bobcat RSF value") +
     ylab("Probability of Exploratory State") +
@@ -494,12 +505,15 @@
   ggplot(coy_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) +  #"#332288", "#44AA99", "#CC6677"
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + #"#40B0A6", "#E66100", "#5D3A9B"
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled Coyote RSF value") +
     ylab("Probability of Exploratory State") +
@@ -517,21 +531,24 @@
   ggplot(md_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) + 
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
     xlim(-2.5, 2) + ylim(0, 1.0) +
     xlab("Scaled Mule Deer RSF value") +
     ylab("Probability of Exploratory State") +
-    labs(title = "Ungulate movement in response to relative mule deer site use")
+    labs(title = "Predator movement in response to relative mule deer site use")
   
   #'  Predator stationary state ~ Elk RSF
   elk_effects <- rbind(coug_smr_NE_PrStay$ELK_RSF, coug_wtr_NE_PrStay$ELK_RSF,
-                      wolf_smr_NE_PrStay$ELK_RSF, wolf_wtr_NE_PrStay$ELK_RSF,
-                      coy_smr_NE_PrStay$ELK_RSF, coy_wtr_NE_PrStay$ELK_RSF) %>%
+                       wolf_smr_NE_PrStay$ELK_RSF, wolf_wtr_NE_PrStay$ELK_RSF,
+                       coy_smr_NE_PrStay$ELK_RSF, coy_wtr_NE_PrStay$ELK_RSF) %>%
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
@@ -540,16 +557,19 @@
   ggplot(elk_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled Elk RSF value") +
     ylab("Probability of Exploratory State") +
-    labs(title = "Ungulate movement in response to relative elk site use")
+    labs(title = "Predator movement in response to relative elk site use")
   
   #'  Predator stationary state ~ White-tailed Deer RSF
   wtd_effects <- rbind(coug_smr_NE_PrStay$WTD_RSF, coug_wtr_NE_PrStay$WTD_RSF,
@@ -563,18 +583,253 @@
   ggplot(wtd_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
     xlim(-2.5, 2) + ylim(0, 1.0) +
     xlab("Scaled White-tailed Deer RSF value") +
     ylab("Probability of Exploratory State") +
-    labs(title = "Ungulate movement in response to relative white-tailed deer site use")
+    labs(title = "Predator movement in response to relative white-tailed deer site use")
   
   
+  ####  Landscape Effect Stationary State Plots  ####
+  #'  ----------------------------------------
+  #'  Ungulate stationary state ~ TRI
+  tri_effects_prey <- rbind(md_smr_PrStay$TRI, md_wtr_PrStay$TRI,
+                       elk_smr_PrStay$TRI, elk_wtr_PrStay$TRI,
+                       wtd_smr_PrStay$TRI, wtd_wtr_PrStay$TRI) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(tri_effects_prey, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
+    xlim(-1, 4) + ylim(0, 1.0) +
+    xlab("Scaled Terrain Ruggedness Index") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Ungulate movement in response to habitat complexity")
+  
+  #'  Ungulate stationary state ~ Distance to Road
+  dist2rd_effects_prey <- rbind(md_smr_PrStay$Dist2Road, md_wtr_PrStay$Dist2Road,
+                           elk_smr_PrStay$Dist2Road, elk_wtr_PrStay$Dist2Road,
+                           wtd_smr_PrStay$Dist2Road, wtd_wtr_PrStay$Dist2Road) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(dist2rd_effects_prey, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
+    xlim(-1, 3) + ylim(0, 1.0) +
+    xlab("Scaled Distance to Nearest Road") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Ungulate movement in response to distance to nearest road")
+  
+  #'  Ungulate stationary state ~ Habitat Openness
+  percopen_effects_prey <- rbind(md_smr_PrStay$PercOpen, md_wtr_PrStay$PercOpen,
+                                elk_smr_PrStay$PercOpen, elk_wtr_PrStay$PercOpen,
+                                wtd_smr_PrStay$PercOpen, wtd_wtr_PrStay$PercOpen) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(percopen_effects_prey, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
+    xlim(-2, 2) + ylim(0, 1.0) +
+    xlab("Scaled Percent Open Habitat") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Ungulate movement in response to percentage of open habitat")
+  
+  #'  Predator stationary state ~ TRI
+  tri_effects_pred_OK <- rbind(coug_smr_OK_PrStay$TRI, coug_wtr_OK_PrStay$TRI,
+                               wolf_smr_OK_PrStay$TRI, wolf_wtr_OK_PrStay$TRI,
+                               coy_smr_OK_PrStay$TRI, coy_wtr_OK_PrStay$TRI) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(tri_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
+    xlim(-2, 5) + ylim(0, 1.0) +
+    xlab("Scaled Terrain Ruggedness Index") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Predator movement in response to habitat complexity, Okanogan")
+  
+  tri_effects_pred_NE <- rbind(coug_smr_NE_PrStay$TRI, coug_wtr_NE_PrStay$TRI,
+                               wolf_smr_NE_PrStay$TRI, wolf_wtr_NE_PrStay$TRI,
+                               coy_smr_NE_PrStay$TRI, coy_wtr_NE_PrStay$TRI) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(tri_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
+    xlim(-2, 4) + ylim(0, 1.0) +
+    xlab("Scaled Terrain Ruggedness Index") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Predator movement in response to habitat complexity, Northeast")
+  
+  #'  Predator stationary state ~ Distance to Road
+  dist2rd_effects_pred_OK <- rbind(coug_smr_OK_PrStay$Dist2Road, coug_wtr_OK_PrStay$Dist2Road,
+                           wolf_smr_OK_PrStay$Dist2Road, wolf_wtr_OK_PrStay$Dist2Road,
+                           coy_smr_OK_PrStay$Dist2Road, coy_wtr_OK_PrStay$Dist2Road) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(dist2rd_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
+    xlim(-0.5, 4.5) + ylim(0, 1.0) +
+    xlab("Scaled Distance to Nearest Road") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Predator movement in response to distance to nearest road, Okanogan")
+  
+  dist2rd_effects_pred_NE <- rbind(coug_smr_NE_PrStay$Dist2Road, coug_wtr_NE_PrStay$Dist2Road,
+                                   wolf_smr_NE_PrStay$Dist2Road, wolf_wtr_NE_PrStay$Dist2Road,
+                                   coy_smr_NE_PrStay$Dist2Road, coy_wtr_NE_PrStay$Dist2Road) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(dist2rd_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
+    xlim(-1, 3.5) + ylim(0, 1.0) +
+    xlab("Scaled Distance to Nearest Road") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Predator movement in response to distance to nearest road, Northeast")
+  
+  #'  Predator stationary state ~ Open Habitat
+  percopen_effects_pred_OK <- rbind(coug_smr_OK_PrStay$PercOpen, coug_wtr_OK_PrStay$PercOpen,
+                                    wolf_smr_OK_PrStay$PercOpen, wolf_wtr_OK_PrStay$PercOpen,
+                                    coy_smr_OK_PrStay$PercOpen, coy_wtr_OK_PrStay$PercOpen) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(percopen_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
+    xlim(-1.5, 1.5) + ylim(0, 1.0) +
+    xlab("Scaled Percent Open Habitat") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Predator movement in response to percentage of open habitat, Okanogan")
+  
+  percopen_effects_pred_NE <- rbind(coug_smr_NE_PrStay$PercOpen, coug_wtr_NE_PrStay$PercOpen,
+                                    wolf_smr_NE_PrStay$PercOpen, wolf_wtr_NE_PrStay$PercOpen,
+                                    coy_smr_NE_PrStay$PercOpen, coy_wtr_NE_PrStay$PercOpen) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(percopen_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="bottom") +
+    xlim(-1, 3) + ylim(0, 1.0) +
+    xlab("Scaled Percent Open Habitat") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Predator movement in response to percentage of open habitat, Northeast")
   
   
   
