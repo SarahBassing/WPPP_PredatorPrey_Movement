@@ -27,7 +27,7 @@
 
   #'  Load crwOut & covaraite data
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData")    
-  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-03-16.RData")  
+  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-05-23.RData")  #2022-03-16 unweighted RSFs
   
   
   #'  Merge datasets and create momentuHMMData object
@@ -141,7 +141,7 @@
                    bobData_wtr_NE, coyData_smr_OK, coyData_wtr_OK, coyData_smr_NE, 
                    coyData_wtr_NE)
   save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_", Sys.Date(), ".RData"))
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-16.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-05-23.RData") #2022-03-16
   
   
   #'  Correlation Matrix
@@ -349,8 +349,8 @@
   #'  Create pseudo-design matrices for state-dependent distributions
   DM_null <- list(step = list(mean = ~1, sd = ~1), angle = list(concentration = ~1))
   DM_null_ZeroMass <- list(step = list(mean = ~1, sd = ~1, zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
-  DM_time <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 4), sd = ~daytime + cosinor(hour_fix, period = 4)), angle = list(concentration = ~1))
-  DM_Zerotime <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 4), sd = ~daytime + cosinor(hour_fix, period = 4), zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
+  DM_time <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 12), sd = ~daytime + cosinor(hour_fix, period = 12)), angle = list(concentration = ~1))
+  DM_Zerotime <- list(step = list(mean = ~daytime + cosinor(hour_fix, period = 12), sd = ~daytime + cosinor(hour_fix, period = 12), zeromass = ~1), angle = list(concentration = ~1)) # includes zeromass parameters
   
   # period = 4   # period = 6   # period = 12   # period = 24
   
@@ -379,6 +379,8 @@
   trans_formula_wtr_all <- ~TRI + PercOpen + Dist2Road + SnowCover + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF 
   trans_formula_smr_all_noCoy <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF 
   trans_formula_smr_all_noTRI <- ~PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF
+  trans_formula_smr_all_noBob <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + COY_RSF 
+  trans_formula_wtr_all_noBob <- ~TRI + PercOpen + Dist2Road + SnowCover + COUG_RSF + WOLF_RSF + COY_RSF
   #'  For predator species
   trans_formula_smr_OK <- ~TRI + PercOpen + Dist2Road + MD_RSF 
   trans_formula_wtr_OK <- ~TRI + PercOpen + Dist2Road + SnowCover + MD_RSF 
@@ -409,11 +411,6 @@
     m1 <- fitHMM(data = Data, nbStates = 2, dist = dists, Par0 = Par0_m1,
                  estAngleMean = list(angle = FALSE), stateNames = stateNames,
                  retryFits = fits)
-
-    #' #'  Compute the most likely state sequence
-    #' states <- viterbi(m1)
-    #' #'  Derive percentage of time spent in each state
-    #' table(states)/nrow(Data)
     
     #'  Get new initial parameter values for global model based on nested m1 model
     Par0_m2 <- getPar0(model = m1, DM = dm, formula = tformula)   
@@ -505,8 +502,8 @@
   elk_HMM_smr_BOB <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_bob, fits = 1)
   elk_HMM_smr_COY <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
-  elk_HMM_smr_wc <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all, fits = 1)
-  elk_HMM_smr <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all, fits = 1)
+  elk_HMM_smr_wc <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all_noBob, fits = 1)
+  elk_HMM_smr <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all_noBob, fits = 1)
   #'  QQplot of residuals
   plotPR(elk_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -528,8 +525,8 @@
   elk_HMM_wtr_BOB <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_bob, fits = 1)
   elk_HMM_wtr_COY <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy, fits = 1)
   #'  Global model
-  elk_HMM_wtr_wc <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all, fits = 1)
-  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all, fits = 1)
+  elk_HMM_wtr_wc <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all_noBob, fits = 1)
+  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all_noBob, fits = 1)
   #'  QQplot of residuals
   plotPR(elk_HMM_wtr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -949,8 +946,8 @@
   
 
   ####  Summarize Results  ####
-  load("./Outputs/HMM_output/spp_HMM_output_2022-03-15.RData")
-  # load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-16.RData") #2022-03-14
+  load("./Outputs/HMM_output/spp_HMM_output_2022-05-27.RData") #2022-03-15
+  
 
   #'  Review model output
   print(spp_HMM_output[[1]]) # md_HMM_smr
@@ -990,8 +987,8 @@
                             "State2 Intercept_mu", "State2 Daylight_mu", "State2 Cos_mu", "State2 Sin_mu",
                             "State1 Intercept_sd", "State1 Daylight_sd", "State1 Cos_sd", "State1 Sin_sd", 
                             "State2 Intercept_sd", "State2 Daylight_sd", "State2 Cos_sd", "State2 Sin_sd",
-                            "State1 Intercept_zmass", "State1 Daylight_zmass", "State1 Cos_zmass", "State1 Sin_zmass", 
-                            "State2 Intercept_zmass", "State2 Daylight_zmass", "State2 Cos_zmass", "State2 Sin_zmass", 
+                            "State1 Intercept_zmass", #"State1 Daylight_zmass", "State1 Cos_zmass", "State1 Sin_zmass", 
+                            "State2 Intercept_zmass", #"State2 Daylight_zmass", "State2 Cos_zmass", "State2 Sin_zmass", 
                             "Species", "Season", "StudyArea")
     #'  Wrangle parameters into an interpret-able table
     step_table <- step_out %>%
@@ -1234,7 +1231,7 @@
   results_hmm_TransPr_prey <- rbind(md_smr_hmm, md_wtr_hmm, elk_smr_hmm, elk_wtr_hmm, 
                                     wtd_smr_hmm, wtd_wtr_hmm) %>%
     unite(CI95, Lower, Upper, sep = ", ") %>%
-    dplyr::select(-SE) %>%
+    # dplyr::select(-SE) %>%
     mutate(
       Parameter = ifelse(Parameter == "(Intercept)", "Intercept", Parameter),
       Parameter = ifelse(Parameter == "TRI", "Terrain Ruggedness", Parameter),
@@ -1250,7 +1247,8 @@
     # arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
     # ungroup()
   colnames(results_hmm_TransPr_prey) <- c("Species", "Season", "Study Area", 
-                                          "Transition", "Parameter", "Estimate", "95% CI")
+                                          "Transition", "Parameter", "Estimate", 
+                                          "SE", "CI95")
   results_hmm_TransPr_pred <- rbind(coug_smr_hmm_OK, coug_wtr_hmm_OK, coug_smr_hmm_NE, 
                                     coug_wtr_hmm_NE, wolf_smr_hmm_OK, wolf_wtr_hmm_OK, 
                                     wolf_smr_hmm_NE, wolf_wtr_hmm_NE, bob_smr_hmm_OK, 
@@ -1258,7 +1256,7 @@
                                     bob_wtr_hmm_NE, coy_smr_hmm_OK, coy_wtr_hmm_OK, 
                                     coy_smr_hmm_NE, coy_wtr_hmm_NE) %>%
     unite(CI95, Lower, Upper, sep = ", ") %>%
-    dplyr::select(-SE) %>%
+    # dplyr::select(-SE) %>%
     mutate(
       Parameter = ifelse(Parameter == "(Intercept)", "Intercept", Parameter),
       Parameter = ifelse(Parameter == "TRI", "Terrain Ruggedness", Parameter),
@@ -1269,14 +1267,15 @@
       Parameter = ifelse(Parameter == "ELK_RSF", "Pr(Elk)", Parameter),
       Parameter = ifelse(Parameter == "WTD_RSF", "Pr(White-tailed Deer)", Parameter)
     ) %>%
-    filter(!Species == "Bobcat") %>%
+    filter(!Species == "Bobcat")
     # group_by(Species) %>%
     # arrange(Parameter, Season, `Study Area`) %>% 
     # arrange(match(Transition, c("Trans.1->2", "Trans.2->1")), .by_group = TRUE) %>%
     # arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
     # ungroup()
   colnames(results_hmm_TransPr_pred) <- c("Species", "Season", "Study Area", 
-                                          "Transition", "Parameter", "Estimate", "95% CI")
+                                          "Transition", "Parameter", "Estimate",
+                                          "SE", "CI95")
   
   write.csv(results_hmm_TransPr_prey, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_long", Sys.Date(), ".csv"))
   write.csv(results_hmm_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_long", Sys.Date(), ".csv"))
@@ -1295,18 +1294,18 @@
     # condformat(.) %>%
     # rule_text_bold(c(Estimate, SE, Pval), expression = Pval <= 0.05) %>%
     unite(Est_SE, Estimate, SE, sep = " ") %>%
-    unite(CI95, Lower, Upper, sep = ", ") %>%
+    # unite(CI95, Lower, Upper, sep = ", ") %>%
     unite(Est_SE_CI, Est_SE, CI95, sep = "_") %>%
     spread(Parameter, Est_SE_CI) %>%
-    separate("(Intercept)", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
-    separate("TRI", c("TRI (SE)", "TRI 95% CI"), sep = "_") %>%
-    separate("PercOpen", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
-    separate("Dist2Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
-    separate("SnowCover1", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
-    separate("COUG_RSF", c("Pr(Cougar) (SE)", "Pr(Cougar) 95% CI"), sep = "_") %>%
-    separate("WOLF_RSF", c("Pr(Wolf) (SE)", "Pr(Wolf) 95% CI"), sep = "_") %>%
-    separate("BOB_RSF", c("Pr(Bobcat) (SE)", "Pr(Bobcat) 95% CI"), sep = "_") %>%
-    separate("COY_RSF", c("Pr(Coyote) (SE)", "Pr(Coyote) 95% CI"), sep = "_") %>%
+    separate("Intercept", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
+    separate("Terrain Ruggedness", c("Terrain Ruggedness (SE)", "Terrain Ruggedness 95% CI"), sep = "_") %>%
+    separate("Percent Open", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
+    separate("Nearest Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
+    separate("Snow Cover (Y)", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
+    separate("Pr(Cougar)", c("Pr(Cougar) (SE)", "Pr(Cougar) 95% CI"), sep = "_") %>%
+    separate("Pr(Wolf)", c("Pr(Wolf) (SE)", "Pr(Wolf) 95% CI"), sep = "_") %>%
+    separate("Pr(Bobcat)", c("Pr(Bobcat) (SE)", "Pr(Bobcat) 95% CI"), sep = "_") %>%
+    separate("Pr(Coyote)", c("Pr(Coyote) (SE)", "Pr(Coyote) 95% CI"), sep = "_") %>%
     arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer")))
 
   
@@ -1323,17 +1322,17 @@
     # condformat(.) %>%
     # rule_text_bold(c(Estimate, SE, Pval), expression = Pval <= 0.05) %>%
     unite(Est_SE, Estimate, SE, sep = " ") %>%
-    unite(CI95, Lower, Upper, sep = ", ") %>%
+    # unite(CI95, Lower, Upper, sep = ", ") %>%
     unite(Est_SE_CI, Est_SE, CI95, sep = "_") %>%
     spread(Parameter, Est_SE_CI) %>%
-    separate("(Intercept)", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
-    separate("TRI", c("TRI (SE)", "TRI 95% CI"), sep = "_") %>%
-    separate("PercOpen", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
-    separate("Dist2Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
-    separate("SnowCover1", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
-    separate("MD_RSF", c("Pr(Mule Deer) (SE)", "Pr(Mule Deer) 95% CI"), sep = "_") %>%
-    separate("ELK_RSF", c("Pr(Elk) (SE)", "Pr(Elk) 95% CI"), sep = "_") %>%
-    separate("WTD_RSF", c("Pr(White-tailed Deer) (SE)", "Pr(White-tailed Deer) 95% CI"), sep = "_") %>%
+    separate("Intercept", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
+    separate("Terrain Ruggedness", c("Terrain Ruggedness (SE)", "Terrain Ruggedness 95% CI"), sep = "_") %>%
+    separate("Percent Open", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
+    separate("Nearest Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
+    separate("Snow Cover (Y)", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
+    separate("Pr(Mule Deer)", c("Pr(Mule Deer) (SE)", "Pr(Mule Deer) 95% CI"), sep = "_") %>%
+    separate("Pr(Elk)", c("Pr(Elk) (SE)", "Pr(Elk) 95% CI"), sep = "_") %>%
+    separate("Pr(White-tailed Deer)", c("Pr(White-tailed Deer) (SE)", "Pr(White-tailed Deer) 95% CI"), sep = "_") %>%
     group_by(Species) %>%
     arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
     ungroup()
