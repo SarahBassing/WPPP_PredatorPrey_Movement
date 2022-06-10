@@ -411,9 +411,57 @@
   coy_smr_NE_PrStay <- stay_covs(stay_coy_smr_NE, season = "Summer", spp = "Coyote", area = "Northeast")
   coy_wtr_NE_PrStay <- stay_covs(stay_coy_wtr_NE, season = "Winter", spp = "Coyote", area = "Northeast")
   
+  ####  Predator-Prey Stationary State Plots  ####
+  #'  ----------------------------------------
+  #'  Ungulate stationary state ~ Cougar RSF
+  coug_effects <- rbind(md_smr_PrStay$COUG_RSF, md_wtr_PrStay$COUG_RSF,
+                       elk_smr_PrStay$COUG_RSF, elk_wtr_PrStay$COUG_RSF,
+                       wtd_smr_PrStay$COUG_RSF, wtd_wtr_PrStay$COUG_RSF) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(coug_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    xlim(-2, 2.5) + ylim(0, 1.0) +
+    xlab("Scaled Cougar RSF value") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Ungulate movement in response to relative coug site use")
+  
+  #'  Ungulate stationary state ~ Wolf RSF
+  wolf_effects <- rbind(md_smr_PrStay$WOLF_RSF, md_wtr_PrStay$WOLF_RSF,
+                       elk_smr_PrStay$WOLF_RSF, elk_wtr_PrStay$WOLF_RSF,
+                       wtd_smr_PrStay$WOLF_RSF, wtd_wtr_PrStay$WOLF_RSF) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(wolf_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    xlim(-1.5, 2) + ylim(0, 1.0) +
+    xlab("Scaled Wolf RSF value") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Ungulate movement in response to relative wolf site use")
+  
   #'  Ungulate stationary state ~ Bobcat RSF
   bob_effects <- rbind(md_smr_PrStay$BOB_RSF, md_wtr_PrStay$BOB_RSF,
-                       elk_smr_PrStay$BOB_RSF, elk_wtr_PrStay$BOB_RSF,
+                       #elk_smr_PrStay$BOB_RSF, elk_wtr_PrStay$BOB_RSF,
                        wtd_smr_PrStay$BOB_RSF, wtd_wtr_PrStay$BOB_RSF) %>%
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
@@ -429,8 +477,7 @@
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
-    xlim(-1, 2.5) + ################## FIX
-    ylim(0, 1.0) +
+    xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled Bobcat RSF value") +
     ylab("Probability of Exploratory State") +
     labs(title = "Ungulate movement in response to relative bobcat site use")
@@ -453,11 +500,79 @@
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
-    xlim(-1, 2.5) +
-    ylim(0, 1.0) +
+    xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled Coyote RSF value") +
     ylab("Probability of Exploratory State") +
     labs(title = "Ungulate movement in response to relative coyote site use")
+  
+  #'  Predator stationary state ~ Mule Deer RSF
+  md_effects <- rbind(coug_smr_OK_PrStay$MD_RSF, coug_wtr_OK_PrStay$MD_RSF,
+                       wolf_smr_OK_PrStay$MD_RSF, wolf_wtr_OK_PrStay$MD_RSF,
+                       coy_smr_OK_PrStay$MD_RSF, coy_wtr_OK_PrStay$MD_RSF) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(md_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    xlim(-2.5, 2) + ylim(0, 1.0) +
+    xlab("Scaled Mule Deer RSF value") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Ungulate movement in response to relative mule deer site use")
+  
+  #'  Predator stationary state ~ Elk RSF
+  elk_effects <- rbind(coug_smr_NE_PrStay$ELK_RSF, coug_wtr_NE_PrStay$ELK_RSF,
+                      wolf_smr_NE_PrStay$ELK_RSF, wolf_wtr_NE_PrStay$ELK_RSF,
+                      coy_smr_NE_PrStay$ELK_RSF, coy_wtr_NE_PrStay$ELK_RSF) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(elk_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    xlim(-2, 2.5) + ylim(0, 1.0) +
+    xlab("Scaled Elk RSF value") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Ungulate movement in response to relative elk site use")
+  
+  #'  Predator stationary state ~ White-tailed Deer RSF
+  wtd_effects <- rbind(coug_smr_NE_PrStay$WTD_RSF, coug_wtr_NE_PrStay$WTD_RSF,
+                       wolf_smr_NE_PrStay$WTD_RSF, wolf_wtr_NE_PrStay$WTD_RSF,
+                       coy_smr_NE_PrStay$WTD_RSF, coy_wtr_NE_PrStay$WTD_RSF) %>%
+    filter(!State == "Encamped") %>%
+    mutate(Species = as.factor(Species),
+           Season = as.factor(Season),
+           StudyArea = as.factor(StudyArea)) %>% 
+    dplyr::select(-c(StudyArea, State))
+  ggplot(wtd_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+    geom_line(size = 0.75) + 
+    scale_linetype_manual(values=c("solid", "longdash")) +
+    #'  Add confidence intervals
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.2, colour = NA) +
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    xlim(-2.5, 2) + ylim(0, 1.0) +
+    xlab("Scaled White-tailed Deer RSF value") +
+    ylab("Probability of Exploratory State") +
+    labs(title = "Ungulate movement in response to relative white-tailed deer site use")
   
   
   
