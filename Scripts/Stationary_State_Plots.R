@@ -424,7 +424,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(coug_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  prey_coug_plot <- ggplot(coug_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
@@ -437,9 +437,9 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
-    xlab("Scaled Cougar RSF value") +
-    ylab("Probability of Exploratory State") +
-    labs(title = "Ungulate movement in response to relative coug site use")
+    xlab("Scaled cougar RSF value") +
+    ylab("Probability of exploratory state") +
+    labs(title = "Ungulate movement in response to relative cougar site use")
   
   #'  Ungulate stationary state ~ Wolf RSF
   wolf_effects <- rbind(md_smr_PrStay$WOLF_RSF, md_wtr_PrStay$WOLF_RSF,
@@ -450,7 +450,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(wolf_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  prey_wolf_plot <- ggplot(wolf_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
@@ -463,8 +463,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-1.5, 2) + ylim(0, 1.0) +
-    xlab("Scaled Wolf RSF value") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled wolf RSF value") +
+    ylab("Probability of exploratory state") +
     labs(title = "Ungulate movement in response to relative wolf site use")
   
   #'  Ungulate stationary state ~ Bobcat RSF
@@ -476,7 +476,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(bob_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  prey_bob_plot <- ggplot(bob_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#E66100", "#5D3A9B")) + 
@@ -489,8 +489,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
-    xlab("Scaled Bobcat RSF value") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled bobcat RSF value") +
+    ylab("Probability of exploratory state") +
     labs(title = "Ungulate movement in response to relative bobcat site use")
   
   #'  Ungulate stationary state ~ Coyote RSF
@@ -502,7 +502,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(coy_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  prey_coy_plot <- ggplot(coy_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) +  #"#332288", "#44AA99", "#CC6677"
@@ -515,8 +515,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
-    xlab("Scaled Coyote RSF value") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled coyote RSF value") +
+    ylab("Probability of exploratory state") +
     labs(title = "Ungulate movement in response to relative coyote site use")
   
   #'  Predator stationary state ~ Mule Deer RSF
@@ -528,7 +528,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(md_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  pred_md_plot <- ggplot(md_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
@@ -541,8 +541,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-2.5, 2) + ylim(0, 1.0) +
-    xlab("Scaled Mule Deer RSF value") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled mule deer RSF value") +
+    ylab("Probability of exploratory state") +
     labs(title = "Predator movement in response to relative mule deer site use")
   
   #'  Predator stationary state ~ Elk RSF
@@ -554,7 +554,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(elk_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  pred_elk_plot <- ggplot(elk_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
@@ -567,8 +567,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
-    xlab("Scaled Elk RSF value") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled elk RSF value") +
+    ylab("Probability of exploratory state") +
     labs(title = "Predator movement in response to relative elk site use")
   
   #'  Predator stationary state ~ White-tailed Deer RSF
@@ -580,7 +580,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(wtd_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  pred_wtd_plot <- ggplot(wtd_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
@@ -593,8 +593,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-2.5, 2) + ylim(0, 1.0) +
-    xlab("Scaled White-tailed Deer RSF value") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled white-tailed deer RSF value") +
+    ylab("Probability of exploratory state") +
     labs(title = "Predator movement in response to relative white-tailed deer site use")
   
   
@@ -609,7 +609,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(tri_effects_prey, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  prey_tri_plot <- ggplot(tri_effects_prey, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
@@ -622,8 +622,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-1, 4) + ylim(0, 1.0) +
-    xlab("Scaled Terrain Ruggedness Index") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled terrain ruggedness index (TRI)") +
+    ylab("Probability of exploratory state") +
     labs(title = "Ungulate movement in response to habitat complexity")
   
   #'  Ungulate stationary state ~ Distance to Road
@@ -635,7 +635,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(dist2rd_effects_prey, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  prey_dist2rd_plot <- ggplot(dist2rd_effects_prey, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
@@ -648,8 +648,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-1, 3) + ylim(0, 1.0) +
-    xlab("Scaled Distance to Nearest Road") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled distance to nearest road") +
+    ylab("Probability of exploratory state") +
     labs(title = "Ungulate movement in response to distance to nearest road")
   
   #'  Ungulate stationary state ~ Habitat Openness
@@ -661,7 +661,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(percopen_effects_prey, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  prey_open_plot <- ggplot(percopen_effects_prey, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + 
@@ -674,8 +674,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-2, 2) + ylim(0, 1.0) +
-    xlab("Scaled Percent Open Habitat") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled percent open habitat") +
+    ylab("Probability of exploratory state") +
     labs(title = "Ungulate movement in response to percentage of open habitat")
   
   #'  Predator stationary state ~ TRI
@@ -687,7 +687,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(tri_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  pred_OK_tri_plot <- ggplot(tri_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
@@ -700,8 +700,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-2, 5) + ylim(0, 1.0) +
-    xlab("Scaled Terrain Ruggedness Index") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled terrain ruggedness index (TRI)") +
+    ylab("Probability of exploratory state") +
     labs(title = "Predator movement in response to habitat complexity, Okanogan")
   
   tri_effects_pred_NE <- rbind(coug_smr_NE_PrStay$TRI, coug_wtr_NE_PrStay$TRI,
@@ -712,7 +712,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(tri_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  pred_NE_tri_plot <- ggplot(tri_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
@@ -725,8 +725,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-2, 4) + ylim(0, 1.0) +
-    xlab("Scaled Terrain Ruggedness Index") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled terrain ruggedness index (TRI)") +
+    ylab("Probability of exploratory state") +
     labs(title = "Predator movement in response to habitat complexity, Northeast")
   
   #'  Predator stationary state ~ Distance to Road
@@ -738,7 +738,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(dist2rd_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  pred_OK_dist2rd_plot <- ggplot(dist2rd_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
@@ -751,8 +751,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-0.5, 4.5) + ylim(0, 1.0) +
-    xlab("Scaled Distance to Nearest Road") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled distance to nearest road") +
+    ylab("Probability of exploratory state") +
     labs(title = "Predator movement in response to distance to nearest road, Okanogan")
   
   dist2rd_effects_pred_NE <- rbind(coug_smr_NE_PrStay$Dist2Road, coug_wtr_NE_PrStay$Dist2Road,
@@ -763,7 +763,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(dist2rd_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  pred_NE_dist2rd_plot <- ggplot(dist2rd_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
@@ -776,8 +776,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-1, 3.5) + ylim(0, 1.0) +
-    xlab("Scaled Distance to Nearest Road") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled distance to nearest road") +
+    ylab("Probability of exploratory state") +
     labs(title = "Predator movement in response to distance to nearest road, Northeast")
   
   #'  Predator stationary state ~ Open Habitat
@@ -789,7 +789,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(percopen_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  pred_OK_open_plot <- ggplot(percopen_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
@@ -802,8 +802,8 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-1.5, 1.5) + ylim(0, 1.0) +
-    xlab("Scaled Percent Open Habitat") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled percent open habitat") +
+    ylab("Probability of exploratory state") +
     labs(title = "Predator movement in response to percentage of open habitat, Okanogan")
   
   percopen_effects_pred_NE <- rbind(coug_smr_NE_PrStay$PercOpen, coug_wtr_NE_PrStay$PercOpen,
@@ -814,7 +814,7 @@
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
     dplyr::select(-c(StudyArea, State))
-  ggplot(percopen_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  pred_NE_open_plot <- ggplot(percopen_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "longdash")) +
     scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
@@ -827,10 +827,37 @@
     theme(axis.line = element_line(color = 'black')) +
     theme(legend.position="bottom") +
     xlim(-1, 3) + ylim(0, 1.0) +
-    xlab("Scaled Percent Open Habitat") +
-    ylab("Probability of Exploratory State") +
+    xlab("Scaled percent open habitat") +
+    ylab("Probability of exploratory state") +
     labs(title = "Predator movement in response to percentage of open habitat, Northeast")
   
+  #'  Save
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_coug_plot.tiff", prey_coug_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_wolf_plot.tiff", prey_wolf_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_bob_plot.tiff", prey_bob_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_coy_plot.tiff", prey_coy_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_md_plot.tiff", pred_md_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_elk_plot.tiff", pred_elk_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_wtd_plot.tiff", pred_wtd_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_tri_plot.tiff", prey_tri_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_dsit2rd_plot.tiff", prey_dist2rd_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_percopen_plot.tiff", prey_open_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_OK_tri_plot.tiff", pred_OK_tri_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_OK_dsit2rd_plot.tiff", pred_OK_dist2rd_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_OK_percopen_plot.tiff", pred_OK_open_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_NE_tri_plot.tiff", pred_NE_tri_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_NE_dsit2rd_plot.tiff", pred_NE_dist2rd_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_NE_percopen_plot.tiff", pred_NE_open_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  
+  
+  #'  Patchwork figures together in panels
+  library(patchwork)
+  
+  (prey_pred_fig <- prey_coug_plot + prey_wolf_plot +
+    plot_layout(guides = 'collect') + 
+    plot_layout(ncol = 2) +
+    plot_annotation(title = 'Ungulate stationary state probabilities',
+                    subtitle = 'Effect of relative probability of predator use'))
   
   
   
