@@ -263,43 +263,69 @@
   #'  Run species, season, and year specific models through glmm function
   
   ####  Mule Deer RSFs  ####
-  #'  Dropping HumanMod in mulie models due to high correlation with other covariates
-  md_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)", dat = mdDataz_smr) # + CanopyCover
-  md_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = mdDataz_wtr) # + I(Elev^2) + Dist2Edge
-
+  #' #'  Dropping HumanMod in mulie models due to high correlation with other covariates
+  #' md_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)", dat = mdDataz_smr) # + CanopyCover
+  #' md_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = mdDataz_wtr) # + I(Elev^2) + Dist2Edge
+  
+  #'  Global version of model
+  md_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water+ CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = mdDataz_smr)  
+  md_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = mdDataz_wtr) 
+  
+  
   ####  Elk RSFs  ####
   #'  Dropping HumanMod in elk summer models due to high correlation with other covariates
   elk_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkDataz_smr)
   #'  Note: using reclassified version of landcover for winter elk models
   elk_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = elkDataz_wtr)
-
+  #'  Global version of model same as above
+  
   ####  White-tailed Deer RSFs  ####
-  wtd_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdDataz_smr) # + CanopyCover
-  #'  Note: using reclassified version of landcover for winter WTD models
+  #' wtd_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdDataz_smr) # + CanopyCover
+  #' #'  Note: using reclassified version of landcover for winter WTD models
+  #' wtd_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdDataz_wtr)
+
+  #'  Global version of model
+  wtd_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdDataz_smr)
   wtd_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wtdDataz_wtr)
-
+  
   ####  Cougar RSFs  ####
-  #'  Dropping HumanMod in cougar summer models due to high correlation with other covariates
+  #' #'  Dropping HumanMod in cougar summer models due to high correlation with other covariates
+  #' coug_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_smr)
+  #' #'  Note: using reclassified version of landcover for winter cougar models
+  #' coug_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Landcover_type + (1|ID)",  dat = cougDataz_wtr) # + I(Elev^2) + Dist2Edge
+  
+  #'  Global version of model
   coug_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_smr) 
-  #'  Note: using reclassified version of landcover for winter cougar models
-  coug_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Landcover_type + (1|ID)",  dat = cougDataz_wtr) # + I(Elev^2) + Dist2Edge
-
+  coug_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_wtr) 
+  
   ####  Wolf RSFs  ####
-  #'  NOTE: using 2nd reclassified version of landcover categories for wolf models
-  wolf_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfDataz_smr) # + RoadDen + CanopyCover
+  #' #'  NOTE: using 2nd reclassified version of landcover categories for wolf models
+  #' wolf_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfDataz_smr) # + RoadDen + CanopyCover
+  #' wolf_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfDataz_wtr)
+  
+  #'  Global version of model
+  wolf_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfDataz_smr) 
   wolf_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = wolfDataz_wtr)
-
+  
   ####  Bobcat RSFs  ####
-  #'  Note: using reclassified version of landcover for summer bobcat models
-  bob_smr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = bobDataz_smr) # + I(Elev^2) + CanopyCover
-  bob_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Landcover_type + (1|ID)",  dat = bobDataz_wtr) # + Dist2Water + Dist2Edge
+  #' #'  Note: using reclassified version of landcover for summer bobcat models
+  #' bob_smr <- glmm_fn(mod = "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)",  dat = bobDataz_smr) # + I(Elev^2) + CanopyCover
+  #' bob_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Landcover_type + (1|ID)",  dat = bobDataz_wtr) # + Dist2Water + Dist2Edge
 
+  #'  Global version of model
+  bob_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobDataz_smr) 
+  bob_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobDataz_wtr) 
+  
   ####  Coyote RSFs  ####
-  #'  Note: using reclassified version of landcover for all coyote models
-  #'  Dropping HumanMod from all coyote models due to high correlation with other covariates
-  coy_smr <- glmm_fn(mod = "Used ~ 1 + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = coyDataz_smr)  # + I(Elev^2) + Dist2Edge + Elev
-  coy_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_wtr) # + CanopyCover
+  #' #'  Note: using reclassified version of landcover for all coyote models
+  #' #'  Dropping HumanMod from all coyote models due to high correlation with other covariates
+  #' coy_smr <- glmm_fn(mod = "Used ~ 1 + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)", dat = coyDataz_smr)  # + I(Elev^2) + Dist2Edge + Elev
+  #' coy_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_wtr) # + CanopyCover
 
+  #'  Global version of model
+  coy_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + CanopyCover + Landcover_type + (1|ID)", dat = coyDataz_smr)  
+  coy_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + CanopyCover + Landcover_type + (1|ID)", dat = coyDataz_wtr) 
+  
   #'  Group species-specific models
   RSF_MD_list <- list(md_smr, md_wtr)
   RSF_ELK_list <- list(elk_smr, elk_wtr)
@@ -324,7 +350,7 @@
   #'  ==============================================
   
   #'  Load RSFs
-  load("./Outputs/RSF_output/RSF_MD_list_2022-05-17.RData") #2022-01-24
+  load("./Outputs/RSF_output/RSF_MD_list_2022-05-17.RData") #2022-05-17 (weighted) #2022-01-24 (unweighted)
   load("./Outputs/RSF_output/RSF_ELK_list_2022-05-17.RData")
   load("./Outputs/RSF_output/RSF_WTD_list_2022-05-17.RData")
   load("./Outputs/RSF_output/RSF_COUG_list_2022-05-17.RData")
@@ -530,7 +556,8 @@
       #'  Use p-values to change non-significant coefficients (alpha-level > 0.05) 
       #'  to 0 so there is no effect. Only exception is when Elev^2 is significant
       #'  but Elev is not. Coefficient for Elev still needs to be in the model.
-      mutate(Estimate = ifelse(Pval > 0.05 & Parameter != "Elev", Estimate == 0, Estimate)) %>%
+      # mutate(Estimate = ifelse(Pval > 0.05 & Estimate == 0, Estimate == 0.00, Estimate)) %>%
+      # mutate(Estimate = ifelse(Pval > 0.05 & Parameter != "Elev", Estimate == 0, Estimate)) %>%
       dplyr::select(c(Species, Season, Parameter, Estimate)) %>%
       mutate(Parameter = ifelse(Parameter == "(Intercept)", "alpha", Parameter),
              Parameter = ifelse(Parameter == "Elev", "b.elev", Parameter),
