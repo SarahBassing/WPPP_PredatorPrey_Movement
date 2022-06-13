@@ -350,13 +350,13 @@
   #'  ==============================================
   
   #'  Load RSFs
-  load("./Outputs/RSF_output/RSF_MD_list_2022-05-17.RData") #2022-05-17 (weighted) #2022-01-24 (unweighted)
-  load("./Outputs/RSF_output/RSF_ELK_list_2022-05-17.RData")
-  load("./Outputs/RSF_output/RSF_WTD_list_2022-05-17.RData")
-  load("./Outputs/RSF_output/RSF_COUG_list_2022-05-17.RData")
-  load("./Outputs/RSF_output/RSF_WOLF_list_2022-05-17.RData")
-  load("./Outputs/RSF_output/RSF_BOB_list_2022-05-17.RData")
-  load("./Outputs/RSF_output/RSF_COY_list_2022-05-17.RData")
+  load("./Outputs/RSF_output/RSF_MD_list_2022-06-08.RData") #2022-06-08 (weighted global) #2022-05-17 (weighted) #2022-01-24 (unweighted)
+  load("./Outputs/RSF_output/RSF_ELK_list_2022-06-08.RData")
+  load("./Outputs/RSF_output/RSF_WTD_list_2022-06-08.RData")
+  load("./Outputs/RSF_output/RSF_COUG_list_2022-06-08.RData")
+  load("./Outputs/RSF_output/RSF_WOLF_list_2022-06-08.RData")
+  load("./Outputs/RSF_output/RSF_BOB_list_2022-06-08.RData")
+  load("./Outputs/RSF_output/RSF_COY_list_2022-06-08.RData")
   
   #'  Load spatial libraries
   library(sf)
