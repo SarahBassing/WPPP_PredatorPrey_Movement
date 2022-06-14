@@ -535,20 +535,20 @@
 
   
   #'  Read in saved k-fold trained model results
-  load("./Outputs/RSF_output/Kfold_CV/md_kfold_smr_2022-05-18.RData") #022-05-18 and 022-05-19 are weighted version
-  load("./Outputs/RSF_output/Kfold_CV/md_kfold_wtr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_smr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_smr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-05-19.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-05-19.RData")
+  load("./Outputs/RSF_output/Kfold_CV/md_kfold_smr_2022-06-13.RData") #2022-06-13/14 is weighted and global version #2022-05-18 and 022-05-19 are weighted version
+  load("./Outputs/RSF_output/Kfold_CV/md_kfold_wtr_2022-06-13.RData")
+  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_smr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_smr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-06-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_2022-06-14.RData")
   
   #'  Function to save parameter estimates from each trained model
   #'  Use coef(mod) to look at random effects estimates
