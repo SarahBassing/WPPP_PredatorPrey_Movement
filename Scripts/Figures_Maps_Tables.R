@@ -23,6 +23,7 @@
   library(RCurl)
   library(RColorBrewer)
   library(rphylopic)
+  library(sp)
   library(sf)
   library(raster)
   library(tidyverse)
@@ -41,22 +42,41 @@
   
   #'  Read in study area data and reproject
   WA <- st_read("./Shapefiles/Washington_State_Boundary/WA_State_Geospatial_Open_Data", layer = "WA_State_Boundary") %>%
-    st_transform(crs = sa_proj)
+    st_transform(crs = wgs84)
+  USA <- st_read("./Shapefiles/Washington_State_Boundary/cb_2018_us_state_5m", layer = "cb_2018_us_state_5m") %>%
+    st_transform(crs = wgs84)
   OK_SA <- st_read("./Shapefiles/fwdstudyareamaps", layer = "METHOW_SA") %>%
-    st_transform(crs = sa_proj)
-  OK_SA$NAME <- "Okanogan"
+    st_transform(crs = wgs84)
+  OK_SA$NAME <- "Okanogan study area"
   NE_SA <- st_read("./Shapefiles/fwdstudyareamaps", layer = "NE_SA") %>%
-    st_transform(crs = sa_proj)
-  NE_SA$NAME <- "Northeast"
+    st_transform(crs = wgs84)
+  NE_SA$NAME <- "Northeast study area"
   
   projection(WA)
+  projection(USA)
   projection(OK_SA)
+  projection(NE_SA)
   extent(OK_SA)
   extent(NE_SA)
   
   #'  Centroid of each polygon
   st_centroid(OK_SA)
   st_centroid(NE_SA)
+  
+  #'  Create bounding box aroung WPPP study areas
+  bb <- as(raster::extent(-120.7703, -117.0393, 47.92087, 48.89454), "SpatialPolygons")
+  proj4string(bb) <- wgs84
+  bb_sf <- st_as_sf(bb)
+  #'  Buffer so the plotted rectangle is actually larger than the bbox
+  bb_sf_buff = st_buffer(bb_sf, dist = 100000)
+  
+  #'  City locations
+  city <- c("Chewelah, WA", "Winthrop, WA")
+  x <- c(-117.7193, -120.1096)
+  y <- c(48.28302, 48.42966)
+  city_df <- as.data.frame(cbind(city, x, y))
+  city_sf <- st_as_sf(city_df, coords = c("x", "y"), crs = wgs84)
+  
   
   #'  Reduce DEM raster resolution and prep new raster for ggplot
   # dem <- raster("./Shapefiles/WA DEM rasters/WPPP_DEM_30m_reproj.tif")
@@ -68,56 +88,71 @@
   dem_p_df <- as.data.frame(dem_p_low)
   colnames(dem_p_df) <- c("x", "y", "value")
   
+  #'  Terrain ruggendess index
+  # tri <- raster("./Shapefiles/WA DEM rasters/WPPP_TRI.tif")
+  # projection(tri)
+  # tri_low <- aggregate(tri, fact = 10)
+  # writeRaster(tri_low, file = "./Shapefiles/WA DEM rasters/WPPP_TRI_low", format = "GTiff")
+  tri_low <- raster("./Shapefiles/WA DEM rasters/WPPP_TRI_low.tif")
+  tri_p_low <- rasterToPoints(tri_low)
+  tri_p_df <- as.data.frame(tri_p_low)
+  colnames(tri_p_df) <- c("x", "y", "value")
+  
   
   ####  1. Map study area and WA State inset  ####
   #'  ============================================
   #'  Plot state of WA with study areas
   #'  https://r-spatial.org/r/2018/10/25/ggplot2-sf.html
   WA_SA_map <- ggplot() + 
-    geom_sf(data = WA, fill = "gray95") +
+    geom_sf(data = USA, fill = "white", color = "black", size = 0.4) +
     #' #'  Label map of WA with "Washington State"
     #' geom_sf_text(data = WA, aes(label = JURISDIC_3, hjust = 0.8, vjust = 3), size = 12) +
-    geom_sf(data = OK_SA, fill = "grey25", color = "grey20") +
-    geom_sf(data = NE_SA, fill = "grey25", color = "grey20") +
+    # geom_sf(data = OK_SA, fill = "grey25", color = "grey20") +
+    # geom_sf(data = NE_SA, fill = "grey25", color = "grey20") +
+    geom_sf(data = OK_SA, fill = "#0072B2", color = "#0072B2") +
+    geom_sf(data = NE_SA, fill = "#009E73", color = "#009E73") +
+    #'  Add study area bounding box
+    geom_sf(data = bb_sf_buff, fill = NA, color = "#D55E00", size = 0.5) + 
+    #'  Constrain plot to two study areas plus some room on the side & bottom
+    coord_sf(xlim = c(-126.05, -65.8), ylim = c(24.05, 50.05), expand = FALSE) +
     #'  Get rid of lines and axis labels
-    theme_bw() +
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-          axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank(),
-          axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank(),
-          #'  No margins around figure
-          plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"))
+    theme_void()
+    #' theme_bw() +
+    #' theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+    #'       axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank(),
+    #'       axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank(),
+    #'       #'  No margins around figure
+    #'       plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) 
   plot(WA_SA_map)
   
   #'  Plot study areas against DEM
   SA_map <- ggplot() +
-    geom_raster(data = dem_p_df, aes(x = x, y = y, fill = value, alpha = value), show.legend = FALSE) + 
+    geom_raster(data = tri_p_df, aes(x = x, y = y, fill = value, alpha = value), show.legend = FALSE) + 
     #'  alpha adjusts transparency of the raster (can also just set it range = 0.7)
-    scale_alpha(range = c(0.3, 0.8)) +
+    scale_alpha(range = 1) + #c(0.3, 0.8)
     #'  Change colors of the raster
-    scale_fill_gradient2(low = "grey95", high = "tan4") + #gray20
+    scale_fill_gradient2(low = "white", high = "black") + #gray20
     #'  Add study area outlines and label with their names
-    geom_sf(data = OK_SA, fill = NA, color="black", size = 0.80) +
+    geom_sf(data = OK_SA, fill = NA, color = "#0072B2", size = 1) +
     #'  Note the hjust & vjust need to change based on font size and coord_sf
     #'  DEPENDS ON HOW BIG YOUR PLOT WINDOW IS TOO!!!!
-    geom_sf_text(data = OK_SA, aes(label = NAME, hjust = 1.3, vjust = 7), size = 7) + #vjust = -6.90
-    geom_sf(data = NE_SA, fill = NA, color="black", size = 0.80) +
-    geom_sf_text(data = NE_SA, aes(label = NAME, hjust = 1.3, vjust = -6.5), size = 7) +
-    #' #'  Add camera locations and vary color by deployment year
-    #' geom_sf(data = cams_reproj, aes(color = Year), shape = 16, size = 3) +
-    #' #'  Change camera data aesthetics (make sure it's colorblind friendly)
-    #' scale_discrete_manual(aesthetics = "color", values = c("#a6611a", "#018571")) + #c("#dfc27d", "#80cdc1") #c("#601A4A", "#63ACBE")
-    #' labs(colour = "Camera\nlocations") +
+    geom_sf_text(data = OK_SA, aes(label = NAME, vjust = -8.25), size = 4) + #hjust = 0.5, vjust = -6.90
+    geom_sf(data = NE_SA, fill = NA, color = "#009E73", size = 1) +
+    geom_sf_text(data = NE_SA, aes(label = NAME, vjust = -7), size = 4) +
+    geom_point(data = city_sf, aes(x = x, y = y), col = "black", size = .8) +
+    geom_sf_text(data = city_sf, aes(label = city, hjust = -0.05, vjust = 1.5), size = 2.25) +
     #'  Constrain plot to two study areas plus some room on the side & bottom
-    coord_sf(xlim = c(480000.0, 810000.0), ylim = c(39000.0, 218000.0), expand = FALSE) +
+    coord_sf(xlim = c(-121.05, -116.8), ylim = c(47.25, 49.05), expand = FALSE) +
+    # coord_sf(xlim = c(480000.0, 810000.0), ylim = c(39000.0, 218000.0), expand = FALSE) +
     #'  Constrain map to just the two study areas only
     # coord_sf(xlim = c(504659.0, 781979.9), ylim = c(102808.3, 211000.4)) +
     #'  Get rid of lines and axis names
     theme_bw() +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           axis.title.x = element_blank(), axis.title.y = element_blank(),
-          axis.text.x = element_text(size = 16), axis.text.y = element_text(size = 16),
-          legend.title = element_text(size = 18),
-          legend.text = element_text(size = 16)) +
+          axis.text.x = element_text(size = 12, color = "black"), axis.text.y = element_text(size = 12, color = "black"),
+          legend.title = element_text(size = 12),
+          legend.text = element_text(size = 12)) +
     #'  Add north arrow
     annotation_north_arrow(location = "bl", which_north = "true", 
                            pad_x = unit(0.25, "in"), pad_y = unit(0.3, "in"),
@@ -127,31 +162,15 @@
   plot(SA_map)
   
   #'  Build plot with map of study areas and inset map of WA
-  #'  https://upgo.lab.mcgill.ca/2019/12/13/making-beautiful-maps/
-  #'  Requires "cowplot" package
-  #'  Don't use png or other calls to save while plotting- formatting gets messed up
-  #'  Use export option in Plot window and formatting holds
-  png(file = "./Outputs/Figures for ms/StudyAreas.png",
-      width = 1000, height = 691)
-  StudyArea_Map <- ggdraw(SA_map) +
-    draw_plot(
-      {
-        WA_SA_map +
-          #'  Label map of WA with "Washington State"
-          #'  hjust & vjust will depend on inset map's width/height specified below
-          geom_sf_text(data = WA, aes(label = JURISDIC_3, hjust = 0.5, vjust = 2)) 
-      },
-      #'  Distance along a (0,1) x-axis to draw the left edge of the plot
-      x = 0.60,
-      #'  Distance along a (0,1) y-axis to draw the bottom edge of the plot
-      y = 0.20,
-      #'  Width & height of the plot expressed as proportion of the entire ggdraw object
-      #'  THIS DEPENDS ON HOW BIG YOUR PLOT WINDOW IS TOO!!!!
-      width = 0.22,
-      height = 0.22)
-  plot(StudyArea_Map)
-  dev.off()
-
+  #'  https://geocompr.github.io/post/2019/ggplot2-inset-maps/
+  
+  #'  This will look bad in the viewer panel but plots better when saved with ggsave
+  gg_inset_map1 <- ggdraw() +
+    draw_plot(SA_map) +
+    draw_plot(WA_SA_map, x = 0.68, y = 0.10, width = 0.30, height = 0.30)
+  gg_inset_map1
+  ggsave(filename = "./Outputs/Figures for ms/StudyArea_inset_map.png", plot = gg_inset_map1, 
+         width = 6, height = 4, dpi = 300)
   
   ####  2. Plot Stationary-State Probabilities  ####
   #'  ==============================================
