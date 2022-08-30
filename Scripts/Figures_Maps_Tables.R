@@ -71,7 +71,7 @@
   bb_sf_buff = st_buffer(bb_sf, dist = 100000)
   
   #'  City locations
-  city <- c("Chewelah, WA", "Winthrop, WA")
+  city <- c("Chewelah, \n   WA", "Winthrop, \n   WA")
   x <- c(-117.7193, -120.1096)
   y <- c(48.28302, 48.42966)
   city_df <- as.data.frame(cbind(city, x, y))
@@ -141,7 +141,7 @@
     geom_sf(data = NE_SA, fill = NA, color = "#009E73", size = 1) +
     geom_sf_text(data = NE_SA, aes(label = NAME, vjust = -6), size = 4) +
     geom_point(data = city_sf, aes(x = x, y = y), col = "black", size = .8) +
-    geom_sf_text(data = city_sf, aes(label = city, hjust = -0.05, vjust = 1.5), size = 2.25) +
+    geom_sf_text(data = city_sf, aes(label = city, hjust = -0.05, vjust = 1), size = 2.25) +
     #'  Constrain plot to two study areas plus some room on the side & bottom
     coord_sf(xlim = c(-121.05, -116.8), ylim = c(47.25, 49.05), expand = FALSE) +
     #'  Change legend size
