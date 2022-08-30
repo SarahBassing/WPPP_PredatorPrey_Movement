@@ -96,7 +96,7 @@
   tri_low <- raster("./Shapefiles/WA DEM rasters/WPPP_TRI_low.tif")
   tri_p_low <- rasterToPoints(tri_low)
   tri_p_df <- as.data.frame(tri_p_low)
-  colnames(tri_p_df) <- c("x", "y", "value")
+  colnames(tri_p_df) <- c("x", "y", "TRI value")
   
   
   ####  1. Map study area and WA State inset  ####
@@ -127,35 +127,36 @@
   
   #'  Plot study areas against DEM
   SA_map <- ggplot() +
-    geom_raster(data = tri_p_df, aes(x = x, y = y, fill = value, alpha = value), show.legend = FALSE) + 
+    geom_raster(data = tri_p_df, aes(x = x, y = y, fill = `TRI value`), show.legend = TRUE) + #, alpha = `TRI value`
     #'  alpha adjusts transparency of the raster (can also just set it range = 0.7)
-    scale_alpha(range = 1) + #c(0.3, 0.8)
+    # scale_alpha(range = 1) + #c(0.3, 0.8)
+    # guides(alpha = "none")
     #'  Change colors of the raster
     scale_fill_gradient2(low = "white", high = "black") + #gray20
     #'  Add study area outlines and label with their names
     geom_sf(data = OK_SA, fill = NA, color = "#0072B2", size = 1) +
     #'  Note the hjust & vjust need to change based on font size and coord_sf
     #'  DEPENDS ON HOW BIG YOUR PLOT WINDOW IS TOO!!!!
-    geom_sf_text(data = OK_SA, aes(label = NAME, vjust = -8.25), size = 4) + #hjust = 0.5, vjust = -6.90
+    geom_sf_text(data = OK_SA, aes(label = NAME, vjust = -7), size = 4) + #hjust = 0.5, vjust = -8.25
     geom_sf(data = NE_SA, fill = NA, color = "#009E73", size = 1) +
-    geom_sf_text(data = NE_SA, aes(label = NAME, vjust = -7), size = 4) +
+    geom_sf_text(data = NE_SA, aes(label = NAME, vjust = -6), size = 4) +
     geom_point(data = city_sf, aes(x = x, y = y), col = "black", size = .8) +
     geom_sf_text(data = city_sf, aes(label = city, hjust = -0.05, vjust = 1.5), size = 2.25) +
     #'  Constrain plot to two study areas plus some room on the side & bottom
     coord_sf(xlim = c(-121.05, -116.8), ylim = c(47.25, 49.05), expand = FALSE) +
-    # coord_sf(xlim = c(480000.0, 810000.0), ylim = c(39000.0, 218000.0), expand = FALSE) +
-    #'  Constrain map to just the two study areas only
-    # coord_sf(xlim = c(504659.0, 781979.9), ylim = c(102808.3, 211000.4)) +
+    #'  Change legend size
+    guides(fill = guide_colourbar(barwidth = 0.75, barheight = 5)) +
     #'  Get rid of lines and axis names
     theme_bw() +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           axis.title.x = element_blank(), axis.title.y = element_blank(),
-          axis.text.x = element_text(size = 12, color = "black"), axis.text.y = element_text(size = 12, color = "black"),
-          legend.title = element_text(size = 12),
-          legend.text = element_text(size = 12)) +
+          axis.text.x = element_text(size = 8, color = "black"), axis.text.y = element_text(size = 8, color = "black"),
+          legend.title = element_text(size = 8),
+          legend.text = element_text(size = 8)) +
     #'  Add north arrow
     annotation_north_arrow(location = "bl", which_north = "true", 
-                           pad_x = unit(0.25, "in"), pad_y = unit(0.3, "in"),
+                           height = unit(0.35, "in"), width = unit(0.35, "in"),
+                           pad_x = unit(0.25, "in"), pad_y = unit(0.25, "in"),
                            style = north_arrow_fancy_orienteering) +
     #'  Add scale bar (be sure to double check the scale)
     annotation_scale(location = "bl", width_hint = 0.5)
@@ -167,10 +168,10 @@
   #'  This will look bad in the viewer panel but plots better when saved with ggsave
   gg_inset_map1 <- ggdraw() +
     draw_plot(SA_map) +
-    draw_plot(WA_SA_map, x = 0.68, y = 0.10, width = 0.30, height = 0.30)
+    draw_plot(WA_SA_map, x = 0.6, y = 0.15, width = 0.25, height = 0.25)
   gg_inset_map1
   ggsave(filename = "./Outputs/Figures for ms/StudyArea_inset_map.png", plot = gg_inset_map1, 
-         width = 6, height = 4, dpi = 300)
+         width = 5.75, height = 4, dpi = 300)
   
   ####  2. Plot Stationary-State Probabilities  ####
   #'  ==============================================
