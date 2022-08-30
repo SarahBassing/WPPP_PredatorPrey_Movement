@@ -63,7 +63,7 @@
   st_centroid(OK_SA)
   st_centroid(NE_SA)
   
-  #'  Create bounding box aroung WPPP study areas
+  #'  Create bounding box around WPPP study areas
   bb <- as(raster::extent(-120.7703, -117.0393, 47.92087, 48.89454), "SpatialPolygons")
   proj4string(bb) <- wgs84
   bb_sf <- st_as_sf(bb)
@@ -162,9 +162,9 @@
     annotation_scale(location = "bl", width_hint = 0.5)
   plot(SA_map)
   
+  
   #'  Build plot with map of study areas and inset map of WA
   #'  https://geocompr.github.io/post/2019/ggplot2-inset-maps/
-  
   #'  This will look bad in the viewer panel but plots better when saved with ggsave
   gg_inset_map1 <- ggdraw() +
     draw_plot(SA_map) +
