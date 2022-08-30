@@ -358,11 +358,15 @@
   PredEffect_onPrey_fig <- prey_coug_plot + prey_wolf_plot + prey_coy_plot +
       plot_layout(guides = 'collect') + 
       plot_layout(ncol = 3) +
-      plot_annotation(title = 'Ungulate stationary state probabilities in response to relative probability of use by predators')
+      plot_annotation(tag_levels = 'A', 
+                      title = 'Ungulate stationary state probabilities in response to relative probability of use by predators') & 
+    theme(plot.tag = element_text(size = 12)) 
   PreyEffect_onPred_fig <- pred_elk_plot + pred_md_plot + pred_wtd_plot +
     plot_layout(guides = 'collect') + 
     plot_layout(ncol = 3) +
-    plot_annotation(title = 'Predator stationary state probabilities in response to relative probability of use by ungulate prey')
+    plot_annotation(tag_levels = 'A', 
+                    title = 'Predator stationary state probabilities in response to relative probability of use by ungulate prey') & 
+    theme(plot.tag = element_text(size = 12)) 
   
   ggsave("./Outputs/Figures for ms/HMM Stationary States/PredEffect_onPrey_StationaryProb_plot.tiff", PredEffect_onPrey_fig, width = 11, height = 7, dpi = 800, units = "in", device = 'tiff')
   ggsave("./Outputs/Figures for ms/HMM Stationary States/PreyEffect_onPred_StationaryProb_plot.tiff", PreyEffect_onPred_fig, width = 11, height = 7, dpi = 800, units = "in", device = 'tiff')
@@ -628,16 +632,21 @@
   tri_fig <- prey_tri_plot + pred_OK_tri_plot + pred_NE_tri_plot +
       plot_layout(guides = 'collect') + 
       plot_layout(ncol = 3) +
-      plot_annotation(title = 'Stationary state probabilities for ungulates and predators in response to Terrain Ruggendess Index (TRI)')
+      plot_annotation(tag_levels = 'A',
+                      title = 'Stationary state probabilities for ungulates and predators in response to Terrain Ruggendess Index (TRI)') & 
+    theme(plot.tag = element_text(size = 12)) 
   road_fig <- prey_dist2rd_plot + pred_OK_dist2rd_plot + pred_NE_dist2rd_plot +
       plot_layout(guides = 'collect') + 
       plot_layout(ncol = 3) +
-      plot_annotation(title = 'Stationary state probabilities for ungulates and predators in response distance to nearest road')
+      plot_annotation(tag_levels = 'A',
+                      title = 'Stationary state probabilities for ungulates and predators in response distance to nearest road') & 
+    theme(plot.tag = element_text(size = 12)) 
   open_fig <- prey_open_plot + pred_OK_open_plot + pred_NE_open_plot +
     plot_layout(guides = 'collect') + 
     plot_layout(ncol = 3) +
-    plot_annotation(title = 'Stationary state probabilities for ungulates and predators in response percentage of open habitat')
-  
+    plot_annotation(tag_levels = 'A', 
+                    title = 'Stationary state probabilities for ungulates and predators in response percentage of open habitat') & 
+    theme(plot.tag = element_text(size = 12))
   
   ggsave("./Outputs/Figures for ms/HMM Stationary States/TRI_StationaryProb_plot.tiff", tri_fig, width = 11, height = 7, dpi = 800, units = "in", device = 'tiff')
   ggsave("./Outputs/Figures for ms/HMM Stationary States/RoadDist_StationaryProb_plot.tiff", road_fig, width = 11, height = 7, dpi = 800, units = "in", device = 'tiff')
