@@ -31,6 +31,7 @@
   # load("./Data/Collar_Truncating&Filtering_noDispMig_2021-12-02.RData") # accidentally excludes some coyote and bobcat collars
   # load("./Data/Collar_Truncating&Filtering_noDispMig_2022-02-18.RData") # included 2 hr interval fixes when collars switch schedules (OK for RSFs but bad for HMMs)
   load("./Data/Collar_Truncating&Filtering_noDispMig_CleanedFixSchedule_2022-03-13.RData")
+  load("./Data/Collar_Truncating&Filtering_forTRG_2022-06-14.RData") # includes all 2017 - 2021 predator data for TRG analysis
   
   #' I chose to use relocation data that excludes obvious dispersal events that
   #' take carnivores away from extent of study areas and relocation data during
@@ -289,19 +290,69 @@
   save(COY_smr_track_NE, file = "./Outputs/Telemetry_tracks/COY_smr_track_NE.RData")
   save(COY_wtr_track_OK, file = "./Outputs/Telemetry_tracks/COY_wtr_track_OK.RData")
   save(COY_wtr_track_NE, file = "./Outputs/Telemetry_tracks/COY_wtr_track_NE.RData")
-
+  
   
   #'  Save a giant list of all seasonal tracks
   #'  NOTE the ordering of this list for the predators--- study area then season
   spp_all_tracks <- list(MD_smr_track, MD_wtr_track, ELK_smr_track, ELK_wtr_track,
-                     WTD_smr_track, WTD_wtr_track, COUG_smr_track_OK, COUG_wtr_track_OK,
-                     COUG_smr_track_NE, COUG_wtr_track_NE, WOLF_smr_track_OK, WOLF_wtr_track_OK, 
-                     WOLF_smr_track_NE, WOLF_wtr_track_NE, BOB_smr_track_OK, BOB_wtr_track_OK,
-                     BOB_smr_track_NE, BOB_wtr_track_NE, COY_smr_track_OK, COY_wtr_track_OK,
-                     COY_smr_track_NE, COY_wtr_track_NE)
+                         WTD_smr_track, WTD_wtr_track, COUG_smr_track_OK, COUG_wtr_track_OK,
+                         COUG_smr_track_NE, COUG_wtr_track_NE, WOLF_smr_track_OK, WOLF_wtr_track_OK, 
+                         WOLF_smr_track_NE, WOLF_wtr_track_NE, BOB_smr_track_OK, BOB_wtr_track_OK,
+                         BOB_smr_track_NE, BOB_wtr_track_NE, COY_smr_track_OK, COY_wtr_track_OK,
+                         COY_smr_track_NE, COY_wtr_track_NE)
   # save(spp_all_tracks, file = "./Outputs/Telemetry_tracks/spp_all_tracks_updated021822.RData")
   save(spp_all_tracks, file = paste0("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_", Sys.Date(), ".RData"))
   
+  
+  
+  #'  For TRG analysis
+  COUG_smr_track_OK <- COUG_track_OK[COUG_track_OK$Season == "Summer17" | COUG_track_OK$Season == "Summer18" | COUG_track_OK$Season == "Summer19" | COUG_track_OK$Season == "Summer20", ]
+  COUG_smr_track_NE <- COUG_track_NE[COUG_track_NE$Season == "Summer17" | COUG_track_NE$Season == "Summer18" | COUG_track_NE$Season == "Summer19" | COUG_track_NE$Season == "Summer20", ]
+  COUG_fll_track_OK <- COUG_track_OK[COUG_track_OK$Season == "Fall17" | COUG_track_OK$Season == "Fall18" | COUG_track_OK$Season == "Fall19" | COUG_track_OK$Season == "Fall20", ]
+  COUG_fll_track_NE <- COUG_track_NE[COUG_track_NE$Season == "Fall17" | COUG_track_NE$Season == "Fall18" | COUG_track_NE$Season == "Fall19" | COUG_track_NE$Season == "Fall20", ]
+  COUG_wtr_track_OK <- COUG_track_OK[COUG_track_OK$Season == "Winter1718" | COUG_track_OK$Season == "Winter1819" | COUG_track_OK$Season == "Winter1920" | COUG_track_OK$Season == "Winter2021", ]
+  COUG_wtr_track_NE <- COUG_track_NE[COUG_track_NE$Season == "Winter1718" | COUG_track_NE$Season == "Winter1819" | COUG_track_NE$Season == "Winter1920" | COUG_track_NE$Season == "Winter2021", ]
+  COUG_sprg_track_OK <- COUG_track_OK[COUG_track_OK$Season == "Spring18" | COUG_track_OK$Season == "Spring19" | COUG_track_OK$Season == "Spring20" | COUG_track_OK$Season == "Spring21", ]
+  COUG_sprg_track_NE <- COUG_track_NE[COUG_track_NE$Season == "Spring18" | COUG_track_NE$Season == "Spring19" | COUG_track_NE$Season == "Spring20" | COUG_track_OK$Season == "Spring21", ]
+  WOLF_smr_track_OK <- WOLF_track_OK[WOLF_track_OK$Season == "Summer17" | WOLF_track_OK$Season == "Summer18" | WOLF_track_OK$Season == "Summer19" | WOLF_track_OK$Season == "Summer20", ]
+  WOLF_smr_track_NE <- WOLF_track_NE[WOLF_track_NE$Season == "Summer17" | WOLF_track_NE$Season == "Summer18" | WOLF_track_NE$Season == "Summer19" | WOLF_track_NE$Season == "Summer20", ]
+  WOLF_fll_track_OK <- WOLF_track_OK[WOLF_track_OK$Season == "Fall17" | WOLF_track_OK$Season == "Fall18" | WOLF_track_OK$Season == "Fall19" | WOLF_track_OK$Season == "Fall20", ]
+  WOLF_fll_track_NE <- WOLF_track_NE[WOLF_track_NE$Season == "Fall17" | WOLF_track_NE$Season == "Fall18" | WOLF_track_NE$Season == "Fall19" | WOLF_track_NE$Season == "Fall20", ]
+  WOLF_wtr_track_OK <- WOLF_track_OK[WOLF_track_OK$Season == "Winter1718" | WOLF_track_OK$Season == "Winter1819" | WOLF_track_OK$Season == "Winter1920" | WOLF_track_OK$Season == "Winter2021", ]
+  WOLF_wtr_track_NE <- WOLF_track_NE[WOLF_track_NE$Season == "Winter1718" | WOLF_track_NE$Season == "Winter1819" | WOLF_track_NE$Season == "Winter1920" | WOLF_track_NE$Season == "Winter2021", ]
+  WOLF_sprg_track_OK <- WOLF_track_OK[WOLF_track_OK$Season == "Spring18" | WOLF_track_OK$Season == "Spring19" | WOLF_track_OK$Season == "Spring20" | WOLF_track_OK$Season == "Spring21", ]
+  WOLF_sprg_track_NE <- WOLF_track_NE[WOLF_track_NE$Season == "Spring18" | WOLF_track_NE$Season == "Spring19" | WOLF_track_NE$Season == "Spring20" | WOLF_track_NE$Season == "Spring21", ]
+  BOB_smr_track_OK <- BOB_track_OK[BOB_track_OK$Season == "Summer17" | BOB_track_OK$Season == "Summer18" | BOB_track_OK$Season == "Summer19" | BOB_track_OK$Season == "Summer20", ]
+  BOB_smr_track_NE <- BOB_track_NE[BOB_track_NE$Season == "Summer17" | BOB_track_NE$Season == "Summer18" | BOB_track_NE$Season == "Summer19" | BOB_track_NE$Season == "Summer20", ]
+  BOB_fll_track_OK <- BOB_track_OK[BOB_track_OK$Season == "Fall17" | BOB_track_OK$Season == "Fall18" | BOB_track_OK$Season == "Fall19" | BOB_track_OK$Season == "Fall20", ]
+  BOB_fll_track_NE <- BOB_track_NE[BOB_track_NE$Season == "Fall17" | BOB_track_NE$Season == "Fall18" | BOB_track_NE$Season == "Fall19" | BOB_track_NE$Season == "Fall20", ]
+  BOB_wtr_track_OK <- BOB_track_OK[BOB_track_OK$Season == "Winter1718" | BOB_track_OK$Season == "Winter1819" | BOB_track_OK$Season == "Winter1920" | BOB_track_OK$Season == "Winter2021", ]
+  BOB_wtr_track_NE <- BOB_track_NE[BOB_track_NE$Season == "Winter1718" | BOB_track_NE$Season == "Winter1819" | BOB_track_NE$Season == "Winter1920" | BOB_track_NE$Season == "Winter2021", ]
+  BOB_sprg_track_OK <- BOB_track_OK[BOB_track_OK$Season == "Spring18" | BOB_track_OK$Season == "Spring19" | BOB_track_OK$Season == "Spring20" | BOB_track_OK$Season == "Spring21", ]
+  BOB_sprg_track_NE <- BOB_track_NE[BOB_track_NE$Season == "Spring18" | BOB_track_NE$Season == "Spring19" | BOB_track_NE$Season == "Spring20" | BOB_track_NE$Season == "Spring21", ]
+  COY_smr_track_OK <- COY_track_OK[COY_track_OK$Season == "Summer17" | COY_track_OK$Season == "Summer18" | COY_track_OK$Season == "Summer19" | COY_track_OK$Season == "Summer20", ]
+  COY_smr_track_NE <- COY_track_NE[COY_track_NE$Season == "Summer17" | COY_track_NE$Season == "Summer18" | COY_track_NE$Season == "Summer19" | COY_track_NE$Season == "Summer20", ]
+  COY_fll_track_OK <- COY_track_OK[COY_track_OK$Season == "Fall17" | COY_track_OK$Season == "Fall18" | COY_track_OK$Season == "Fall19" | COY_track_OK$Season == "Fall20", ]
+  COY_fll_track_NE <- COY_track_NE[COY_track_NE$Season == "Fall17" | COY_track_NE$Season == "Fall18" | COY_track_NE$Season == "Fall19" | COY_track_NE$Season == "Fall20", ]
+  COY_wtr_track_OK <- COY_track_OK[COY_track_OK$Season == "Winter1718" | COY_track_OK$Season == "Winter1819" | COY_track_OK$Season == "Winter1920" | COY_track_OK$Season == "Winter2021", ]
+  COY_wtr_track_NE <- COY_track_NE[COY_track_NE$Season == "Winter1718" | COY_track_NE$Season == "Winter1819" | COY_track_NE$Season == "Winter1920" | COY_track_NE$Season == "Winter2021", ]
+  COY_sprg_track_OK <- COY_track_OK[COY_track_OK$Season == "Spring18" | COY_track_OK$Season == "Spring19" | COY_track_OK$Season == "Spring20" | COY_track_OK$Season == "Spring21", ]
+  COY_sprg_track_NE <- COY_track_NE[COY_track_NE$Season == "Spring18" | COY_track_NE$Season == "Spring19" | COY_track_NE$Season == "Spring20" | COY_track_NE$Season == "Spring21", ]
+  
+  #'  Save a giant list of all seasonal tracks
+  #'  NOTE the ordering of this list for the predators
+  pred_all_tracks <- list(COUG_smr_track_OK, COUG_fll_track_OK, COUG_wtr_track_OK, COUG_sprg_track_OK,
+                          COUG_smr_track_NE, COUG_fll_track_NE, COUG_wtr_track_NE, COUG_sprg_track_NE,
+                          WOLF_smr_track_OK, WOLF_fll_track_OK, WOLF_wtr_track_OK, WOLF_sprg_track_OK,
+                          WOLF_smr_track_NE, WOLF_fll_track_NE, WOLF_wtr_track_NE, WOLF_sprg_track_NE,
+                          BOB_smr_track_OK, BOB_fll_track_OK, BOB_wtr_track_OK, BOB_sprg_track_OK,
+                          BOB_smr_track_NE, BOB_fll_track_NE, BOB_wtr_track_NE, BOB_sprg_track_NE,
+                          COY_smr_track_OK, COY_fll_track_OK, COY_wtr_track_OK, COY_sprg_track_OK,
+                          COY_smr_track_NE, COY_fll_track_NE, COY_wtr_track_NE, COY_sprg_track_NE)
+  save(pred_all_tracks, file = paste0("./Outputs/Telemetry_tracks/pred_all_tracks_forTRG_", Sys.Date(), ".RData"))
+  
+  
+    
   
   #'  Load tracks
   load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_2022-03-14.RData")
