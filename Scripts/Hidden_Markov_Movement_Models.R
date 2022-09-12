@@ -151,16 +151,16 @@
   #' #'  Remove coordinates from crwOut data for publication
   #' drop_coords <- function(dat){
   #'   skinny_df <- dat %>%
-  #'     dplyr::select(-c("Long", "Lat", "nu.x", "nu.y", "se.mu.x", "se.nu.x", "se.mu.y", "se.nu.y", "x", "y"))
+  #'     dplyr::select(-c("Long", "Lat", "nu.x", "nu.y", "se.mu.x", "se.nu.x", "se.mu.y", "se.nu.y", "x", "y", "TimeNum", "locType", "ID2"))
   #'   return(skinny_df)
   #' }
-  #' hmm_data_for_pub <- lapply(hmm_data, drop_coords)
-  #' names(hmm_data_for_pub) <- c("mdData_smr", "mdData_wtr", "elkData_smr", "elkData_wtr", "wtdData_smr", "wtdData_wtr",
+  #' hmm_data <- lapply(hmm_data, drop_coords)
+  #' names(hmm_data) <- c("mdData_smr", "mdData_wtr", "elkData_smr", "elkData_wtr", "wtdData_smr", "wtdData_wtr",
   #'                 "cougData_smr_OK", "cougData_wtr_OK", "cougData_smr_NE", "cougData_wtr_NE",
   #'                 "wolfData_smr_OK", "wolfData_wtr_OK", "wolfData_smr_NE", "wolfData_wtr_NE",
   #'                 "bobData_smr_OK", "bobData_wtr_OK", "bobData_smr_NE", "bobData_wtr_NE",
   #'                 "coyData_smr_OK", "coyData_wtr_OK", "coyData_smr_NE", "coyData_wtr_NE")
-  #' save(hmm_data_for_pub, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_for_pub_", Sys.Date(), ".RData"))
+  #' save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_for_pub_", Sys.Date(), ".RData"))
   
   #'  Correlation Matrix
   #'  ==================
