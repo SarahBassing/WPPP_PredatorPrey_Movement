@@ -50,6 +50,31 @@
   #'  For TRG
   load("./Outputs/RSF_pts/wolf_dat_all_Spokane_2022-04-04.RData")
   
+  #' #'  Function to remove coordinates for publication
+  #' drop_coords <- function(dat){
+  #'   skinny_df <- dat %>%
+  #'     dplyr::select(-c("x", "y"))
+  #'   return(skinny_df)
+  #' }
+  #' spp_list <- list(md_dat_all, elk_dat_all, wtd_dat_all, coug_dat_all, wolf_dat_all, bob_dat_all, coy_dat_all)
+  #' rsf_data_for_pub <- lapply(spp_list, drop_coords)
+  #' md_dat_all <- rsf_data_for_pub[[1]]
+  #' elk_dat_all <- rsf_data_for_pub[[2]]
+  #' wtd_dat_all <- rsf_data_for_pub[[3]]
+  #' coug_dat_all <- rsf_data_for_pub[[4]]
+  #' wolf_dat_all <- rsf_data_for_pub[[5]]
+  #' bob_dat_all <- rsf_data_for_pub[[6]]
+  #' coy_dat_all <- rsf_data_for_pub[[7]]
+  #' save(md_dat_all, file = paste0("./Outputs/RSF_pts/md_dat_all_for_pub_", Sys.Date(), ".RData"))
+  #' save(elk_dat_all, file = paste0("./Outputs/RSF_pts/elk_dat_all_for_pub_", Sys.Date(), ".RData"))
+  #' save(wtd_dat_all, file = paste0("./Outputs/RSF_pts/wtd_dat_all_for_pub_", Sys.Date(), ".RData"))
+  #' save(coug_dat_all, file = paste0("./Outputs/RSF_pts/coug_dat_all_for_pub_", Sys.Date(), ".RData"))
+  #' save(wolf_dat_all, file = paste0("./Outputs/RSF_pts/wolf_dat_all_for_pub_", Sys.Date(), ".RData"))
+  #' save(bob_dat_all, file = paste0("./Outputs/RSF_pts/bob_dat_all_for_pub_", Sys.Date(), ".RData"))
+  #' save(coy_dat_all, file = paste0("./Outputs/RSF_pts/coy_dat_all_for_pub_", Sys.Date(), ".RData"))
+  #' 
+  #' save(rsf_data_for_pub, file = paste0("./Outputs/RSF_pts/rsf_dat_all_for_pub_", Sys.Date(), ".RData"))
+  
   
   #'  Function to re-classify landcover into fewer categories
   #'  Based on T. Ganz's input:
