@@ -53,7 +53,8 @@
   #' #'  Function to remove coordinates for publication
   #' drop_coords <- function(dat){
   #'   skinny_df <- dat %>%
-  #'     dplyr::select(-c("x", "y"))
+  #'     dplyr::select(-c("x", "y", "TPI", "PercForMix", "PercXGrass", "PercXShrub", "Landcover")) %>%
+  #'     mutate(Landcover_type = ifelse(Landcover_type == "310", "Developed", Landcover_type))
   #'   return(skinny_df)
   #' }
   #' spp_list <- list(md_dat_all, elk_dat_all, wtd_dat_all, coug_dat_all, wolf_dat_all, bob_dat_all, coy_dat_all)
@@ -72,9 +73,7 @@
   #' save(wolf_dat_all, file = paste0("./Outputs/RSF_pts/wolf_dat_all_for_pub_", Sys.Date(), ".RData"))
   #' save(bob_dat_all, file = paste0("./Outputs/RSF_pts/bob_dat_all_for_pub_", Sys.Date(), ".RData"))
   #' save(coy_dat_all, file = paste0("./Outputs/RSF_pts/coy_dat_all_for_pub_", Sys.Date(), ".RData"))
-  #' 
-  #' save(rsf_data_for_pub, file = paste0("./Outputs/RSF_pts/rsf_dat_all_for_pub_", Sys.Date(), ".RData"))
-  
+
   
   #'  Function to re-classify landcover into fewer categories
   #'  Based on T. Ganz's input:
