@@ -142,14 +142,32 @@
                    coyData_wtr_NE)
   save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_", Sys.Date(), ".RData"))
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-05-23.RData") #2022-03-16
+  names(hmm_data) <- c("mdData_smr", "mdData_wtr", "elkData_smr", "elkData_wtr", "wtdData_smr", "wtdData_wtr",
+                  "cougData_smr_OK", "cougData_wtr_OK", "cougData_smr_NE", "cougData_wtr_NE",
+                  "wolfData_smr_OK", "wolfData_wtr_OK", "wolfData_smr_NE", "wolfData_wtr_NE",
+                  "bobData_smr_OK", "bobData_wtr_OK", "bobData_smr_NE", "bobData_wtr_NE",
+                  "coyData_smr_OK", "coyData_wtr_OK", "coyData_smr_NE", "coyData_wtr_NE")
   
+  #' #'  Remove coordinates from crwOut data for publication
+  #' drop_coords <- function(dat){
+  #'   skinny_df <- dat %>%
+  #'     dplyr::select(-c("Long", "Lat", "nu.x", "nu.y", "se.mu.x", "se.nu.x", "se.mu.y", "se.nu.y", "x", "y"))
+  #'   return(skinny_df)
+  #' }
+  #' hmm_data_for_pub <- lapply(hmm_data, drop_coords)
+  #' names(hmm_data_for_pub) <- c("mdData_smr", "mdData_wtr", "elkData_smr", "elkData_wtr", "wtdData_smr", "wtdData_wtr",
+  #'                 "cougData_smr_OK", "cougData_wtr_OK", "cougData_smr_NE", "cougData_wtr_NE",
+  #'                 "wolfData_smr_OK", "wolfData_wtr_OK", "wolfData_smr_NE", "wolfData_wtr_NE",
+  #'                 "bobData_smr_OK", "bobData_wtr_OK", "bobData_smr_NE", "bobData_wtr_NE",
+  #'                 "coyData_smr_OK", "coyData_wtr_OK", "coyData_smr_NE", "coyData_wtr_NE")
+  #' save(hmm_data_for_pub, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_for_pub_", Sys.Date(), ".RData"))
   
   #'  Correlation Matrix
   #'  ==================
   #'  Function to create correlation matrix for all continuous covariates at once
   cov_correlation_OK <- function(dat) {
     covs <- dat %>%
-      dplyr::select(c("Dist2Road", "NDVI", "PercOpen", "TRI", "MD_RSF", "COUG_RSF", 
+      dplyr::select(c("Dist2Road", "PercOpen", "TRI", "MD_RSF", "COUG_RSF", #"NDVI", 
                       "WOLF_RSF", "BOB_RSF", "COY_RSF")) 
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
@@ -168,7 +186,7 @@
   
   cov_correlation_NE <- function(dat) {
     covs <- dat %>%
-      dplyr::select(c("Dist2Road", "NDVI", "PercOpen", "TRI", "ELK_RSF", "WTD_RSF", 
+      dplyr::select(c("Dist2Road", "PercOpen", "TRI", "ELK_RSF", "WTD_RSF", #"NDVI", 
                       "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")) 
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
