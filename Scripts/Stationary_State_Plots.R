@@ -160,7 +160,7 @@
   #'  Cougar, coyote, wolf ["#D41159", "#FFC20A", "#0C7BDC"]
   
   #'  Ungulate stationary state ~ Cougar RSF
-  coug_effects <- rbind(md_smr_PrStay$COUG_RSF, #md_wtr_PrStay$COUG_RSF,
+  coug_effects <- rbind(md_wtr_PrStay$COUG_RSF, #md_smr_PrStay$COUG_RSF,
                         elk_smr_PrStay$COUG_RSF, elk_wtr_PrStay$COUG_RSF,
                         wtd_smr_PrStay$COUG_RSF, wtd_wtr_PrStay$COUG_RSF) %>%
     filter(!State == "Encamped") %>%
@@ -179,6 +179,7 @@
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(text = element_text(size = 14)) +
     #theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled cougar RSF value") +
@@ -186,7 +187,7 @@
     #labs(title = "Ungulate movement in response to relative probability of use by cougars")
   
   #'  Ungulate stationary state ~ Wolf RSF
-  wolf_effects <- rbind(md_smr_PrStay$WOLF_RSF, #md_wtr_PrStay$WOLF_RSF,
+  wolf_effects <- rbind(md_wtr_PrStay$WOLF_RSF, #md_smr_PrStay$WOLF_RSF, 
                         elk_smr_PrStay$WOLF_RSF, elk_wtr_PrStay$WOLF_RSF,
                         wtd_smr_PrStay$WOLF_RSF, wtd_wtr_PrStay$WOLF_RSF) %>%
     filter(!State == "Encamped") %>%
@@ -206,6 +207,7 @@
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
     theme(axis.title.y = element_blank()) +
+    theme(text = element_text(size = 14)) +
     #theme(legend.position="bottom") +
     xlim(-1.5, 2) + ylim(0, 1.0) +
     xlab("Scaled wolf RSF value") #+
@@ -231,6 +233,7 @@
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(text = element_text(size = 14)) +
     #theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled bobcat RSF value") +
@@ -258,6 +261,7 @@
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
     theme(axis.title.y = element_blank()) +
+    theme(text = element_text(size = 14)) +
     #theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled coyote RSF value") #+
@@ -285,6 +289,7 @@
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
     theme(axis.title.y = element_blank()) +
+    theme(text = element_text(size = 14)) +
     theme(legend.position = "none") +
     xlim(-2.5, 2) + ylim(0, 1.0) +
     xlab("Scaled mule deer RSF value") +
@@ -311,6 +316,7 @@
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(text = element_text(size = 14)) +
     theme(legend.position = "none") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled elk RSF value") +
@@ -337,6 +343,7 @@
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(text = element_text(size = 14)) +
     theme(axis.title.y = element_blank()) +
     #theme(legend.position="bottom") +
     xlim(-2.5, 2) + ylim(0, 1.0) +
@@ -358,18 +365,28 @@
   PredEffect_onPrey_fig <- prey_coug_plot + prey_wolf_plot + prey_coy_plot +
       plot_layout(guides = 'collect') + 
       plot_layout(ncol = 3) +
-      plot_annotation(tag_levels = 'A', 
-                      title = 'Ungulate stationary state probabilities in response to relative probability of use by predators') & 
+      plot_annotation(tag_levels = 'a', 
+                      title = 'Ungulate stationary state probabilities') & 
     theme(plot.tag = element_text(size = 12)) 
   PreyEffect_onPred_fig <- pred_elk_plot + pred_md_plot + pred_wtd_plot +
     plot_layout(guides = 'collect') + 
     plot_layout(ncol = 3) +
-    plot_annotation(tag_levels = 'A', 
-                    title = 'Predator stationary state probabilities in response to relative probability of use by ungulate prey') & 
+    plot_annotation(tag_levels = 'a', 
+                    title = 'Predator stationary state probabilities') & 
     theme(plot.tag = element_text(size = 12)) 
   
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/PredEffect_onPrey_StationaryProb_plot.tiff", PredEffect_onPrey_fig, width = 11, height = 7, dpi = 800, units = "in", device = 'tiff')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/PreyEffect_onPred_StationaryProb_plot.tiff", PreyEffect_onPred_fig, width = 11, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/PredEffect_onPrey_StationaryProb_plot_121922.tiff", PredEffect_onPrey_fig, width = 11, height = 7, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/PreyEffect_onPred_StationaryProb_plot_121922.tiff", PreyEffect_onPred_fig, width = 11, height = 7, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
+  
+  
+  PredPrey_patchwork <- PreyEffect_onPred_fig / PredEffect_onPrey_fig +
+    plot_annotation(tag_levels = 'a') &
+    theme(axis.title = element_text(size = 16)) &
+    theme(axis.text = element_text(size = 16)) &
+    theme(legend.text = element_text(size = 16)) &
+    theme(legend.title = element_text(size = 16)) &
+    theme(plot.tag = element_text(size = 16)) 
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/PredPrey_StationaryProb_plot_121922.tiff", PredPrey_patchwork, width = 13, height = 14, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
   
   
   
@@ -480,7 +497,7 @@
     theme(axis.title.y = element_blank()) +
     #theme(legend.position="bottom") +
     xlim(-2, 4) + ylim(0, 1.0) +
-    xlab("Scaled TRI, Okanogan study area") +
+    xlab("Scaled TRI, Okanogan") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to habitat complexity, Okanogan")
   
@@ -506,7 +523,7 @@
     theme(axis.title.y = element_blank()) +
     #theme(legend.position="bottom") +
     xlim(-2, 4) + ylim(0, 1.0) +
-    xlab("Scaled TRI, Northeast study area") +
+    xlab("Scaled TRI, Northeast") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to habitat complexity, Northeast")
   
@@ -533,7 +550,7 @@
     theme(axis.title.y = element_blank()) +
     theme(legend.position="none") +
     xlim(-1, 4.5) + ylim(0, 1.0) +
-    xlab("Scaled distance to road, Okanogan") +
+    xlab("Scaled distance to road, OK") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to distance to nearest road, Okanogan")
   
@@ -559,7 +576,7 @@
     theme(axis.title.y = element_blank()) +
     #theme(legend.position="bottom") +
     xlim(-1, 4.5) + ylim(0, 1.0) +
-    xlab("Scaled distance to road, Northeast") +
+    xlab("Scaled distance to road, NE") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to distance to nearest road, Northeast")
   
@@ -586,7 +603,7 @@
     theme(axis.title.y = element_blank()) +
     #theme(legend.position="bottom") +
     xlim(-1.5, 1.5) + ylim(0, 1.0) +
-    xlab("Scaled percent open habitat, Okanogan") +
+    xlab("Scaled percent open, OK") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to percentage of open habitat, Okanogan")
   
@@ -612,7 +629,7 @@
     theme(axis.title.y = element_blank()) +
     theme(legend.position="none") +
     xlim(-1, 3) + ylim(0, 1.0) +
-    xlab("Scaled percent open habitat, Northeast") +
+    xlab("Scaled percent open, NE") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to percentage of open habitat, Northeast")
   
@@ -632,25 +649,35 @@
   tri_fig <- prey_tri_plot + pred_OK_tri_plot + pred_NE_tri_plot +
       plot_layout(guides = 'collect') + 
       plot_layout(ncol = 3) +
-      plot_annotation(tag_levels = 'A',
-                      title = 'Stationary state probabilities for ungulates and predators in response to Terrain Ruggendess Index (TRI)') & 
-    theme(plot.tag = element_text(size = 12)) 
+      plot_annotation(tag_levels = 'a') &
+    theme(axis.title = element_text(size = 16)) &
+    theme(axis.text = element_text(size = 16)) &
+    theme(legend.text = element_text(size = 16)) &
+    theme(legend.title = element_text(size = 16))
   road_fig <- prey_dist2rd_plot + pred_OK_dist2rd_plot + pred_NE_dist2rd_plot +
       plot_layout(guides = 'collect') + 
       plot_layout(ncol = 3) +
-      plot_annotation(tag_levels = 'A',
-                      title = 'Stationary state probabilities for ungulates and predators in response distance to nearest road') & 
-    theme(plot.tag = element_text(size = 12)) 
+      plot_annotation(tag_levels = 'a',
+                      title = 'Effect of distance to nearst road on stationary state probabilities') & 
+    theme(axis.title = element_text(size = 16)) &
+    theme(axis.text = element_text(size = 16)) &
+    theme(legend.text = element_text(size = 16)) &
+    theme(legend.title = element_text(size = 16)) &
+    theme(plot.tag = element_text(size = 16)) 
   open_fig <- prey_open_plot + pred_OK_open_plot + pred_NE_open_plot +
     plot_layout(guides = 'collect') + 
     plot_layout(ncol = 3) +
-    plot_annotation(tag_levels = 'A', 
-                    title = 'Stationary state probabilities for ungulates and predators in response percentage of open habitat') & 
-    theme(plot.tag = element_text(size = 12))
+    plot_annotation(tag_levels = 'a', 
+                    title = 'Effect of open habitat on stationary state probabilities') & 
+    theme(axis.title = element_text(size = 16)) &
+    theme(axis.text = element_text(size = 16)) &
+    theme(legend.text = element_text(size = 16)) &
+    theme(legend.title = element_text(size = 16)) &
+    theme(plot.tag = element_text(size = 16))
   
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/TRI_StationaryProb_plot.tiff", tri_fig, width = 11, height = 7, dpi = 800, units = "in", device = 'tiff')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/RoadDist_StationaryProb_plot.tiff", road_fig, width = 11, height = 7, dpi = 800, units = "in", device = 'tiff')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat_StationaryProb_plot.tiff", open_fig, width = 11, height = 7, dpi = 800, units = "in", device = 'tiff')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/TRI_StationaryProb_plot_121922.tiff", tri_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/RoadDist_StationaryProb_plot_121922.tiff", road_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat_StationaryProb_plot_121922.tiff", open_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
   
   
   
