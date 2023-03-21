@@ -36,7 +36,7 @@
   crs(md_smr_rsf, describe=TRUE, proj=TRUE)
   res(md_smr_rsf)
   
-  tst_rast <- coug_smr_rsf[[1]]
+  
   
   #'  Function to reclassify raster based on high, medium, and low relative
   #'  probability of selection, detect patches of pixels, and measure average
@@ -88,6 +88,32 @@
     return(patch_size_km)
     
   }
+  coug_smr_patch_size <- patch_size(coug_smr_rsf[[1]])
+  wolf_smr_patch_size <- patch_size(wolf_smr_rsf[[1]])
+  elk_smr_patch_size <- patch_size(elk_smr_rsf[[1]])
+  md_smr_patch_size <- patch_size(md_smr_rsf[[1]])
+  wtd_smr_patch_size <- patch_size(wtd_smr_rsf[[1]])
+  
+  coug_wtr_patch_size <- patch_size(coug_wtr_rsf[[1]])
+  wolf_wtr_patch_size <- patch_size(wolf_wtr_rsf[[1]])
+  elk_wtr_patch_size <- patch_size(elk_wtr_rsf[[1]])
+  md_wtr_patch_size <- patch_size(md_wtr_rsf[[1]])
+  wtd_wtr_patch_size <- patch_size(wtd_wtr_rsf[[1]])
+  
+  #'  Create result table and save
+  smr_patch_size <- rbind(coug_smr_patch_size, wolf_smr_patch_size, elk_smr_patch_size, md_smr_patch_size, wtd_smr_patch_size)
+  wtr_patch_size <- rbind(coug_wtr_patch_size, wolf_wtr_patch_size, elk_wtr_patch_size, md_wtr_patch_size, wtd_wtr_patch_size)
+  patch_size <- rbind(smr_patch_size, wtr_patch_size)
+  Species <- c("Cougar", "Wolf", "Elk", "Mule deer", "White-tailed deer",
+               "Cougar", "Wolf", "Elk", "Mule deer", "White-tailed deer")
+  Season <- c("Summer", "Summer", "Summer", "Summer", "Summer",
+              "Winter", "Winter", "Winter", "Winter", "Winter")
+  patch_summary_table <- cbind(Species, Season, patch_size)
+  write.csv(patch_summary_table, "./Outputs/RSF_output/RSF_patch_size_summary.csv")
+  
+  
+  
+  tst_rast <- coug_smr_rsf[[1]]
   
   hi_risk <- matrix(c(0,0.8,0, 
                      0.8,1.0,1, 
