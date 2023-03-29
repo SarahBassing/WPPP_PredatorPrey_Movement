@@ -153,6 +153,28 @@
   }
   wolf_dat_all_reclass2 <- reclass_wolf(wolf_dat_all_reclass)
   
+  #'  Investigate whether available habitat differs by study area
+  coug_NE <- filter(coug_dat_all_reclass, Area == "NE" & Used == 0)
+  coug_OK <- filter(coug_dat_all_reclass, Area == "OK" & Used == 0)
+  wolf_NE <- filter(wolf_dat_all_reclass2, Area == "NE" & Used == 0)
+  wolf_OK <- filter(wolf_dat_all_reclass2, Area == "OK" & Used == 0)
+  #'  Proportion of available land cover classes per study area
+  proportion_hab <- function(cov) {
+    prob_hab <- cov %>%
+      dplyr::select(Landcover_type) %>%
+      count(Landcover_type) %>%
+      ungroup() %>%
+      mutate(total = sum(n),
+             prop = n/total)
+    return(prob_hab)
+  }
+  coug_NE_landcovertype <- proportion_hab(coug_NE)
+  coug_OK_landcovertype <- proportion_hab(coug_OK)
+  wolf_NE_landcovertype <- proportion_hab(wolf_NE)
+  wolf_OK_landcovertype <- proportion_hab(wolf_OK)
+  #'  Summary stats for continuous variables
+  summary(coug_NE[,6:16]); summary(coug_OK[,6:16])
+  summary(wolf_NE[,6:16]); summary(wolf_OK[,6:16])
   
   #'  Center & scale covariates 
   #'  Note: standardizing across all IDs but separately by species & season
