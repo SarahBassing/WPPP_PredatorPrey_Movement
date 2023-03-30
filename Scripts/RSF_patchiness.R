@@ -63,11 +63,13 @@
     
     #'  Detect groups of reclassified cells surrounded by 0s
     hi_patch <- terra::patches(hi_reclass, 8, zeroAsNA = TRUE)
-    med_patch <- terra::patches(med_reclass, 8, zeroAsNA = TRUE)
-    low_patch <- terra::patches(hi_reclass, 8, zeroAsNA = TRUE)
+    plot(hi_patch, main = "high value patchs")
     
-    #'  Visualize
-    plot(hi_patch)
+    med_patch <- terra::patches(med_reclass, 8, zeroAsNA = TRUE)
+    plot(med_patch, main = "medium value patches")
+    
+    low_patch <- terra::patches(hi_reclass, 8, zeroAsNA = TRUE)
+    plot(low_patch, main = "low value patches")
     
     #'  Calculate area covered by cells (patch size)
     hi_area <- cellSize(hi_patch, unit="km") |> zonal(hi_patch, sum)
