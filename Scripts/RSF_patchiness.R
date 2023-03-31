@@ -87,7 +87,7 @@
     sd_patch_size_km <- c(hi_sd, med_sd, low_sd)
     patch_value <- c("High selection", "Medium selection", "Low selection")
     patch_size_km <- cbind(patch_value, mean_patch_size_km, sd_patch_size_km)
-    names(patch_size_km) <- c("mean_patch_km", "sd", "patch value")
+    names(patch_size_km) <- c("patch value", "mean_patch_km", "sd")
     
     return(patch_size_km)
     
