@@ -49,6 +49,8 @@
   # load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-02-18.RData") #2022-02-18 included 2 hr fixes when collars switch schedules
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData")
   
+  load("./Outputs/Telemetry_crwOut/crwOut_ATS_wtr.RData")
+  
   #' #'  Read in previously extracted NDVI data from GEE
   #' #'  Note: NDVIsmr is for summer locs ONLY, NDVImax is for winter locs ONLY
   #' load("./Outputs/Telemetry_covs/ee_NDVIsmr_list_2022-02-20.RData") # 2022-02-20 included 2hr fixes
@@ -124,6 +126,8 @@
     return(sf_locs)
   }
   sf_locs <- lapply(crwOut_ALL, spatial_locs)
+  
+  sf_ats_locs <- lapply(crwOut_ATS_wtr, spatial_locs)
   
   #' #'  Reformat NDVI data so they have matching columns
   #' #'  Summer NDVI values
@@ -444,6 +448,7 @@
   # wtdw_telem_covs <- cov_extract(sf_locs[[6]])
   # spp_telem_covs <- future_lapply(sf_locs, cov_extract)
   
+  ats_telem_covs <- lapply(sf_ats_locs, cov_extract)
   
   #'  End time keeping
   end.time <- Sys.time()
@@ -534,6 +539,8 @@
     return(wtr_data)
   }
   wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
+  
+  ats_telem_data <- lapply(ats_telem_covs, remove_smr_covs)
 
   
   #' #'  Reorder NDVI lists to match species, season, & study area-specific covariate
@@ -599,6 +606,9 @@
     return(no_ELK_WTD)
   }
   skinny_OK <- lapply(OK_covs, nix_ELK_WTD)
+  
+  ats_covs <- lapply(ats_telem_data, nix_ELK_WTD)
+  
   #'  Remove RSF data for species collared only in OK from NE data sets
   nix_MD <- function(NE_covs) {
     no_MD <- dplyr::select(NE_covs, -c(MD_RSF))
@@ -623,6 +633,8 @@
   
   #'  Save!
   save(spp_telem_covs, file = paste0("./Outputs/Telemetry_covs/spp_telem_covs_", Sys.Date(), ".RData"))
+  
+  save(ats_covs, file = paste0("./Outputs/Telemetry_covs/ats_telem_covs_", Sys.Date(), ".RData"))
 
 
   
