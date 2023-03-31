@@ -44,17 +44,17 @@
   patch_size <- function(rsf) {
     #'  Matrices to reclassify pixel values
     #'  High relative pr(select) = values 0.8 - 1.0
-    hi_select <- matrix(c(0,0.8,0, 
-                        0.8,1.0,1, 
+    hi_select <- matrix(c(0,0.7,0, 
+                        0.7,1.0,1, 
                         1.0,2.0,0), ncol = 3, byrow = TRUE)
     #'  Medium relative pr(select) = values 0.4 - 0.8
-    med_select <- matrix(c(0,0.4,0,
-                         0.4,0.8,1,
-                         0.8,2.0,0), ncol = 3, byrow = TRUE)
+    med_select <- matrix(c(0,0.3,0,
+                         0.3,0.7,1,
+                         0.7,2.0,0), ncol = 3, byrow = TRUE)
     #'  Low relative pr(select) = values 0.0 - 0.4
     low_select <- matrix(c(-1.0,0,0,
-                         0,0.4,1,
-                         0.4,2.0,0), ncol = 3, byrow= TRUE)
+                         0,0.3,1,
+                         0.3,2.0,0), ncol = 3, byrow= TRUE)
     
     #'  Reclassify raster using new classification
     hi_reclass <- classify(rsf, hi_select, include.lowest = FALSE)
@@ -63,13 +63,13 @@
     
     #'  Detect groups of reclassified cells surrounded by 0s
     hi_patch <- terra::patches(hi_reclass, 8, zeroAsNA = TRUE)
-    plot(hi_patch, main = "high value patchs")
+    # plot(hi_patch, main = "high value patchs")
     
     med_patch <- terra::patches(med_reclass, 8, zeroAsNA = TRUE)
-    plot(med_patch, main = "medium value patches")
+    # plot(med_patch, main = "medium value patches")
     
-    low_patch <- terra::patches(hi_reclass, 8, zeroAsNA = TRUE)
-    plot(low_patch, main = "low value patches")
+    low_patch <- terra::patches(low_reclass, 8, zeroAsNA = TRUE)
+    # plot(low_patch, main = "low value patches")
     
     #'  Calculate area covered by cells (patch size)
     hi_area <- cellSize(hi_patch, unit="km") |> zonal(hi_patch, sum)
@@ -83,9 +83,11 @@
     
     #'  Save as table
     mean_patch_size_km <- c(hi_mean, med_mean, low_mean)
+    mean_patch_size_km <- as.data.frame(mean_patch_size_km)
     sd_patch_size_km <- c(hi_sd, med_sd, low_sd)
     patch_value <- c("High selection", "Medium selection", "Low selection")
     patch_size_km <- cbind(patch_value, mean_patch_size_km, sd_patch_size_km)
+    names(patch_size_km) <- c("mean_patch_km", "sd", "patch value")
     
     return(patch_size_km)
     
