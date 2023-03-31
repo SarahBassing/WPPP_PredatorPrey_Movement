@@ -93,6 +93,12 @@
     ) %>%
     dplyr::select(-X)
   
+  ats_info <- read.csv("./Data/Satterfield_ATS_collars/Cougar_HD_Start_End_Dates.csv") %>%
+    transmute(IndividualIdentifier = as.factor(as.character(ID)),
+              GPSCollarSerialNumber = Collar,
+              CaptureDate = as_date(Start),
+              EndDate = End)
+  
   #  Note: WDFW WebApp allowed timezone to shift to PDT so must adjust to only PST
   md_skinny <- read.csv("md_skinny 2021-11-09.csv") %>%
     mutate(StudyArea = "OK",
@@ -172,6 +178,12 @@
     dplyr::select("No", "ID", "CollarID", "Sex", "Latitude", "Longitude", "LMT_DateTime", 
             "StudyArea", "daytime", "Finaldt", "Floordt")
   
+  #  Note: L. Satterfield tz adjusted & AnimalID ATS data; I left unfloordt and unfiltered
+  coug_ATS <- read.csv("./Data/coug_ats_clean2023-03-31.csv") %>%
+    mutate(Floordt = as.POSIXct(Floordt, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8")) %>%
+    dplyr::select("No", "ID", "CollarID", "Sex", "Latitude", "Longitude", "LMT_DateTime", 
+                  "StudyArea", "daytime", "Finaldt", "Floordt")
+  
 
   #  Save cleaned data
   clean_data <- list(md_skinny, elk_skinny, wtd_skinny, coug_skinny, wolf_skinny, meso_skinny)
@@ -233,6 +245,8 @@
   wolf_trunk <- Trunk_telem(wolf_info, wolf_skinny)
   meso_trunk <- Trunk_telem(meso_info, meso_skinny)
   
+  ats_trunk <- Trunk_telem(ats_info, coug_ATS)
+  
   # #  Function not working?
   # #  Probably have a mismatched number of unique IDs in telem vs info data
   # t <- as.data.frame(unique(wolf_skinny$ID)) %>%
@@ -265,6 +279,24 @@
   wtd_thin <- Thin_telem(wtd_trunk)
   coug_thin <- Thin_telem(coug_trunk)
   wolf_thin <- Thin_telem(wolf_trunk)
+  
+  #'  Rarify 10-min fix data to courser datasets (10-min, 30-min, 60-min, 2-hr, 4-hr intervals)
+  Thin_ats <- function(trunk) {
+    trunk$minute <- format(as.POSIXct(trunk$Floordt), format = "%M") 
+    thin_30min <- filter(trunk, minute == "30" | minute == "00") 
+    thin_1hr <- filter(trunk, minute == "00") %>% dplyr::select(-minute)
+    thin_2hr <- filter(thin_1hr, hour(Floordt) == 2 | hour(Floordt) == 4 | hour(Floordt) == 6 | 
+                           hour(Floordt) == 8 | hour(Floordt) == 10 | hour(Floordt) == 12 | 
+                           hour(Floordt) == 14 | hour(Floordt) == 16 | hour(Floordt) == 18 | 
+                           hour(Floordt) == 20 | hour(Floordt) == 22 | hour(Floordt) == 00) 
+    thin_4hr <- filter(thin_2hr, hour(Floordt) == 2 | hour(Floordt) == 6 | hour(Floordt) == 10 |  
+                         hour(Floordt) == 14 | hour(Floordt) == 18 | hour(Floordt) == 22)
+    thin_30min <- dplyr::select(thin_30min, -minute)
+    trunk <- dplyr::select(trunk, -minute)
+    thin_list <- list(trunk, thin_30min, thin_1hr, thin_2hr, thin_4hr)
+    return(thin_list)
+  }
+  ats_thin <- Thin_ats(ats_trunk)
 
 
   ####  Filter data to desired date ranges  #### 
@@ -342,6 +374,24 @@
   wolf_season <- Seasonal_telem(wolf_trunk)
   meso_season <- Seasonal_telem(meso_trunk)
   
+  winter1920_filter <- function(telem) {
+    #  Winter 2019-2020: 12/1/2019 - 02/29/2020
+    telem_winter1920 <- telem %>%
+      filter(Floordt > "2019-12-01 00:00:00") %>%
+      filter(Floordt < "2020-03-01 00:00:00")  %>%
+      mutate(
+        Season = "Winter1920",
+        Year = "Year2",
+        FullID = paste0(ID, "_", Year),
+        #  Add ID2 column to be consistent with other data sets, even though not needed
+        ID2 = paste0(ID, "a")) %>%
+      relocate(ID2, .after = ID)
+    return(telem_winter1920)
+  }
+  ats_thinned <- lapply(ats_thin, winter1920_filter)
+  #  Note: this removes three cougars from data set (MVC229M MVC230F MVC237M) b/c
+  #  weren't collared until mid-March 2020
+  
   #  Same thing but with fully thinned ungulate data
   md_season2 <- Seasonal_telem(md_thin)
   elk_season2 <- Seasonal_telem(elk_thin)
@@ -416,6 +466,9 @@
   coug_counts <- sum_locs(coug_season) 
   wolf_counts <- sum_locs(wolf_season) 
   meso_counts <- sum_locs(meso_season)
+  
+  (ats_counts <- lapply(ats_thinned, sum_locs))
+  
   #  How much data am I losing if I stick to only 1 fix schedule for ungulates/large pred?
   md_counts2 <- sum_locs(md_season2)
   elk_counts2 <- sum_locs(elk_season2)
@@ -536,6 +589,8 @@
   save.image(paste0("./Data/Collar_Truncating&Filtering_noDispersal_CleanedFixSchedule_", Sys.Date(), ".RData"))
   load("./Data/Collar_Truncating&Filtering_noDispersal_CleanedFixSchedule_2022-03-13.RData") 
   #  Collar_Truncating&Filtering_noDispersal_2022-02-18 included 2 hr interval fixes (OK for RSFs but bad for HMM)
+  
+  save(ats_thinned, file = paste0("./Data/Collar_Truncating&Filtering_ATS_cougar_", Sys.Date(), ".RData"))
   
   ####  Remove locations associated with mule deer migration tracks  ####
   #  -----------------------------------------------------------------
