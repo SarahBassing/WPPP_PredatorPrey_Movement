@@ -72,6 +72,19 @@
     dplyr::select("No", "ID", "CollarID", "Sex", "Latitude", "Longitude", "LMT_DateTime", 
                   "StudyArea", "daytime", "Finaldt", "Floordt")
   
+  coug_ATS <- read.csv("./Data/Satterfield_ATS_collars/ATS_final_cougar.csv") %>%
+    mutate(ID = as.factor(as.character(ID)),
+           CollarID = Collar,
+           Sex = str_sub(ID, -1),
+           Latitude = Lat,
+           Longitude = Long,
+           StudyArea = ifelse(grepl("NE", ID), "NE", "OK"),
+           daytime = as.POSIXct(LMT_DateTime, format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+8"),
+           Finaldt = daytime,
+           Floordt = daytime) %>%
+    dplyr::select("No", "ID", "CollarID", "Sex", "Latitude", "Longitude", "LMT_DateTime", 
+                  "StudyArea", "daytime", "Finaldt", "Floordt")
+  
   #  Additional location data in need of thorough cleaning
   #  Note that seconds are included in the ObservationDateTimePST for these data
   #  so mdy_hm is slightly different from the mdy_hms used above
@@ -197,6 +210,7 @@
   
   write.csv(coug_cleaned, paste0("coug_clean ", Sys.Date(), ".csv"))
   write.csv(wolf_cleaned, paste0("wolf_clean ", Sys.Date(), ".csv"))
+  write.csv(coug_ATS, paste0("coug_ats_clean", Sys.Date(), ".csv"))
    
 
   ####  ============================================
@@ -220,16 +234,21 @@
   coug_spdf <- st_as_sf(coug21_clean, coords = c("Longitude", "Latitude"), crs = wgs84) 
   wolf_spdf <- st_as_sf(wolf21_clean, coords = c("Longitude", "Latitude"), crs = wgs84)
   
+  ats_spdf <- st_as_sf(coug_ATS, coords = c("Longitude", "Latitude"), crs = wgs84)
+  
   
   #  Plot all locations (takes a hot minute)
   ggplot() +
     geom_sf(data = coug_spdf, aes(colour = ID)) 
   ggplot() +
     geom_sf(data = wolf_spdf, aes(colour = ID)) 
+  ggplot() +
+    geom_sf(data = ats_spdf, aes(colour = ID))
   
   #  Plot an individual collar
   ind_coug <- group_split(coug_spdf, coug_spdf$ID)
   ind_wolf <- group_split(wolf_spdf, wolf_spdf$ID)
+  ind_ats <- group_split(ats_spdf, ats_spdf$ID)
   
   #  Plot by study area with study area boundary for context
   #  Function to plot locations from individual animals in the NORTHEAST study area
@@ -283,6 +302,7 @@
   #  Feed wolf/cougar through function to map individual telemetry data in OK
   coug_OK_maps <- plot_telem_OK(coug_spdf[coug_spdf$StudyArea == "OK",])
   wolf_OK_maps <- plot_telem_OK(wolf_spdf[wolf_spdf$StudyArea == "OK",])
+  ats_OK_maps <- plot_telem_OK(ats_spdf[ats_spdf$StudyArea == "OK",])
   
   #  Save individual plots in a single pdf for each species
   #  With NE or OK study area boundary for context
@@ -306,6 +326,11 @@
   pdf("./Outputs/wolf21_OK_maps2.pdf")
   for (i in 1:length(unique(wolf_OK_maps))) {
     print(wolf_OK_maps[[i]])
+  }
+  dev.off()
+  pdf("./Outputs/coug_ats_OK_maps2.pdf")
+  for (i in 1:length(unique(ats_OK_maps))) {
+    print(ats_OK_maps[[i]])
   }
   dev.off()
   

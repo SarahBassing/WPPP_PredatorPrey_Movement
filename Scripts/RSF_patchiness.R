@@ -116,29 +116,3 @@
   write.csv(patch_summary_table, "./Outputs/RSF_output/RSF_patch_size_summary.csv")
   
   
-  
-  tst_rast <- coug_smr_rsf[[1]]
-  
-  hi_risk <- matrix(c(0,0.8,0, 
-                     0.8,1.0,1, 
-                     1.0,2.0,0), ncol = 3, byrow = TRUE)
-  med_risk <- matrix(c(0,0.4,0,
-                       0.4,0.8,1,
-                       0.8,2.0,0), ncol = 3, byrow = TRUE)
-  low_risk <- matrix(c(-1.0,0,0,
-                       0,0.4,1,
-                       0.4,2.0,0), ncol = 3, byrow= TRUE)
-  
-  hi_risk_reclass <- classify(tst_rast, hi_risk, include.lowest = FALSE)
-  med_risk_reclass <- classify(tst_rast, med_risk, include.lowest = FALSE)
-  low_risk_reclass <- classify(tst_rast, low_risk, include.lowest = FALSE)
-  
-  
-  hi_patch <- terra::patches(hi_risk_reclass, 8, zeroAsNA = TRUE)
-  med_patch <- terra::patches(med_risk_reclass, 8, zeroAsNA = TRUE)
-  low_patch <- terra::patches(hi_risk_reclass, 8, zeroAsNA = TRUE)
-  
-  hi_area <- cellSize(hi_patch, unit="km") |> zonal(hi_patch, sum)
-  hi_mean <- mean(hi_area); hi_sd <- sd(hi_area)
-  
-  
