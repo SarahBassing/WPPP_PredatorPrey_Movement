@@ -32,7 +32,8 @@
   # load("./Data/Collar_Truncating&Filtering_noDispMig_2022-02-18.RData") # included 2 hr interval fixes when collars switch schedules (OK for RSFs but bad for HMMs)
   load("./Data/Collar_Truncating&Filtering_noDispMig_CleanedFixSchedule_2022-03-13.RData")
   load("./Data/Collar_Truncating&Filtering_forTRG_2022-06-14.RData") # includes all 2017 - 2021 predator data for TRG analysis
-  
+  load("./Data/Collar_Truncating&Filtering_ATS_cougar_2023-03-31.RData") # ATS cougar data - list of three different thinning rates (30 min, 1 hr, 2 hr)
+    
   #' I chose to use relocation data that excludes obvious dispersal events that
   #' take carnivores away from extent of study areas and relocation data during
   #' mule deer migrations because these long-distance movements are very different
@@ -81,6 +82,32 @@
   colnames(rawCOY) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
   rawCOY <- rawCOY[order(rawCOY$ID2, rawCOY$time),]
   
+  rawATS <- ats_thinned[[1]] %>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
+    arrange(ID, Floordt)
+  colnames(rawATS) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawATS <- rawATS[order(rawATS$ID2, rawATS$time),]
+  rawATS_30m <- ats_thinned[[2]] %>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
+    arrange(ID, Floordt)
+  colnames(rawATS_30m) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawATS_30m <- rawATS_30m[order(rawATS_30m$ID2, rawATS_30m$time),]
+  rawATS_1hr <- ats_thinned[[3]] %>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
+    arrange(ID, Floordt)
+  colnames(rawATS_1hr) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawATS_1hr <- rawATS_1hr[order(rawATS_1hr$ID2, rawATS_1hr$time),]
+  rawATS_2hr <- ats_thinned[[4]] %>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
+    arrange(ID, Floordt)
+  colnames(rawATS_2hr) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawATS_2hr <- rawATS_2hr[order(rawATS_2hr$ID2, rawATS_2hr$time),]
+  rawATS_4hr <- ats_thinned[[5]] %>%
+    dplyr::select(ID, ID2, FullID, Sex, Season, StudyArea, Longitude, Latitude, Floordt) %>%
+    arrange(ID, Floordt)
+  colnames(rawATS_4hr) <- c("ID", "ID2", "FullID", "Sex", "Season", "StudyArea", "Long", "Lat", "time")
+  rawATS_4hr <- rawATS_4hr[order(rawATS_4hr$ID2, rawATS_4hr$time),]
+  
   #'  Function to covert times to POSIX & make locations spatial for each species
   prep_raw <- function(raw, plotit = TRUE) {
     raw$time <- as.POSIXct(raw$time, format = "%Y-%m-%d %H:%M:%S", tz = "America/Los_Angeles")
@@ -103,6 +130,14 @@
   rawWOLF <- as.data.frame(prep_raw(rawWOLF))
   rawBOB <- as.data.frame(prep_raw(rawBOB))
   rawCOY <- as.data.frame(prep_raw(rawCOY))
+  
+  rawATS <- as.data.frame(prep_raw(rawATS))
+  rawATS_30m <- as.data.frame(prep_raw(rawATS_30m))
+  rawATS_1hr <- as.data.frame(prep_raw(rawATS_1hr))
+  rawATS_2hr <- as.data.frame(prep_raw(rawATS_2hr))
+  rawATS_4hr <- as.data.frame(prep_raw(rawATS_4hr))
+  
+  rawATS_list <- list(rawATS, rawATS_30m, rawATS_1hr, rawATS_2hr, rawATS_4hr)
 
   #'  Quick peak at example data for each species
   plot_collar <- function(raw) {
@@ -125,6 +160,9 @@
   plot_collar(rawWOLF)
   plot_collar(rawBOB)
   plot_collar(rawCOY)
+  
+  plot_collar(rawATS)
+  plot_collar(rawATS_4hr)
 
   #'  Take a closer look at those seasonal locations, esp. the mule deer
   #'  Are they migrating halfway through a season? Any dispersal?
@@ -230,6 +268,8 @@
   COY_track_OK <- bursts(rawCOY[rawCOY$StudyArea == "OK",])
   COY_track_NE <- bursts(rawCOY[rawCOY$StudyArea == "NE",])
   
+  ATS_tracks <- lapply(rawATS_list, bursts)
+  
   #'  Save track data sets
   save(MD_track, file = "./Outputs/Telemetry_tracks/MD_track.RData")
   save(ELK_track, file = "./Outputs/Telemetry_tracks/ELK_track.RData")
@@ -242,6 +282,8 @@
   save(BOB_track_NE, file = "./Outputs/Telemetry_tracks/BOB_track_NE.RData")
   save(COY_track_OK, file = "./Outputs/Telemetry_tracks/COY_track_OK.RData")
   save(COY_track_NE, file = "./Outputs/Telemetry_tracks/COY_track_NE.RData")
+  
+  save(ATS_tracks, file = "./Outputs/Telemetry_tracks/ATS_track.RData")
   
   #'  Create season-specific data sets for crawlWrap function
   MD_smr_track <- MD_track[MD_track$Season == "Summer18" | MD_track$Season == "Summer19" | MD_track$Season == "Summer20", ]
@@ -408,6 +450,8 @@
   crwOut_COY_smr_NE <- crwWrp(spp_all_tracks[[21]]) #COY_smr_track_NE
   crwOut_COY_wtr_NE <- crwWrp(spp_all_tracks[[22]]) #COY_wtr_track_NE
   
+  crwOut_ATS_wtr <- lapply(ATS_tracks, crwWrp)
+  
   #'  View interpolated data and new data (step length and turning angle)
   md_move_smr <- crwOut_MD_smr[[2]]
   md_move_wtr <- crwOut_MD_wtr[[2]]
@@ -432,6 +476,9 @@
   coy_move_smr_NE <- crwOut_COY_smr_NE[[2]]
   coy_move_wtr_NE <- crwOut_COY_wtr_NE[[2]]
   
+  ats_move_wtr_full <- crwOut_ATS_wtr[[1]][[2]]
+  ats_move_wtr_4hr <- crwOut_ATS_wtr[[5]][[2]]
+  
   #'  Save individual crwOut datasets
   save(crwOut_MD_smr, file = "./Outputs/Telemetry_crwOut/crwOut_MD_smr.RData")
   save(crwOut_MD_wtr, file = "./Outputs/Telemetry_crwOut/crwOut_MD_wtr.RData")
@@ -455,6 +502,8 @@
   save(crwOut_COY_wtr_OK, file = "./Outputs/Telemetry_crwOut/crwOut_COY_wtr_OK.RData")
   save(crwOut_COY_smr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_COY_smr_NE.RData")
   save(crwOut_COY_wtr_NE, file = "./Outputs/Telemetry_crwOut/crwOut_COY_wtr_NE.RData")
+  
+  save(crwOut_ATS_wtr, file = "./Outputs/Telemetry_crwOut/crwOut_ATS_wtr.RData")
   
   
   # load("./Outputs/Telemetry_crwOut/crwOut_MD_smr.RData")
