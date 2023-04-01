@@ -29,6 +29,9 @@
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData")    
   load("./Outputs/Telemetry_covs/spp_telem_covs_2022-05-23.RData")  #2022-03-16 unweighted RSFs
   
+  load("./Outputs/Telemetry_crwOut/crwOut_ATS_wtr.RData")
+  load("./Outputs/Telemetry_covs/ats_telem_covs_2023-03-31.RData")
+  
   
   #'  Merge datasets and create momentuHMMData object
   #'  Data merged and scaled by study area separately b/c different species collared
@@ -81,6 +84,15 @@
   bobData_wtr_OK <- spp_dataPrep_OK(crwOut_ALL[[16]], spp_telem_covs[[16]])
   coyData_smr_OK <- spp_dataPrep_OK(crwOut_ALL[[19]], spp_telem_covs[[19]])
   coyData_wtr_OK <- spp_dataPrep_OK(crwOut_ALL[[20]], spp_telem_covs[[20]])
+  
+  ats_full <- spp_dataPrep_OK(crwOut_ATS_wtr[[1]], ats_covs[[1]])
+  ats_30m <- spp_dataPrep_OK(crwOut_ATS_wtr[[2]], ats_covs[[2]])
+  ats_1hr <- spp_dataPrep_OK(crwOut_ATS_wtr[[3]], ats_covs[[3]])
+  ats_2hr <- spp_dataPrep_OK(crwOut_ATS_wtr[[4]], ats_covs[[4]])
+  ats_4hr <- spp_dataPrep_OK(crwOut_ATS_wtr[[5]], ats_covs[[5]])
+  
+  ats_hmm_data <- list(ats_full, ats_30m, ats_1hr, ats_2hr, ats_4hr)   ########### SOMETHING'S WRONG HERE - go back to collar_movement_dataprep b/c should be different lengths and fix schedules
+  names(ats_hmm_data) <- c("atsData_full", "atsData_30m", "atsData_1hr", "atsData_2hr", "atsData_4hr")
   
   
   #'  NORTHEAST data sets
@@ -240,6 +252,11 @@
   #' plot(bobData_smr_NE)  #500, 1000, 500, 1000 -- old values
   #' plot(coyData_smr_OK)  #500, 2000, 500, 2000 -- old values
   #' plot(coyData_smr_NE)  #500, 2000, 500, 2000 -- old values
+  
+  
+  mean(ats_hmm_data[[1]]$step, na.rm = T); sd(ats_hmm_data[[1]]$step, na.rm = T)
+  mean(ats_hmm_data[[5]]$step, na.rm = T); sd(ats_hmm_data[[5]]$step, na.rm = T)
+  
   
   
   #'  Visualize data to identify potential temporal autocorrelation
