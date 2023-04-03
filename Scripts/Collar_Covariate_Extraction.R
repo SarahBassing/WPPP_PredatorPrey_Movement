@@ -541,6 +541,15 @@
   wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
   
   ats_telem_data <- lapply(ats_telem_covs, remove_smr_covs)
+  
+  #'  Revert hour_fix and hour3 back to original fix interval since all locations
+  #'  are on the same fix schedule
+  fix_hour <- function(telem) {
+    telem <- telem %>%
+      mutate(hour_fix = hour,
+             hour3 = hour)
+  }
+  ats_telem_data <- lapply(ats_telem_data, fix_hour)
 
   
   #' #'  Reorder NDVI lists to match species, season, & study area-specific covariate
