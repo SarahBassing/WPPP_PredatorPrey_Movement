@@ -30,7 +30,7 @@
   load("./Outputs/Telemetry_covs/spp_telem_covs_2022-05-23.RData")  #2022-03-16 unweighted RSFs
   
   load("./Outputs/Telemetry_crwOut/crwOut_ATS_wtr.RData")
-  load("./Outputs/Telemetry_covs/ats_telem_covs_2023-03-31.RData")
+  load("./Outputs/Telemetry_covs/ats_telem_covs_2023-04-03.RData")
   
   
   #'  Merge datasets and create momentuHMMData object
@@ -91,8 +91,9 @@
   ats_2hr <- spp_dataPrep_OK(crwOut_ATS_wtr[[4]], ats_covs[[4]])
   ats_4hr <- spp_dataPrep_OK(crwOut_ATS_wtr[[5]], ats_covs[[5]])
   
-  ats_hmm_data <- list(ats_full, ats_30m, ats_1hr, ats_2hr, ats_4hr)   ########### SOMETHING'S WRONG HERE - go back to collar_movement_dataprep b/c should be different lengths and fix schedules
+  ats_hmm_data <- list(ats_full, ats_30m, ats_1hr, ats_2hr, ats_4hr)   
   names(ats_hmm_data) <- c("atsData_full", "atsData_30m", "atsData_1hr", "atsData_2hr", "atsData_4hr")
+  save(ats_hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ATS_wCovs_", Sys.Date(), ".RData"))
   
   
   #'  NORTHEAST data sets
@@ -174,6 +175,9 @@
   #'                 "coyData_smr_OK", "coyData_wtr_OK", "coyData_smr_NE", "coyData_wtr_NE")
   #' save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_for_pub_", Sys.Date(), ".RData"))
   
+  load("./Outputs/Telemetry_crwOut/crwOut_ATS_wCovs_2023-04-03.RData")
+  names(ats_hmm_data) <- c("atsData_full", "atsData_30m", "atsData_1hr", "atsData_2hr", "atsData_4hr")
+  
   #'  Correlation Matrix
   #'  ==================
   #'  Function to create correlation matrix for all continuous covariates at once
@@ -254,8 +258,11 @@
   #' plot(coyData_smr_NE)  #500, 2000, 500, 2000 -- old values
   
   
-  mean(ats_hmm_data[[1]]$step, na.rm = T); sd(ats_hmm_data[[1]]$step, na.rm = T)
-  mean(ats_hmm_data[[5]]$step, na.rm = T); sd(ats_hmm_data[[5]]$step, na.rm = T)
+  mean(ats_hmm_data[[1]]$step, na.rm = T); sd(ats_hmm_data[[1]]$step, na.rm = T) # 36, 77
+  mean(ats_hmm_data[[2]]$step, na.rm = T); sd(ats_hmm_data[[2]]$step, na.rm = T) # 83, 181
+  mean(ats_hmm_data[[3]]$step, na.rm = T); sd(ats_hmm_data[[3]]$step, na.rm = T) # 146, 302
+  mean(ats_hmm_data[[4]]$step, na.rm = T); sd(ats_hmm_data[[4]]$step, na.rm = T) # 260, 478
+  mean(ats_hmm_data[[5]]$step, na.rm = T); sd(ats_hmm_data[[5]]$step, na.rm = T) # 454, 714
   
   
   
@@ -283,6 +290,12 @@
   acf(coyData_wtr_OK$step[!is.na(coyData_wtr_OK$step)],lag.max=100)
   acf(coyData_smr_NE$step[!is.na(coyData_smr_NE$step)],lag.max=100)
   acf(coyData_wtr_NE$step[!is.na(coyData_wtr_NE$step)],lag.max=100)
+  
+  acf(ats_hmm_data[[1]]$step[!is.na(ats_hmm_data[[1]]$step)],lag.max=100)
+  acf(ats_hmm_data[[2]]$step[!is.na(ats_hmm_data[[2]]$step)],lag.max=100)
+  acf(ats_hmm_data[[3]]$step[!is.na(ats_hmm_data[[3]]$step)],lag.max=100)
+  acf(ats_hmm_data[[4]]$step[!is.na(ats_hmm_data[[4]]$step)],lag.max=100)
+  acf(ats_hmm_data[[5]]$step[!is.na(ats_hmm_data[[5]]$step)],lag.max=100)
   
   
   #'  What's up with the ACF? Plot step lengths against hour to look for patterns
@@ -362,6 +375,13 @@
   #'  Include zero-mass parameters when there are 0s in the data w/gamma, Weibull, 
   #'  etc. distributions, e.g., zeromass0 <- c(0.1,0.05) # step zero-mass
   #'  Applies to mule deer, elk, white-tailed deer, and cougars
+  
+  Par0_m1_ats_full <- list(step = c(30, 75, 30, 75, 0.01, 0.005), angle = c(0.1, 0.5))
+  Par0_m1_ats_30m <- list(step = c(80, 200, 80, 200, 0.01, 0.005), angle = c(0.1, 0.5))
+  Par0_m1_ats_1hr <- list(step = c(100, 300, 100, 300, 0.01, 0.005), angle = c(0.1, 0.5))
+  Par0_m1_ats_2hr <- list(step = c(100, 500, 100, 500, 0.01, 0.005), angle = c(0.1, 0.5))
+  Par0_m1_ats_4hr <- list(step = c(100, 650, 100, 650, 0.01, 0.005), angle = c(0.1, 0.5))
+  
   
   #'  Label states
   stateNames <- c("encamped", "exploratory")
@@ -974,6 +994,59 @@
   save(spp_HMM_output, file = paste0("./Outputs/HMM_output/spp_HMM_output_", Sys.Date(), ".RData"))
   
 
+  
+  ####  ATS COUGAR WINTER HMMS  ####
+  #'  10-min fix intervals
+  ats_HMM_full <- HMM_fit(ats_hmm_data[[1]], dists_vm, Par0_m1_ats_full, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  QQplot of residuals
+  plotPR(ats_HMM_full, lag.max = 100, ncores = 4)
+  #'  Does temporal autocorrelation look any better?
+  pr_ats_HMM_full <- pseudoRes(ats_HMM_full)
+  acf(pr_ats_HMM_full$stepRes[!is.na(pr_ats_HMM_full$stepRes)],lag.max = 100)
+  #'  Review parameter estimates
+  plot(ats_HMM_full, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
+  
+  #'  30-min fix interval
+  ats_HMM_30m <- HMM_fit(ats_hmm_data[[2]], dists_vm, Par0_m1_ats_30m, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  QQplot of residuals
+  plotPR(ats_HMM_30m, lag.max = 100, ncores = 4)
+  #'  Does temporal autocorrelation look any better?
+  pr_ats_HMM_30m <- pseudoRes(ats_HMM_30m)
+  acf(pr_ats_HMM_30m$stepRes[!is.na(pr_ats_HMM_30m$stepRes)],lag.max = 100)
+  #'  Review parameter estimates
+  plot(ats_HMM_30m, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
+  
+  #'  1-hr fix interval
+  ats_HMM_1hr <- HMM_fit(ats_hmm_data[[3]], dists_vm, Par0_m1_ats_1hr, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  QQplot of residuals
+  plotPR(ats_HMM_1hr, lag.max = 100, ncores = 4)
+  #'  Does temporal autocorrelation look any better?
+  pr_ats_HMM_1hr <- pseudoRes(ats_HMM_1hr)
+  acf(pr_ats_HMM_1hr$stepRes[!is.na(pr_ats_HMM_1hr$stepRes)],lag.max = 100)
+  #'  Review parameter estimates
+  plot(ats_HMM_1hr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
+  
+  #'  2-hr fix interval
+  ats_HMM_2hr <- HMM_fit(ats_hmm_data[[4]], dists_vm, Par0_m1_ats_2hr, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  QQplot of residuals
+  plotPR(ats_HMM_2hr, lag.max = 100, ncores = 4)
+  #'  Does temporal autocorrelation look any better?
+  pr_ats_HMM_2hr <- pseudoRes(ats_HMM_2hr)
+  acf(pr_ats_HMM_2hr$stepRes[!is.na(pr_ats_HMM_2hr$stepRes)],lag.max = 100)
+  #'  Review parameter estimates
+  plot(ats_HMM_2hr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
+  
+  #'  4-hr fix interval
+  ats_HMM_4hr <- HMM_fit(ats_hmm_data[[5]], dists_vm, Par0_m1_ats_4hr, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  QQplot of residuals
+  plotPR(ats_HMM_4hr, lag.max = 100, ncores = 4)
+  #'  Does temporal autocorrelation look any better?
+  pr_ats_HMM_4hr <- pseudoRes(ats_HMM_4hr)
+  acf(pr_ats_HMM_4hr$stepRes[!is.na(pr_ats_HMM_4hr$stepRes)],lag.max = 100)
+  #'  Review parameter estimates
+  plot(ats_HMM_4hr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
+  
+  
   ####  Summarize Results  ####
   load("./Outputs/HMM_output/spp_HMM_output_2022-06-15.RData") #2022-05-27
   
