@@ -408,7 +408,7 @@
   #'   -fixPar contain all parameter values to be held fixed, if not specified 
   #'    then none are fixed
   #'   -estimated parameters: sigma & beta intercepts... what are these?!
-  crwWrp <- function(track) {
+  crwWrp <- function(track, fixinterval) {
     #'  Vector numbering unique tracks
     tracks <- 1:length(unique(track$ID))
     #'  Create list of crawlWrap arguments for each track
@@ -421,36 +421,42 @@
     #'  Interpolate missing locations within each track
     crwOut <- crawlWrap(obsData = track[which(track$ID %in% unique(track$ID)[tracks]),], 
                         theta = theta, fixPar = fixPar, attempts = 100, 
-                        Time.name = "time", timeStep = "4 hours", coord = c("x", "y"))
+                        Time.name = "time", timeStep = fixinterval, coord = c("x", "y")) #timeStep = "4 hours"
     
     # return(crwOUT) # LOOK INTO RUNNING THIS IN PARALLEL
   }
   #'  Interpolate missing locations for each species
   #'  KEPP TRACK OF LIST ORDER HERE!!! Predators are ordered by study area then season
-  crwOut_MD_smr <- crwWrp(spp_all_tracks[[1]]) #MD_smr_track
-  crwOut_MD_wtr <- crwWrp(spp_all_tracks[[2]]) #MD_wtr_track
-  crwOut_ELK_smr <- crwWrp(spp_all_tracks[[3]]) #ELK_smr_track
-  crwOut_ELK_wtr <- crwWrp(spp_all_tracks[[4]]) #ELK_wtr_track
-  crwOut_WTD_smr <- crwWrp(spp_all_tracks[[5]]) #WTD_smr_track
-  crwOut_WTD_wtr <- crwWrp(spp_all_tracks[[6]]) #WTD_wtr_track
-  crwOut_COUG_smr_OK <- crwWrp(spp_all_tracks[[7]]) #COUG_smr_track_OK
-  crwOut_COUG_wtr_OK <- crwWrp(spp_all_tracks[[8]]) # COUG_wtr_track_OK
-  crwOut_COUG_smr_NE <- crwWrp(spp_all_tracks[[9]]) #COUG_smr_track_NE
-  crwOut_COUG_wtr_NE <- crwWrp(spp_all_tracks[[10]]) # COUG_wtr_track_NE
-  crwOut_WOLF_smr_OK <- crwWrp(spp_all_tracks[[11]]) #WOLF_smr_track_OK
-  crwOut_WOLF_wtr_OK <- crwWrp(spp_all_tracks[[12]]) #WOLF_wtr_track_OK
-  crwOut_WOLF_smr_NE <- crwWrp(spp_all_tracks[[13]]) #WOLF_smr_track_NE
-  crwOut_WOLF_wtr_NE <- crwWrp(spp_all_tracks[[14]]) #WOLF_wtr_track_NE
-  crwOut_BOB_smr_OK <- crwWrp(spp_all_tracks[[15]]) #BOB_smr_track_OK
-  crwOut_BOB_wtr_OK <- crwWrp(spp_all_tracks[[16]]) #BOB_wtr_track_OK
-  crwOut_BOB_smr_NE <- crwWrp(spp_all_tracks[[17]]) #BOB_smr_track_NE
-  crwOut_BOB_wtr_NE <- crwWrp(spp_all_tracks[[18]]) #BOB_wtr_track_NE
-  crwOut_COY_smr_OK <- crwWrp(spp_all_tracks[[19]]) #COY_smr_track_OK
-  crwOut_COY_wtr_OK <- crwWrp(spp_all_tracks[[20]]) #COY_wtr_track_OK
-  crwOut_COY_smr_NE <- crwWrp(spp_all_tracks[[21]]) #COY_smr_track_NE
-  crwOut_COY_wtr_NE <- crwWrp(spp_all_tracks[[22]]) #COY_wtr_track_NE
+  crwOut_MD_smr <- crwWrp(spp_all_tracks[[1]], fixinterval = "4 hours") #MD_smr_track
+  crwOut_MD_wtr <- crwWrp(spp_all_tracks[[2]], fixinterval = "4 hours") #MD_wtr_track
+  crwOut_ELK_smr <- crwWrp(spp_all_tracks[[3]], fixinterval = "4 hours") #ELK_smr_track
+  crwOut_ELK_wtr <- crwWrp(spp_all_tracks[[4]], fixinterval = "4 hours") #ELK_wtr_track
+  crwOut_WTD_smr <- crwWrp(spp_all_tracks[[5]], fixinterval = "4 hours") #WTD_smr_track
+  crwOut_WTD_wtr <- crwWrp(spp_all_tracks[[6]], fixinterval = "4 hours") #WTD_wtr_track
+  crwOut_COUG_smr_OK <- crwWrp(spp_all_tracks[[7]], fixinterval = "4 hours") #COUG_smr_track_OK
+  crwOut_COUG_wtr_OK <- crwWrp(spp_all_tracks[[8]], fixinterval = "4 hours") # COUG_wtr_track_OK
+  crwOut_COUG_smr_NE <- crwWrp(spp_all_tracks[[9]], fixinterval = "4 hours") #COUG_smr_track_NE
+  crwOut_COUG_wtr_NE <- crwWrp(spp_all_tracks[[10]], fixinterval = "4 hours") # COUG_wtr_track_NE
+  crwOut_WOLF_smr_OK <- crwWrp(spp_all_tracks[[11]], fixinterval = "4 hours") #WOLF_smr_track_OK
+  crwOut_WOLF_wtr_OK <- crwWrp(spp_all_tracks[[12]], fixinterval = "4 hours") #WOLF_wtr_track_OK
+  crwOut_WOLF_smr_NE <- crwWrp(spp_all_tracks[[13]], fixinterval = "4 hours") #WOLF_smr_track_NE
+  crwOut_WOLF_wtr_NE <- crwWrp(spp_all_tracks[[14]], fixinterval = "4 hours") #WOLF_wtr_track_NE
+  crwOut_BOB_smr_OK <- crwWrp(spp_all_tracks[[15]], fixinterval = "4 hours") #BOB_smr_track_OK
+  crwOut_BOB_wtr_OK <- crwWrp(spp_all_tracks[[16]], fixinterval = "4 hours") #BOB_wtr_track_OK
+  crwOut_BOB_smr_NE <- crwWrp(spp_all_tracks[[17]], fixinterval = "4 hours") #BOB_smr_track_NE
+  crwOut_BOB_wtr_NE <- crwWrp(spp_all_tracks[[18]], fixinterval = "4 hours") #BOB_wtr_track_NE
+  crwOut_COY_smr_OK <- crwWrp(spp_all_tracks[[19]], fixinterval = "4 hours") #COY_smr_track_OK
+  crwOut_COY_wtr_OK <- crwWrp(spp_all_tracks[[20]], fixinterval = "4 hours") #COY_wtr_track_OK
+  crwOut_COY_smr_NE <- crwWrp(spp_all_tracks[[21]], fixinterval = "4 hours") #COY_smr_track_NE
+  crwOut_COY_wtr_NE <- crwWrp(spp_all_tracks[[22]], fixinterval = "4 hours") #COY_wtr_track_NE
   
-  crwOut_ATS_wtr <- lapply(ATS_tracks, crwWrp)
+  crwOut_ATS_full <- crwWrp(ATS_tracks[[1]], fixinterval = "10 min")
+  crwOut_ATS_30m <- crwWrp(ATS_tracks[[2]], fixinterval = "30 min")
+  crwOut_ATS_1hr <- crwWrp(ATS_tracks[[3]], fixinterval = "1 hours")
+  crwOut_ATS_2hr <- crwWrp(ATS_tracks[[4]], fixinterval = "2 hours")
+  crwOut_ATS_4hr <- crwWrp(ATS_tracks[[5]], fixinterval = "4 hours")
+  
+  crwOut_ATS_wtr <- list(crwOut_ATS_full, crwOut_ATS_30m, crwOut_ATS_1hr, crwOut_ATS_2hr, crwOut_ATS_4hr)
   
   #'  View interpolated data and new data (step length and turning angle)
   md_move_smr <- crwOut_MD_smr[[2]]
