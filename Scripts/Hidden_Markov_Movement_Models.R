@@ -1046,6 +1046,9 @@
   #'  Review parameter estimates
   plot(ats_HMM_4hr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
+  ats_HMM_output <- list(ats_HMM_full, ats_HMM_30m, ats_HMM_1hr, ats_HMM_2hr, ats_HMM_4hr)
+  save(ats_HMM_output, file = paste0("./Outputs/HMM_output/ats_HMM_output_", Sys.Date(), ".RData"))
+  
   
   ####  Summarize Results  ####
   load("./Outputs/HMM_output/spp_HMM_output_2022-06-15.RData") #2022-05-27
