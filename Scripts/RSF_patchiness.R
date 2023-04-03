@@ -94,9 +94,9 @@
     length_patch_size_m <- c(hi_avg_length, med_avg_length, low_avg_length, patch_length)
     patch_value <- c("High selection", "Medium selection", "Low selection", "All patches")
     patch_size_m <- cbind(patch_value, mean_patch_size_m, sd_patch_size_m, length_patch_size_m)
-    names(patch_size_km) <- c("patch value", "mean_patch_area_m", "sd_area", "length_m")
+    names(patch_size_m) <- c("patch value", "mean_patch_area_m", "sd_area", "length_m")
 
-    return(patch_size_km)
+    return(patch_size_m)
     
   }
   coug_smr_patch_size <- patch_size(coug_smr_rsf[[1]])
