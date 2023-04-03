@@ -444,6 +444,8 @@
   trans_formula_smr_NE <- ~TRI + PercOpen + Dist2Road + ELK_RSF + WTD_RSF 
   trans_formula_wtr_NE <- ~TRI + PercOpen + Dist2Road + SnowCover + ELK_RSF + WTD_RSF 
   
+  trans_formula_wtr_OK_noMDnoSnow <- ~TRI + PercOpen + Dist2Road
+  
   
   
   
@@ -996,8 +998,8 @@
 
   
   ####  ATS COUGAR WINTER HMMS  ####
-  #'  10-min fix intervals
-  ats_HMM_full <- HMM_fit(ats_hmm_data[[1]], dists_vm, Par0_m1_ats_full, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  10-min fix intervals - note no snow covariate owing to no snow = 0 observations in data set
+  ats_HMM_full <- HMM_fit(ats_hmm_data[[1]], dists_vm, Par0_m1_ats_full, DM_Zerotime, trans_formula_wtr_OK_noMDnoSnow, fits = 1)
   #'  QQplot of residuals
   plotPR(ats_HMM_full, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -1006,8 +1008,8 @@
   #'  Review parameter estimates
   plot(ats_HMM_full, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
-  #'  30-min fix interval
-  ats_HMM_30m <- HMM_fit(ats_hmm_data[[2]], dists_vm, Par0_m1_ats_30m, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  30-min fix interval - note no snow covariate owing to no snow = 0 observations in data set
+  ats_HMM_30m <- HMM_fit(ats_hmm_data[[2]], dists_vm, Par0_m1_ats_30m, DM_Zerotime, trans_formula_wtr_OK_noMDnoSnow, fits = 1)
   #'  QQplot of residuals
   plotPR(ats_HMM_30m, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -1016,8 +1018,8 @@
   #'  Review parameter estimates
   plot(ats_HMM_30m, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
-  #'  1-hr fix interval
-  ats_HMM_1hr <- HMM_fit(ats_hmm_data[[3]], dists_vm, Par0_m1_ats_1hr, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  1-hr fix interval - note no snow covariate owing to no snow = 0 observations in data set
+  ats_HMM_1hr <- HMM_fit(ats_hmm_data[[3]], dists_vm, Par0_m1_ats_1hr, DM_Zerotime, trans_formula_wtr_OK_noMDnoSnow, fits = 1)
   #'  QQplot of residuals
   plotPR(ats_HMM_1hr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -1026,8 +1028,8 @@
   #'  Review parameter estimates
   plot(ats_HMM_1hr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
-  #'  2-hr fix interval
-  ats_HMM_2hr <- HMM_fit(ats_hmm_data[[4]], dists_vm, Par0_m1_ats_2hr, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  2-hr fix interval - note no snow covariate owing to no snow = 0 observations in data set
+  ats_HMM_2hr <- HMM_fit(ats_hmm_data[[4]], dists_vm, Par0_m1_ats_2hr, DM_Zerotime, trans_formula_wtr_OK_noMDnoSnow, fits = 1)
   #'  QQplot of residuals
   plotPR(ats_HMM_2hr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -1036,8 +1038,8 @@
   #'  Review parameter estimates
   plot(ats_HMM_2hr, ask = TRUE, animals = 1, breaks = 20, plotCI = TRUE)
   
-  #'  4-hr fix interval
-  ats_HMM_4hr <- HMM_fit(ats_hmm_data[[5]], dists_vm, Par0_m1_ats_4hr, DM_Zerotime, trans_formula_wtr_OK_noMD, fits = 1)
+  #'  4-hr fix interval - note no snow covariate owing to no snow = 0 observations in data set
+  ats_HMM_4hr <- HMM_fit(ats_hmm_data[[5]], dists_vm, Par0_m1_ats_4hr, DM_Zerotime, trans_formula_wtr_OK_noMDnoSnow, fits = 1)
   #'  QQplot of residuals
   plotPR(ats_HMM_4hr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -1052,6 +1054,7 @@
   
   ####  Summarize Results  ####
   load("./Outputs/HMM_output/spp_HMM_output_2022-06-15.RData") #2022-05-27
+  load("./Outputs/HMM_output/ats_HMM_output_2023-04-03.RData")
   
 
   #'  Review model output
@@ -1078,6 +1081,12 @@
   print(spp_HMM_output[[18]]) # coy_HMM_wtr_OK
   print(spp_HMM_output[[19]]) # coy_HMM_smr_NE
   print(spp_HMM_output[[20]]) # coy_HMM_wtr_NE
+  
+  print(ats_HMM_output[[1]]) # 10-min interval
+  print(ats_HMM_output[[2]]) # 30-min interval
+  print(ats_HMM_output[[3]]) # 1-hr interval
+  print(ats_HMM_output[[4]]) # 2-hr interval
+  print(ats_HMM_output[[5]]) # 4-hr interval
   
   
   ####  State-Dependent Distributions  ####
@@ -1145,6 +1154,12 @@
   coug_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[10]], spp = "Cougar", season = "Winter", area = "Northeast")
   #' #' And NE winter bobcat- note the list order is a little wonky starting here
   #' bob_wtr_params_NE <- step_turn_parms_zmass(spp_HMM_output[[16]], spp = "Bobcat", season = "Winter", area = "Northeast")
+  
+  ats_full_params <- step_turn_parms_zmass(ats_HMM_output[[1]], spp = "Cougar ATS 10min", season = "Winter", area = "Okanogan")
+  ats_30m_params <- step_turn_parms_zmass(ats_HMM_output[[2]], spp = "Cougar ATS 30min", season = "Winter", area = "Okanogan")
+  ats_1hr_params <- step_turn_parms_zmass(ats_HMM_output[[3]], spp = "Cougar ATS 1hr", season = "Winter", area = "Okanogan")
+  ats_2hr_params <- step_turn_parms_zmass(ats_HMM_output[[4]], spp = "Cougar ATS 2hr", season = "Winter", area = "Okanogan")
+  ats_4hr_params <- step_turn_parms_zmass(ats_HMM_output[[5]], spp = "Cougar ATS 4hr", season = "Winter", area = "Okanogan")
   
   
   #'  Function to report state-dependent distribution parameters, excluding zero-mass parameters
@@ -1249,6 +1264,20 @@
   
   # write.csv(all_steps, paste0("./Outputs/HMM_output/HMM_Results_StepLength_", Sys.Date(), ".csv"))
   # write.csv(all_turns, paste0("./Outputs/HMM_output/HMM_Results_TurningAngle_", Sys.Date(), ".csv"))
+  
+  ats_steps <- bind_rows(ats_full_params[[1]], ats_30m_params[[1]], ats_1hr_params[[1]], 
+                         ats_2hr_params[[1]], ats_4hr_params[[1]]) %>%
+    mutate(Mean = round(Mean, 2),
+           SD = round(SD, 2),
+           Zeromass = round(Zeromass, 2)) %>%
+    arrange(Species)
+  ats_turns <- bind_rows(ats_full_params[[2]], ats_30m_params[[2]], ats_1hr_params[[2]], 
+                         ats_2hr_params[[2]], ats_4hr_params[[2]]) %>%
+    mutate(Encamped = round(Encamped, 2),
+           Exploratory = round(Exploratory, 2)) %>%
+    arrange(Species)
+  # write.csv(ats_steps, paste0("./Outputs/HMM_output/HMM_Results_StepLength_ATS_", Sys.Date(), ".csv"))
+  # write.csv(ats_turns, paste0("./Outputs/HMM_output/HMM_Results_TurningAngle_ATS_", Sys.Date(), ".csv"))
   
   
   
@@ -1386,6 +1415,33 @@
   write.csv(results_hmm_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_long", Sys.Date(), ".csv"))
   
   
+  ats_full_hmm <- hmm_out(ats_HMM_output[[1]], "Cougar ATS 10min", "Winter", "Okanogan")
+  ats_30m_hmm <- hmm_out(ats_HMM_output[[2]], "Cougar ATS 30min", "Winter", "Okanogan")
+  ats_1hr_hmm <- hmm_out(ats_HMM_output[[3]], "Cougar ATS 1hr", "Winter", "Okanogan")
+  ats_2hr_hmm <- hmm_out(ats_HMM_output[[4]], "Cougar ATS 2hr", "Winter", "Okanogan")
+  ats_4hr_hmm <- hmm_out(ats_HMM_output[[5]], "Cougar ATS 4hr", "Winter", "Okanogan")
+  
+  results_hmm_TransPr_ats <- rbind(ats_full_hmm, ats_30m_hmm, ats_1hr_hmm, 
+                                   ats_2hr_hmm, ats_4hr_hmm) %>%
+    unite(CI95, Lower, Upper, sep = ", ") %>%
+    mutate(
+      Parameter = ifelse(Parameter == "(Intercept)", "Intercept", Parameter),
+      Parameter = ifelse(Parameter == "TRI", "Terrain Ruggedness", Parameter),
+      Parameter = ifelse(Parameter == "PercOpen", "Percent Open", Parameter),
+      Parameter = ifelse(Parameter == "Dist2Road", "Nearest Road", Parameter),
+      Parameter = ifelse(Parameter == "SnowCover1", "Snow Cover (Y)", Parameter),
+      Parameter = ifelse(Parameter == "MD_RSF", "Pr(Mule Deer)", Parameter),
+      Parameter = ifelse(Parameter == "ELK_RSF", "Pr(Elk)", Parameter),
+      Parameter = ifelse(Parameter == "WTD_RSF", "Pr(White-tailed Deer)", Parameter)
+    )
+  colnames(results_hmm_TransPr_ats) <- c("Species", "Season", "Study Area", 
+                                          "Transition", "Parameter", "Estimate",
+                                          "SE", "CI95")
+  
+  write.csv(results_hmm_TransPr_ats, paste0("./Outputs/HMM_output/HMM_Results_TransPr_ATS_long", Sys.Date(), ".csv"))
+
+  
+  
   #'  Spread results so the coefficient effects are easier to compare between 
   #'  transition probabilities and across species
   #'  Prey HMM results
@@ -1443,6 +1499,24 @@
     ungroup()
   
   write.csv(results_hmm_wide_TransPr_pred, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_wide", Sys.Date(), ".csv"))
+  
+  
+  results_hmm_wide_TransPr_ats <- results_hmm_TransPr_ats %>% 
+    mutate(
+      SE = paste0("(", SE, ")"),
+    ) %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(Est_SE_CI, Est_SE, CI95, sep = "_") %>%
+    spread(Parameter, Est_SE_CI) %>%
+    separate("Intercept", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
+    separate("Terrain Ruggedness", c("Terrain Ruggedness (SE)", "Terrain Ruggedness 95% CI"), sep = "_") %>%
+    separate("Percent Open", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
+    separate("Nearest Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
+    group_by(Species) %>%
+    arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
+    ungroup()
+  
+  write.csv(results_hmm_wide_TransPr_ats, paste0("./Outputs/HMM_output/HMM_Results_TransPr_ATS_wide", Sys.Date(), ".csv"))
   
   
   ####  Back-transformed Results  ####
@@ -1618,6 +1692,35 @@
   write.csv(all_TransPr_backtrans, paste0("./Outputs/HMM_output/HMM_Results_TransPr_BackTrans_", Sys.Date(), ".csv"))
   
   
+  #'  ATS results
+  ats_full_backtrans <- backtrans_params(ats_HMM_output[[1]], spp = "Cougar ATS 10min", season = "Winter", area = "Okanogan")
+  ats_30m_backtrans <- backtrans_params(ats_HMM_output[[2]], spp = "Cougar ATS 30min", season = "Winter", area = "Okanogan")
+  ats_1hr_backtrans <- backtrans_params(ats_HMM_output[[3]], spp = "Cougar ATS 1hr", season = "Winter", area = "Okanogan")
+  ats_2hr_backtrans <- backtrans_params(ats_HMM_output[[4]], spp = "Cougar ATS 2hr", season = "Winter", area = "Okanogan")
+  ats_3hr_backtrans <- backtrans_params(ats_HMM_output[[5]], spp = "Cougar ATS 4hr", season = "Winter", area = "Okanogan")
+  
+  ats_steps_backtrans <- bind_rows(ats_full_backtrans[[1]], ats_30m_backtrans[[1]], 
+                                   ats_1hr_backtrans[[1]], ats_2hr_backtrans[[1]], 
+                                   ats_3hr_backtrans[[1]]) %>%
+    pivot_wider(names_from = "State", values_from = c("Mean", "95%CI")) %>%
+    relocate('95%CI_Encamped', .after = "Mean_Encamped")
+  colnames(ats_steps_backtrans) <- c("Species", "Study Area", "Season", "Mean Encamped", "95% CI Encamped", "Mean Exploratory", "95% CI Exploratory")
+  
+  ats_turns_backtrans <- bind_rows(ats_full_backtrans[[2]], ats_30m_backtrans[[2]], 
+                                   ats_1hr_backtrans[[2]], ats_2hr_backtrans[[2]], 
+                                   ats_3hr_backtrans[[2]]) 
+  colnames(ats_turns_backtrans) <- c("Species", "Study Area", "Season", "Parameter", "Encamped", "Exploratory")  
+  
+  ats_TransPr_backtrans <- bind_rows(ats_full_backtrans[[3]], ats_30m_backtrans[[3]], 
+                                     ats_1hr_backtrans[[3]], ats_2hr_backtrans[[3]], 
+                                     ats_3hr_backtrans[[3]]) 
+  
+  write.csv(ats_steps_backtrans, paste0("./Outputs/HMM_output/HMM_Results_StepLength_BackTrans_ATS_", Sys.Date(), ".csv"))
+  write.csv(ats_turns_backtrans, paste0("./Outputs/HMM_output/HMM_Results_TurningAngle_BackTrans_ATS_", Sys.Date(), ".csv"))
+  write.csv(ats_TransPr_backtrans, paste0("./Outputs/HMM_output/HMM_Results_TransPr_BackTrans_ATS_", Sys.Date(), ".csv"))
+  
+  
+  
   ####  Plot Stationary-State Probabilities  ####
   #'  Functions to extract stationary state probabilities & plot predicted responses
   stay_probs_prey <- function(hmmm) {
@@ -1701,6 +1804,26 @@
   stay_bob_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[16]])
   stay_coy_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[19]])
   stay_coy_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[20]])
+  
+  
+  stay_probs_pred_ats <- function(hmmm) {
+    stay_pr <- stationary(hmmm)
+    stay_pr <- stay_pr[[1]]
+    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0, TRI = 0)) 
+    print(stay_mu0) 
+    #'  Plot stationary state probabilities and extract predicted estimates
+    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0, TRI = 0),  
+                          col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE) 
+    stationary_probs <- list(stay_pr, fig)
+    
+    return(stationary_probs)
+  }
+  stay_ats_full <- stay_probs_pred_ats(ats_HMM_output[[1]])
+  stay_ats_30m <- stay_probs_pred_ats(ats_HMM_output[[2]])
+  stay_ats_1hr <- stay_probs_pred_ats(ats_HMM_output[[3]])
+  stay_ats_2hr <- stay_probs_pred_ats(ats_HMM_output[[4]])
+  stay_ats_4hr <- stay_probs_pred_ats(ats_HMM_output[[5]])
+  
   
   
   ####  Prettier Plots for Stationary State Probabilities  ####
@@ -1793,6 +1916,13 @@
   coy_wtr_OK_fig <- stay_plots(stay_coy_wtr_OK, season = "Winter", spp = "Coyote", area = "Okanogan")
   coy_smr_NE_fig <- stay_plots(stay_coy_smr_NE, season = "Summer", spp = "Coyote", area = "Northeast")
   coy_wtr_NE_fig <- stay_plots(stay_coy_wtr_NE, season = "Winter", spp = "Coyote", area = "Northeast")
+  
+  
+  ats_full_fig <- stay_plots(stay_ats_full, season = "Winter", spp = "Cougar ATS 10-min", area = "Okanogan")
+  ats_30m_fig <- stay_plots(stay_ats_30m, season = "Winter", spp = "Cougar ATS 30-min", area = "Okanogan")
+  ats_1hr_fig <- stay_plots(stay_ats_1hr, season = "Winter", spp = "Cougar ATS 1-hr", area = "Okanogan")
+  ats_2hr_fig <- stay_plots(stay_ats_2hr, season = "Winter", spp = "Cougar ATS 2-hr", area = "Okanogan")
+  ats_4hr_fig <- stay_plots(stay_ats_4hr, season = "Winter", spp = "Cougar ATS 4-hr", area = "Okanogan")
   
   
   #'  Patchwork figures together in panels
@@ -1981,6 +2111,50 @@
   dev.off()
   png(file="./Outputs/Figures for ms/ELK_wtr_WOLF.png", width = 700, height = 500)
   (elk_wtr_wolf <- elk_wtr_fig[[6]] + plot_annotation(title = 'Winter Elk Stationary State Probabilities', subtitle = '     Northeast 2018 - 2021'))
+  dev.off()
+  
+  
+  length(ats_full_fig)
+  (ats_full_patch <- ats_full_fig[[1]] + ats_full_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + ats_full_fig[[3]] + 
+      theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = '     ATS 10-min interval'))
+  length(ats_30m_fig)
+  (ats_30m_patch <- ats_30m_fig[[1]] + ats_30m_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + ats_30m_fig[[3]] + 
+      theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = '     ATS 30-min interval'))
+  length(ats_1hr_fig)
+  (ats_1hr_patch <- ats_1hr_fig[[1]] + ats_1hr_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + ats_1hr_fig[[3]] + 
+      theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = '     ATS 1-hr interval'))
+  length(ats_2hr_fig)
+  (ats_2hr_patch <- ats_2hr_fig[[1]] + ats_2hr_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + ats_2hr_fig[[3]] + 
+      theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = '     ATS 2-hr interval'))
+  length(ats_4hr_fig)
+  (ats_4hr_patch <- ats_4hr_fig[[1]] + ats_4hr_fig[[2]] + 
+      theme(axis.title.y = element_blank()) + ats_4hr_fig[[3]] + 
+      theme(axis.title.y = element_blank()) + 
+      plot_layout(guides = 'collect') + 
+      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = '     ATS 4-hr interval'))
+  
+  (ATS_comparision <- ats_full_patch / ats_30m_patch / ats_1hr_patch / ats_2hr_patch / ats_4hr_patch)
+  
+  png(file="./Outputs/HMM_Output/ATS_fixrate_comparison.png", width = 700, height = 1200)
+  (ATS_comparision <- ats_full_patch / ats_30m_patch / ats_1hr_patch / ats_2hr_patch / ats_4hr_patch
+    + plot_annotation(title = 'Winter OK Cougar Stationary State Probabilities', subtitle = '     ATS collar relcations thinned from 10-min to 30-min, 1-hr, 2-hr, & 4-hr intervals'))
   dev.off()
   
   
