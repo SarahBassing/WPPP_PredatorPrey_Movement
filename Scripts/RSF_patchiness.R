@@ -72,23 +72,30 @@
     # plot(low_patch, main = "low value patches")
     
     #'  Calculate area covered by cells (patch size)
-    hi_area <- cellSize(hi_patch, unit="km") |> zonal(hi_patch, sum)
-    med_area <- cellSize(med_patch, unit="km") |> zonal(med_patch, sum)
-    low_area <- cellSize(low_patch, unit="km") |> zonal(low_patch, sum)
+    hi_area <- cellSize(hi_patch, unit="m") |> zonal(hi_patch, sum)
+    med_area <- cellSize(med_patch, unit="m") |> zonal(med_patch, sum)
+    low_area <- cellSize(low_patch, unit="m") |> zonal(low_patch, sum)
+    
+    # area_list <- list(hi_area, med_area, low_area)
+    # return(area_list)
     
     #'  Calculate mean patch size
-    hi_mean <- mean(hi_area); hi_sd <- sd(hi_area)
-    med_mean <- mean(med_area); med_sd <- sd(med_area)
-    low_mean <- mean(low_area); low_sd <- sd(low_area)
+    hi_mean <- mean(hi_area$area); hi_sd <- sd(hi_area$area); hi_avg_length <- sqrt(hi_mean)
+    med_mean <- mean(med_area$area); med_sd <- sd(med_area$area); med_avg_length <- sqrt(med_mean)
+    low_mean <- mean(low_area$area); low_sd <- sd(low_area$area); low_avg_length <- sqrt(low_mean)
     
+    all_patches <- rbind(hi_area, med_area, low_area)
+    patch_mean <- mean(all_patches$area); patch_sd <- sd(all_patches$area); patch_length <- sqrt(patch_mean)
+
     #'  Save as table
-    mean_patch_size_km <- c(hi_mean, med_mean, low_mean)
-    mean_patch_size_km <- as.data.frame(mean_patch_size_km)
-    sd_patch_size_km <- c(hi_sd, med_sd, low_sd)
-    patch_value <- c("High selection", "Medium selection", "Low selection")
-    patch_size_km <- cbind(patch_value, mean_patch_size_km, sd_patch_size_km)
-    names(patch_size_km) <- c("patch value", "mean_patch_km", "sd")
-    
+    mean_patch_size_m <- c(hi_mean, med_mean, low_mean, patch_mean)
+    mean_patch_size_m <- as.data.frame(mean_patch_size_m)
+    sd_patch_size_m <- c(hi_sd, med_sd, low_sd, patch_sd)
+    length_patch_size_m <- c(hi_avg_length, med_avg_length, low_avg_length, patch_length)
+    patch_value <- c("High selection", "Medium selection", "Low selection", "All patches")
+    patch_size_m <- cbind(patch_value, mean_patch_size_m, sd_patch_size_m, length_patch_size_m)
+    names(patch_size_km) <- c("patch value", "mean_patch_area_m", "sd_area", "length_m")
+
     return(patch_size_km)
     
   }
