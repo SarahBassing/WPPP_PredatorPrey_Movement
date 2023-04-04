@@ -113,15 +113,20 @@
   
   #'  Create result table and save
   smr_patch_size <- rbind(coug_smr_patch_size, wolf_smr_patch_size, elk_smr_patch_size, md_smr_patch_size, wtd_smr_patch_size)
+  Species <- rep(c("Cougar", "Wolf", "Elk", "Mule deer", "White-tailed deer"), times = 1, each = 4)
+  Season <- rep(c("Summer", "Summer", "Summer", "Summer", "Summer"), times = 1, each = 4)
+  smr_patches <- cbind(Species, Season, smr_patch_size)
+  save(smr_patches, file = "./Outputs/RSF_output/smr_patch_size.RData")
+  
   wtr_patch_size <- rbind(coug_wtr_patch_size, wolf_wtr_patch_size, elk_wtr_patch_size, md_wtr_patch_size, wtd_wtr_patch_size)
-  patch_size <- rbind(smr_patch_size, wtr_patch_size)
-  Species <- c("Cougar", "Wolf", "Elk", "Mule deer", "White-tailed deer",
-               "Cougar", "Wolf", "Elk", "Mule deer", "White-tailed deer")
-  Season <- c("Summer", "Summer", "Summer", "Summer", "Summer",
-              "Winter", "Winter", "Winter", "Winter", "Winter")
-  patch_summary_table <- cbind(Species, Season, patch_size)
+  Species <- rep(c("Cougar", "Wolf", "Elk", "Mule deer", "White-tailed deer"), times = 1, each = 4)
+  Season <- rep(c("Winter", "Winter", "Winter", "Winter", "Winter"), times = 1, each = 4)
+  wtr_patches <- cbind(Species, Season, smr_patch_size)
+  save(wtr_patch_size, file = "./Outputs/RSF_output/wtr_patch_size.RData")
+  
+  patch_size <- rbind(smr_patches, wtr_patches)
   write.csv(patch_summary_table, "./Outputs/RSF_output/RSF_patch_size_summary.csv")
   
-  save(smr_patch_size, file = "./Outputs/RSF_output/smr_patch_size.RData")
-  save(wtr_patch_size, file = "./Outputs/RSF_output/wtr_patch_size.RData")
+  
+  
   
