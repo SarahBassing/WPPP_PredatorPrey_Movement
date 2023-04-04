@@ -590,14 +590,24 @@
   #'  Correct study area for wolf data
   #'  No easy way of doing this because ID not associated with WPPP study areas
   #'  Double check lists 9 & 10 are wolf summer & winter data
-  # wolf_avail_covs[[1]]$Area <- "NE"
+  used_covs[[9]] <- mutate(used_covs[[9]],
+                           Area = ifelse(grepl("W61M", ID), "OK", "NE"),  #double check no "W71F" in here
+                           Area = ifelse(grepl("W88M", ID), "OK", Area),
+                           Area = ifelse(grepl("W93M", ID), "OK", Area),
+                           Area = ifelse(grepl("W94M", ID), "OK", Area),
+                           Area = ifelse(grepl("W110M", ID), "OK", Area))
+  used_covs[[10]] <- mutate(used_covs[[10]],
+                           Area = ifelse(grepl("W61M", ID), "OK", "NE"),  
+                           Area = ifelse(grepl("W88M", ID), "OK", Area),
+                           Area = ifelse(grepl("W93M", ID), "OK", Area),
+                           Area = ifelse(grepl("W94M", ID), "OK", Area),
+                           Area = ifelse(grepl("W110M", ID), "OK", Area))
   wolf_avail_covs[[1]] <- mutate(wolf_avail_covs[[1]],
                                 Area = ifelse(grepl("W61M", ID), "OK", "NE"),  #double check no "W71F" in here
                                 Area = ifelse(grepl("W88M", ID), "OK", Area),
                                 Area = ifelse(grepl("W93M", ID), "OK", Area),
                                 Area = ifelse(grepl("W94M", ID), "OK", Area),
                                 Area = ifelse(grepl("W110M", ID), "OK", Area))
-  # wolf_avail_covs[[2]]$Area <- "NE"
   wolf_avail_covs[[2]] <- mutate(wolf_avail_covs[[2]],
                                  Area = ifelse(grepl("W61M", ID), "OK", "NE"),
                                  Area = ifelse(grepl("W88M", ID), "OK", Area),
