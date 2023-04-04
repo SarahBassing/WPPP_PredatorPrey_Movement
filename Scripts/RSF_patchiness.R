@@ -122,4 +122,6 @@
   patch_summary_table <- cbind(Species, Season, patch_size)
   write.csv(patch_summary_table, "./Outputs/RSF_output/RSF_patch_size_summary.csv")
   
+  save(smr_patch_size, file = "./Outputs/RSF_output/smr_patch_size.RData")
+  save(wtr_patch_size, file = "./Outputs/RSF_output/wtr_patch_size.RData")
   
