@@ -604,10 +604,10 @@
   coug_smr_NE_zcovs <- lapply(NE.covs_list, scaling_covs, mu.sd = cougCov_smr_NE_summary)
   coug_wtr_OK_zcovs <- lapply(OK.covs_list_reclass, scaling_covs, mu.sd = cougCov_wtr_OK_summary)
   coug_wtr_NE_zcovs <- lapply(NE.covs_list_reclass, scaling_covs, mu.sd = cougCov_wtr_NE_summary)
-  wolf_smr_OK_zcovs <- lapply(OK.covs_list_wolf_reclass, scaling_covs, mu.sd = wolfCov_smr_OK_summary)
-  wolf_smr_NE_zcovs <- lapply(NE.covs_list_wolf_reclass, scaling_covs, mu.sd = wolfCov_smr_NE_summary)
-  wolf_wtr_OK_zcovs <- lapply(OK.covs_list_wolf_reclass, scaling_covs, mu.sd = wolfCov_wtr_OK_summary)
-  wolf_wtr_NE_zcovs <- lapply(NE.covs_list_wolf_reclass, scaling_covs, mu.sd = wolfCov_wtr_NE_summary)
+  wolf_smr_OK_zcovs <- lapply(OK.covs_list_reclass2, scaling_covs, mu.sd = wolfCov_smr_OK_summary)
+  wolf_smr_NE_zcovs <- lapply(NE.covs_list_reclass, scaling_covs, mu.sd = wolfCov_smr_NE_summary)
+  wolf_wtr_OK_zcovs <- lapply(OK.covs_list_reclass2, scaling_covs, mu.sd = wolfCov_wtr_OK_summary)
+  wolf_wtr_NE_zcovs <- lapply(NE.covs_list_reclass, scaling_covs, mu.sd = wolfCov_wtr_NE_summary)
   # bob_smr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = bobCov_smr_summary)
   # bob_wtr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = bobCov_wtr_summary)
   # coy_smr_zcovs <- lapply(SA.covs_list_reclass, scaling_covs, mu.sd = coyCov_smr_summary)
@@ -615,9 +615,9 @@
 
   #'  Double check it's scaling correctly- using the right mean and SD per dataset
   covs18 <- NE.covs_list_reclass[[1]]
-  tst <- scaling_covs(covs18, mu.sd = elkCov_wtr_summary)
+  tst <- scaling_covs(covs18, mu.sd = cougCov_wtr_NE_summary)
   head(tst)
-  (covs18$Dist2Edge[4] - elkCov_wtr_summary$Dist2Edge[1]) / elkCov_wtr_summary$Dist2Edge[2]
+  (covs18$Dist2Edge[4] - cougCov_wtr_NE_summary$Dist2Edge[1]) / cougCov_wtr_NE_summary$Dist2Edge[2]
   #'  Does this value match what's calculated in tst?
   
   #'  Function to save parameter estimates from each RSF
