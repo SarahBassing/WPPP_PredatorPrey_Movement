@@ -376,13 +376,6 @@
   #'  etc. distributions, e.g., zeromass0 <- c(0.1,0.05) # step zero-mass
   #'  Applies to mule deer, elk, white-tailed deer, and cougars
   
-  Par0_m1_ats_full <- list(step = c(30, 75, 30, 75, 0.01, 0.005), angle = c(0.1, 0.5))
-  Par0_m1_ats_30m <- list(step = c(80, 200, 80, 200, 0.01, 0.005), angle = c(0.1, 0.5))
-  Par0_m1_ats_1hr <- list(step = c(100, 300, 100, 300, 0.01, 0.005), angle = c(0.1, 0.5))
-  Par0_m1_ats_2hr <- list(step = c(100, 500, 100, 500, 0.01, 0.005), angle = c(0.1, 0.5))
-  Par0_m1_ats_4hr <- list(step = c(100, 650, 100, 650, 0.01, 0.005), angle = c(0.1, 0.5))
-  
-  
   #'  Label states
   stateNames <- c("encamped", "exploratory")
   
@@ -430,12 +423,12 @@
   
   #'  Global models
   #'  For prey species
-  trans_formula_smr_all <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF 
-  trans_formula_wtr_all <- ~TRI + PercOpen + Dist2Road + SnowCover + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF 
-  trans_formula_smr_all_noCoy <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF 
-  trans_formula_smr_all_noTRI <- ~PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + BOB_RSF + COY_RSF
-  trans_formula_smr_all_noBob <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF + COY_RSF 
-  trans_formula_wtr_all_noBob <- ~TRI + PercOpen + Dist2Road + SnowCover + COUG_RSF + WOLF_RSF + COY_RSF
+  trans_formula_smr_all <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF #+ BOB_RSF + COY_RSF 
+  trans_formula_wtr_all <- ~TRI + PercOpen + Dist2Road + SnowCover + COUG_RSF + WOLF_RSF #+ BOB_RSF + COY_RSF 
+  trans_formula_smr_all_noCoy <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF #+ BOB_RSF 
+  trans_formula_smr_all_noTRI <- ~PercOpen + Dist2Road + COUG_RSF + WOLF_RSF #+ BOB_RSF + COY_RSF
+  trans_formula_smr_all_noBob <- ~TRI + PercOpen + Dist2Road + COUG_RSF + WOLF_RSF #+ COY_RSF 
+  trans_formula_wtr_all_noBob <- ~TRI + PercOpen + Dist2Road + SnowCover + COUG_RSF + WOLF_RSF #+ COY_RSF
   #'  For predator species
   trans_formula_smr_OK <- ~TRI + PercOpen + Dist2Road + MD_RSF 
   trans_formula_wtr_OK <- ~TRI + PercOpen + Dist2Road + SnowCover + MD_RSF 
@@ -443,9 +436,6 @@
   trans_formula_wtr_OK_noTRI <- ~PercOpen + Dist2Road + SnowCover + MD_RSF
   trans_formula_smr_NE <- ~TRI + PercOpen + Dist2Road + ELK_RSF + WTD_RSF 
   trans_formula_wtr_NE <- ~TRI + PercOpen + Dist2Road + SnowCover + ELK_RSF + WTD_RSF 
-  
-  trans_formula_wtr_OK_noMDnoSnow <- ~TRI + PercOpen + Dist2Road
-  
   
   
   
