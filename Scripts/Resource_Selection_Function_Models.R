@@ -754,7 +754,13 @@
                                 wolf_wtr_NE_rsf_sa, wolf_wtr_NE_rsf_sa)#, 
                                 # bob_smr_rsf_sa, bob_wtr_rsf_sa, 
                                 # coy_smr_rsf_sa, coy_wtr_rsf_sa)
-  save(all_spp_RSF_predicted, file = paste0("./Outputs/RSF_output/all_spp_RSF_predicted_", Sys.Date(), ".RData"))
+  # save(all_spp_RSF_predicted, file = paste0("./Outputs/RSF_output/all_spp_RSF_predicted_", Sys.Date(), ".RData"))
+  
+  coug_wolf_RSF_predicted <- list(coug_smr_OK_rsf_sa, coug_smr_NE_rsf_sa, 
+                                  coug_wtr_OK_rsf_sa, coug_wtr_NE_rsf_sa, 
+                                  wolf_smr_OK_rsf_sa, wolf_smr_NE_rsf_sa, 
+                                  wolf_wtr_NE_rsf_sa, wolf_wtr_NE_rsf_sa)
+  save(coug_wolf_RSF_predicted, file = paste0("./Outputs/RSF_output/coug_wolf_RSF_predicted_", Sys.Date(), ".RData"))
   
   load("./Outputs/RSF_output/all_spp_RSF_predicted_2022-06-14.RData") #all_spp_RSF_predicted_2022-06-14.RData both study areas combined for predator RSFs
   
