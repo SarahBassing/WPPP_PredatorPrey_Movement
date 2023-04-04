@@ -943,6 +943,9 @@
   
   
   #'  Save model results
+  ungulate_HMM_output <- list(md_HMM_smr, md_HMM_wtr, elk_HMM_smr, elk_HMM_wtr, wtd_HMM_smr, wtd_HMM_wtr)
+  save(ungulate_HMM_output, file = paste0("./Outputs/HMM_output/ungulate_HMM_output_", Sys.Date(), ".RData"))
+  
   #'  NOTE THE ORDER IS NOW CHANGED SINCE DROPPING SOME BOBCAT MODELS (No BOB smr NE [[17]])
   spp_HMM_output <- list(md_HMM_smr, md_HMM_wtr, elk_HMM_smr, elk_HMM_wtr, wtd_HMM_smr, 
                          wtd_HMM_wtr, coug_HMM_smr_OK, coug_HMM_wtr_OK, coug_HMM_smr_NE, 
@@ -955,7 +958,21 @@
   
 
   ####  Summarize Results  ####
-  load("./Outputs/HMM_output/spp_HMM_output_2022-06-15.RData") #2022-05-27
+  load("./Outputs/HMM_output/spp_HMM_output_2022-06-15.RData")
+  load("./Outputs/HMM_output/ungulate_HMM_output_2023-04-04.RData")
+  
+  #'  Swap original ungulate models with updated models (2023-04-04: no mesopredators)
+  spp_HMM_output_new <- list(ungulate_HMM_output[[1]], ungulate_HMM_output[[2]], 
+                             ungulate_HMM_output[[3]], ungulate_HMM_output[[4]], 
+                             ungulate_HMM_output[[5]], ungulate_HMM_output[[6]], 
+                             spp_HMM_output[[7]], spp_HMM_output[[8]], 
+                             spp_HMM_output[[9]], spp_HMM_output[[10]], spp_HMM_output[[11]], 
+                             spp_HMM_output[[12]], spp_HMM_output[[13]], spp_HMM_output[[14]],
+                             spp_HMM_output[[15]], spp_HMM_output[[16]], spp_HMM_output[[17]], 
+                             spp_HMM_output[[18]], spp_HMM_output[[19]], spp_HMM_output[[20]])
+                             # spp_HMM_output[[21]], spp_HMM_output[[22]])
+  #'  Rename to keep life simpler
+  spp_HMM_output <- spp_HMM_output_new
   
   #'  Review model output
   print(spp_HMM_output[[1]]) # md_HMM_smr
@@ -1311,8 +1328,8 @@
     separate("Snow Cover (Y)", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
     separate("Pr(Cougar)", c("Pr(Cougar) (SE)", "Pr(Cougar) 95% CI"), sep = "_") %>%
     separate("Pr(Wolf)", c("Pr(Wolf) (SE)", "Pr(Wolf) 95% CI"), sep = "_") %>%
-    separate("Pr(Bobcat)", c("Pr(Bobcat) (SE)", "Pr(Bobcat) 95% CI"), sep = "_") %>%
-    separate("Pr(Coyote)", c("Pr(Coyote) (SE)", "Pr(Coyote) 95% CI"), sep = "_") %>%
+    # separate("Pr(Bobcat)", c("Pr(Bobcat) (SE)", "Pr(Bobcat) 95% CI"), sep = "_") %>%
+    # separate("Pr(Coyote)", c("Pr(Coyote) (SE)", "Pr(Coyote) 95% CI"), sep = "_") %>%
     arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer")))
 
   
@@ -1532,14 +1549,14 @@
     #'  held at their mean value (0 b/c data are centered and scaled)
     stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0, 
                                                    SnowCover = 0, TRI = 0, 
-                                                   COUG_RSF = 0, WOLF_RSF = 0,
-                                                   BOB_RSF = 0, COY_RSF = 0))
+                                                   COUG_RSF = 0, WOLF_RSF = 0))#,
+                                                   #BOB_RSF = 0, COY_RSF = 0))
     print(stay_mu0)
     #'  Plot stationary state probabilities and extract predicted estimates
     fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
                                                   SnowCover = 0, TRI = 0, 
-                                                  COUG_RSF = 0, WOLF_RSF = 0,
-                                                  BOB_RSF = 0, COY_RSF = 0),
+                                                  COUG_RSF = 0, WOLF_RSF = 0),
+                                                  #BOB_RSF = 0, COY_RSF = 0),
                           col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE) 
     stationary_probs <- list(stay_pr, fig)
     
@@ -1705,49 +1722,49 @@
   length(md_smr_fig)
   (md_smr_patch <- md_smr_fig[[1]] + md_smr_fig[[2]] + theme(axis.title.y = element_blank()) + 
       md_smr_fig[[3]] + md_smr_fig[[4]] + theme(axis.title.y = element_blank()) + 
-      md_smr_fig[[5]] + md_smr_fig[[6]] + theme(axis.title.y = element_blank()) + 
-      plot_layout(guides = 'collect') + 
+      md_smr_fig[[5]] + theme(axis.title.y = element_blank()) + # md_smr_fig +
+      guide_area() + plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Summer Mule Deer Stationary State Probabilities',
                       subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
   length(md_wtr_fig)
   (md_wtr_patch <- md_wtr_fig[[1]] + md_wtr_fig[[2]] + theme(axis.title.y = element_blank()) + 
       md_wtr_fig[[3]] + theme(axis.title.y = element_blank()) + md_wtr_fig[[4]] + 
       md_wtr_fig[[5]] + theme(axis.title.y = element_blank()) + md_wtr_fig[[6]] + 
-      theme(axis.title.y = element_blank()) + md_wtr_fig[[7]] + 
-      md_wtr_fig[[8]] + theme(axis.title.y = element_blank()) + guide_area() + 
+      theme(axis.title.y = element_blank()) + #md_wtr_fig[[7]] + md_wtr_fig[[8]] + 
+      theme(axis.title.y = element_blank()) + #guide_area() + 
       plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Winter Mule Deer Stationary State Probabilities',
-                      subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 3))
+                      subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
   #'  ELK panels
   length(elk_smr_fig)
   (elk_smr_patch <- elk_smr_fig[[1]] + elk_smr_fig[[2]] + theme(axis.title.y = element_blank()) + 
       elk_smr_fig[[3]] + theme(axis.title.y = element_blank()) + elk_smr_fig[[4]] + 
-      elk_smr_fig[[5]] + theme(axis.title.y = element_blank()) + elk_smr_fig[[6]] + 
-      theme(axis.title.y = element_blank()) + elk_smr_fig[[7]] + plot_layout(guides = 'collect') + 
+      elk_smr_fig[[5]] + theme(axis.title.y = element_blank()) + #elk_smr_fig[[6]] + elk_smr_fig[[7]] +
+      theme(axis.title.y = element_blank()) + plot_layout(guides = 'collect') + 
       guide_area() + plot_annotation(title = 'Summer Elk Stationary State Probabilities',
                                      subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 3))
   length(elk_wtr_fig)
   (elk_wtr_patch <- elk_wtr_fig[[1]] + elk_wtr_fig[[2]] + theme(axis.title.y = element_blank()) + 
       elk_wtr_fig[[3]] + theme(axis.title.y = element_blank()) + elk_wtr_fig[[4]] + 
       elk_wtr_fig[[5]] + theme(axis.title.y = element_blank()) + elk_wtr_fig[[6]] + 
-      theme(axis.title.y = element_blank()) + elk_wtr_fig[[7]] + elk_wtr_fig[[8]] + 
+      theme(axis.title.y = element_blank()) + #elk_wtr_fig[[7]] + elk_wtr_fig[[8]] + 
       theme(axis.title.y = element_blank()) + guide_area() + plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Winter Elk Stationary State Probabilities',
-                      subtitle = '    Northeast 2018 - 2021') + plot_layout(ncol = 3))
+                      subtitle = '    Northeast 2018 - 2021') + plot_layout(ncol = 2))
   #'  WHITE-TAILED DEER panels
   length(wtd_smr_fig)
   (wtd_smr_patch <- wtd_smr_fig[[1]] + wtd_smr_fig[[2]] + theme(axis.title.y = element_blank()) + 
       wtd_smr_fig[[3]] + theme(axis.title.y = element_blank()) + wtd_smr_fig[[4]] + 
-      wtd_smr_fig[[5]] + theme(axis.title.y = element_blank()) + wtd_smr_fig[[6]] + 
-      theme(axis.title.y = element_blank()) + wtd_smr_fig[[7]] + plot_layout(guides = 'collect') + 
+      wtd_smr_fig[[5]] + theme(axis.title.y = element_blank()) + #wtd_smr_fig[[6]] + wtd_smr_fig[[7]] + 
+      theme(axis.title.y = element_blank()) + plot_layout(guides = 'collect') + 
       guide_area() + plot_annotation(title = 'Summer White-tailed Deer Stationary State Probabilities',
                                      subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 3))
   length(wtd_wtr_fig)
   (wtd_wtr_patch <- wtd_wtr_fig[[1]] + wtd_wtr_fig[[2]] + theme(axis.title.y = element_blank()) + 
       wtd_wtr_fig[[3]] + theme(axis.title.y = element_blank()) + wtd_wtr_fig[[4]] + 
       wtd_wtr_fig[[5]] + theme(axis.title.y = element_blank()) + wtd_wtr_fig[[6]] + 
-      theme(axis.title.y = element_blank()) + wtd_wtr_fig[[7]] + wtd_wtr_fig[[8]] + 
-      theme(axis.title.y = element_blank()) + guide_area() + plot_layout(guides = 'collect') + 
+      theme(axis.title.y = element_blank()) + #wtd_wtr_fig[[7]] + wtd_wtr_fig[[8]] + guide_area() + 
+      theme(axis.title.y = element_blank()) + plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Winter White-tailed Deer Stationary State Probabilities',
                       subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 3))
   #'  COUGAR panels
@@ -1841,7 +1858,7 @@
                       subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
   
   
-  pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots_03.15.22.pdf")
+  pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots_04.04.23.pdf")
   plot(md_smr_patch, main = "Stationary State Probabilties for Summer Mule Deer")
   plot(md_wtr_patch, main = "Stationary State Probabilties for Winter Mule Deer")
   plot(elk_smr_patch, main = "Stationary State Probabilties for Summer Elk")
@@ -1889,47 +1906,47 @@
 
   
 
-  ####  Tables for manuscript  ####
-  #'  Reformat transition probability tables for manuscript
-  #'  Prey HMM results
-  results_hmm_TransPr_prey_ms <- results_hmm_TransPr_prey %>%  
-    unite(CI95, Lower, Upper, sep = ", ") %>%
-    unite(Est_CI, Estimate, CI95, sep = "_") %>%
-    dplyr::select(-SE) %>%
-    spread(Parameter, Est_CI) %>%
-    separate("(Intercept)", c("Intercept", "Intercept 95% CI"), sep = "_") %>%
-    separate("TRI", c("TRI", "TRI 95% CI"), sep = "_") %>%
-    separate("PercOpen", c("Percent Open", "Percent Open 95% CI"), sep = "_") %>%
-    separate("Dist2Road", c("Nearest Road", "Nearest Road 95% CI"), sep = "_") %>%
-    separate("SnowCover1", c("Snow Cover (Y)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
-    separate("COUG_RSF", c("Pr(Cougar)", "Pr(Cougar) 95% CI"), sep = "_") %>%
-    separate("WOLF_RSF", c("Pr(Wolf)", "Pr(Wolf) 95% CI"), sep = "_") %>%
-    separate("BOB_RSF", c("Pr(Bobcat)", "Pr(Bobcat) 95% CI"), sep = "_") %>%
-    separate("COY_RSF", c("Pr(Coyote)", "Pr(Coyote) 95% CI"), sep = "_") %>%
-    arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer")))
-  
-  write.csv(results_hmm_TransPr_prey_ms, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_forMS_", Sys.Date(), ".csv"))
-  
-  #'  Predators HMM results
-  results_hmm_TransPr_pred_ms <- results_hmm_TransPr_pred %>% 
-    unite(CI95, Lower, Upper, sep = ", ") %>%
-    unite(Est_CI, Estimate, CI95, sep = "_") %>%
-    dplyr::select(-SE) %>%
-    spread(Parameter, Est_CI) %>%
-    separate("(Intercept)", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
-    separate("TRI", c("TRI (SE)", "TRI 95% CI"), sep = "_") %>%
-    separate("PercOpen", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
-    separate("Dist2Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
-    separate("SnowCover1", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
-    separate("MD_RSF", c("Pr(Mule Deer) (SE)", "Pr(Mule Deer) 95% CI"), sep = "_") %>%
-    separate("ELK_RSF", c("Pr(Elk) (SE)", "Pr(Elk) 95% CI"), sep = "_") %>%
-    separate("WTD_RSF", c("Pr(White-tailed Deer) (SE)", "Pr(White-tailed Deer) 95% CI"), sep = "_") %>%
-    filter(!Species == "Bobcat") %>%
-    group_by(Species) %>%
-    arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
-    ungroup()
-  
-  write.csv(results_hmm_TransPr_pred_ms, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_forMS_", Sys.Date(), ".csv"))
+  #' ####  Tables for manuscript  ####
+  #' #'  Reformat transition probability tables for manuscript
+  #' #'  Prey HMM results
+  #' results_hmm_TransPr_prey_ms <- results_hmm_TransPr_prey %>%  
+  #'   unite(CI95, Lower, Upper, sep = ", ") %>%
+  #'   unite(Est_CI, Estimate, CI95, sep = "_") %>%
+  #'   dplyr::select(-SE) %>%
+  #'   spread(Parameter, Est_CI) %>%
+  #'   separate("(Intercept)", c("Intercept", "Intercept 95% CI"), sep = "_") %>%
+  #'   separate("TRI", c("TRI", "TRI 95% CI"), sep = "_") %>%
+  #'   separate("PercOpen", c("Percent Open", "Percent Open 95% CI"), sep = "_") %>%
+  #'   separate("Dist2Road", c("Nearest Road", "Nearest Road 95% CI"), sep = "_") %>%
+  #'   separate("SnowCover1", c("Snow Cover (Y)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
+  #'   separate("COUG_RSF", c("Pr(Cougar)", "Pr(Cougar) 95% CI"), sep = "_") %>%
+  #'   separate("WOLF_RSF", c("Pr(Wolf)", "Pr(Wolf) 95% CI"), sep = "_") %>%
+  #'   # separate("BOB_RSF", c("Pr(Bobcat)", "Pr(Bobcat) 95% CI"), sep = "_") %>%
+  #'   # separate("COY_RSF", c("Pr(Coyote)", "Pr(Coyote) 95% CI"), sep = "_") %>%
+  #'   arrange(match(Species, c("Mule Deer", "Elk", "White-tailed Deer")))
+  #' 
+  #' write.csv(results_hmm_TransPr_prey_ms, paste0("./Outputs/HMM_output/HMM_Results_TransPr_prey_forMS_", Sys.Date(), ".csv"))
+  #' 
+  #' #'  Predators HMM results
+  #' results_hmm_TransPr_pred_ms <- results_hmm_TransPr_pred %>% 
+  #'   unite(CI95, Lower, Upper, sep = ", ") %>%
+  #'   unite(Est_CI, Estimate, CI95, sep = "_") %>%
+  #'   dplyr::select(-SE) %>%
+  #'   spread(Parameter, Est_CI) %>%
+  #'   separate("(Intercept)", c("Intercept (SE)", "Intercept 95% CI"), sep = "_") %>%
+  #'   separate("TRI", c("TRI (SE)", "TRI 95% CI"), sep = "_") %>%
+  #'   separate("PercOpen", c("Percent Open (SE)", "Percent Open 95% CI"), sep = "_") %>%
+  #'   separate("Dist2Road", c("Nearest Road (SE)", "Nearest Road 95% CI"), sep = "_") %>%
+  #'   separate("SnowCover1", c("Snow Cover (Y) (SE)", "Snow Cover (Y) 95% CI"), sep = "_") %>%
+  #'   separate("MD_RSF", c("Pr(Mule Deer) (SE)", "Pr(Mule Deer) 95% CI"), sep = "_") %>%
+  #'   separate("ELK_RSF", c("Pr(Elk) (SE)", "Pr(Elk) 95% CI"), sep = "_") %>%
+  #'   separate("WTD_RSF", c("Pr(White-tailed Deer) (SE)", "Pr(White-tailed Deer) 95% CI"), sep = "_") %>%
+  #'   filter(!Species == "Bobcat") %>%
+  #'   group_by(Species) %>%
+  #'   arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
+  #'   ungroup()
+  #' 
+  #' write.csv(results_hmm_TransPr_pred_ms, paste0("./Outputs/HMM_output/HMM_Results_TransPr_pred_forMS_", Sys.Date(), ".csv"))
   
   
   
