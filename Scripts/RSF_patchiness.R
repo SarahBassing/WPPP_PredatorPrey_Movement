@@ -116,16 +116,36 @@
   Species <- rep(c("Cougar", "Wolf", "Elk", "Mule deer", "White-tailed deer"), times = 1, each = 4)
   Season <- rep(c("Summer", "Summer", "Summer", "Summer", "Summer"), times = 1, each = 4)
   smr_patches <- cbind(Species, Season, smr_patch_size)
-  save(smr_patches, file = "./Outputs/RSF_output/smr_patch_size.RData")
+  # save(smr_patches, file = "./Outputs/RSF_output/smr_patch_size.RData")
   
   wtr_patch_size <- rbind(coug_wtr_patch_size, wolf_wtr_patch_size, elk_wtr_patch_size, md_wtr_patch_size, wtd_wtr_patch_size)
   Species <- rep(c("Cougar", "Wolf", "Elk", "Mule deer", "White-tailed deer"), times = 1, each = 4)
   Season <- rep(c("Winter", "Winter", "Winter", "Winter", "Winter"), times = 1, each = 4)
-  wtr_patches <- cbind(Species, Season, smr_patch_size)
+  wtr_patches <- cbind(Species, Season, wtr_patch_size)
   save(wtr_patch_size, file = "./Outputs/RSF_output/wtr_patch_size.RData")
   
   patch_size <- rbind(smr_patches, wtr_patches)
-  write.csv(patch_summary_table, "./Outputs/RSF_output/RSF_patch_size_summary.csv")
+  # write.csv(patch_size, "./Outputs/RSF_output/RSF_patch_size_summary.csv")
+  
+  predator_patch_size <- rbind(coug_smr_patch_size, wolf_smr_patch_size, coug_wtr_patch_size, wolf_wtr_patch_size) %>%
+    filter(`patch value` == "All patches") %>%
+    summarize(avg_patch_area_m = mean(mean_patch_area_m),
+              sd_patch_area = sd(mean_patch_area_m),
+              avg_patch_length_m = mean(length_m),
+              sd_patch_length = sd(length_m)) %>%
+    mutate(spp_group = "Predator") %>%
+    relocate(spp_group, .before = avg_patch_area_m)
+  prey_patch_size <- rbind(elk_smr_patch_size, md_smr_patch_size, wtd_smr_patch_size, elk_wtr_patch_size, md_wtr_patch_size, wtd_wtr_patch_size) %>%
+    filter(`patch value` == "All patches") %>%
+    summarize(avg_patch_area_m = mean(mean_patch_area_m),
+              sd_patch_area = sd(mean_patch_area_m),
+              avg_patch_length_m = mean(length_m),
+              sd_patch_length = sd(length_m)) %>%
+    mutate(spp_group = "Prey") %>%
+    relocate(spp_group, .before = avg_patch_area_m)
+  
+  avg_pred_prey_patch_size <- rbind(predator_patch_size, prey_patch_size)
+  write.csv(avg_pred_prey_patch_size, "./Outputs/RSF_output/avg_RSF_patch_size.csv")
   
   
   
