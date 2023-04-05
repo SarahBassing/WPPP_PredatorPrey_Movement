@@ -430,8 +430,8 @@
   load("./Outputs/RSF_output/RSF_WTD_list_2022-06-08.RData")
   load("./Outputs/RSF_output/RSF_COUG_list_2023-04-04.RData") # both study areas combined 2022-06-08
   load("./Outputs/RSF_output/RSF_WOLF_list_2023-04-04.RData") # both study areas combined 2022-06-08
-  load("./Outputs/RSF_output/RSF_BOB_list_2022-06-08.RData")
-  load("./Outputs/RSF_output/RSF_COY_list_2022-06-08.RData")
+  # load("./Outputs/RSF_output/RSF_BOB_list_2022-06-08.RData")
+  # load("./Outputs/RSF_output/RSF_COY_list_2022-06-08.RData")
   
   #'  Load spatial libraries
   library(sf)
@@ -979,7 +979,7 @@
   coug_smr_NE_rsf_out <- rsf_out(RSF_COUG_list[[2]], "Cougar NE", "Summer")
   coug_wtr_OK_rsf_out <- rsf_out(RSF_COUG_list[[3]], "Cougar OK", "Winter")
   coug_wtr_NE_rsf_out <- rsf_out(RSF_COUG_list[[4]], "Cougar NE", "Winter")
-  wolf_smr_OK_rsf_out <- rsf_out(RSF_WOLF_list[[1]], "Wolf oK", "Summer")
+  wolf_smr_OK_rsf_out <- rsf_out(RSF_WOLF_list[[1]], "Wolf OK", "Summer")
   wolf_smr_NE_rsf_out <- rsf_out(RSF_WOLF_list[[2]], "Wolf NE", "Summer")
   wolf_wtr_OK_rsf_out <- rsf_out(RSF_WOLF_list[[3]], "Wolf OK", "Winter")
   wolf_wtr_NE_rsf_out <- rsf_out(RSF_WOLF_list[[4]], "Wolf NE", "Winter")
@@ -993,7 +993,7 @@
                       coug_smr_OK_rsf_out, coug_smr_NE_rsf_out, wolf_smr_OK_rsf_out, wolf_smr_NE_rsf_out)
                       # wolf_smr_rsf_out, bob_smr_rsf_out, coy_smr_rsf_out)
   winter_rsf <- rbind(md_wtr_rsf_out, elk_wtr_rsf_out, wtd_wtr_rsf_out, 
-                      coug_wtr_OK_rsf_out, coug_wtr_NE_rsf_out, wolf_wtr_OK_rsf_out, wolf_wtr_NErsf_out)
+                      coug_wtr_OK_rsf_out, coug_wtr_NE_rsf_out, wolf_wtr_OK_rsf_out, wolf_wtr_NE_rsf_out)
                       # bob_wtr_rsf_out, coy_wtr_rsf_out)
   rsf_results <- rbind(summer_rsf, winter_rsf) %>%
     arrange(Species)
