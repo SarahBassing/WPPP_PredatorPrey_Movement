@@ -40,13 +40,13 @@
   # library(future.apply)
 
   #'  Load used and available locations, and covariate data
-  load("./Outputs/RSF_pts/md_dat_all_2022-05-17.RData")  # 2022-01-23 unweighted
+  load("./Outputs/RSF_pts/md_dat_all_2022-05-17.RData")  
   load("./Outputs/RSF_pts/elk_dat_all_2022-05-17.RData")
   load("./Outputs/RSF_pts/wtd_dat_all_2022-05-17.RData")
-  load("./Outputs/RSF_pts/coug_dat_all_2022-05-17.RData")
-  load("./Outputs/RSF_pts/wolf_dat_all_2022-05-17.RData")
-  load("./Outputs/RSF_pts/bob_dat_all_2022-05-17.RData")
-  load("./Outputs/RSF_pts/coy_dat_all_2022-05-17.RData")
+  load("./Outputs/RSF_pts/coug_dat_all_2022-05-17.RData") 
+  load("./Outputs/RSF_pts/wolf_dat_all_2022-05-17.RData") 
+  # load("./Outputs/RSF_pts/bob_dat_all_2022-05-17.RData")
+  # load("./Outputs/RSF_pts/coy_dat_all_2022-05-17.RData")
   
   #'  Read in study area grids (1km^2)
   NE_1km <- raster("./Shapefiles/NE_1km_grid_mask.tif") 
@@ -135,8 +135,8 @@
   wtd_dat_all <- class_landcov(wtd_dat_all)
   coug_dat_all <- class_landcov(coug_dat_all)
   wolf_dat_all <- class_landcov(wolf_dat_all)
-  bob_dat_all <- class_landcov(bob_dat_all)
-  coy_dat_all <- class_landcov(coy_dat_all)
+  # bob_dat_all <- class_landcov(bob_dat_all)
+  # coy_dat_all <- class_landcov(coy_dat_all)
   #'  Reclassify landcover data for study area wide data sets
   SA.covs_list <- lapply(SA.covs_list, class_landcov)
   NE.covs_list <- lapply(NE.covs_list, class_landcov)
@@ -162,8 +162,8 @@
   wtd_dat_all_reclass <- reclass_landcov(wtd_dat_all)
   coug_dat_all_reclass <- reclass_landcov(coug_dat_all)
   wolf_dat_all_reclass <- reclass_landcov(wolf_dat_all)
-  bob_dat_all_reclass <- reclass_landcov(bob_dat_all)
-  coy_dat_all_reclass <- reclass_landcov(coy_dat_all)
+  # bob_dat_all_reclass <- reclass_landcov(bob_dat_all)
+  # coy_dat_all_reclass <- reclass_landcov(coy_dat_all)
   SA.covs_list_reclass <- lapply(SA.covs_list, reclass_landcov)
   NE.covs_list_reclass <- lapply(NE.covs_list, reclass_landcov)
   OK.covs_list_reclass <- lapply(OK.covs_list, reclass_landcov)
@@ -198,17 +198,27 @@
   wtdData_smr <- wtd_dat_all[wtd_dat_all$Season == "Summer18" | wtd_dat_all$Season == "Summer19" | wtd_dat_all$Season == "Summer20",]
   wtdData_wtr <- wtd_dat_all_reclass[wtd_dat_all_reclass$Season == "Winter1819" | wtd_dat_all_reclass$Season == "Winter1920" | wtd_dat_all_reclass$Season == "Winter2021",]
   #'  Note the reclassified landcover_type data for cougData_winter
-  cougData_smr <- coug_dat_all[coug_dat_all$Season == "Summer18" | coug_dat_all$Season == "Summer19" | coug_dat_all$Season == "Summer20",]
-  cougData_wtr <- coug_dat_all_reclass[coug_dat_all_reclass$Season == "Winter1819" | coug_dat_all_reclass$Season == "Winter1920" | coug_dat_all_reclass$Season == "Winter2021",]
+  coug_dat_OK <- coug_dat_all[coug_dat_all$Area == "OK",]
+  coug_dat_OK_reclass <- coug_dat_all_reclass[coug_dat_all_reclass$Area == "OK",]
+  coug_dat_NE <- coug_dat_all[coug_dat_all$Area == "NE",]
+  coug_dat_NE_reclass <- coug_dat_all_reclass[coug_dat_all_reclass$Area == "NE",]
+  cougData_smr_OK <- coug_dat_OK[coug_dat_OK$Season == "Summer18" | coug_dat_OK$Season == "Summer19" | coug_dat_OK$Season == "Summer20",]
+  cougData_smr_NE <- coug_dat_NE[coug_dat_NE$Season == "Summer18" | coug_dat_NE$Season == "Summer19" | coug_dat_NE$Season == "Summer20",]
+  cougData_wtr_OK <- coug_dat_OK_reclass[coug_dat_OK_reclass$Season == "Winter1819" | coug_dat_OK_reclass$Season == "Winter1920" | coug_dat_OK_reclass$Season == "Winter2021",]
+  cougData_wtr_NE <- coug_dat_NE_reclass[coug_dat_NE_reclass$Season == "Winter1819" | coug_dat_NE_reclass$Season == "Winter1920" | coug_dat_NE_reclass$Season == "Winter2021",]
   #'  Note the double reclassified landcover_type data for wolfData
-  wolfData_smr <- wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Summer18" | wolf_dat_all_reclass2$Season == "Summer19" | wolf_dat_all_reclass2$Season == "Summer20",]
-  wolfData_wtr <- wolf_dat_all_reclass2[wolf_dat_all_reclass2$Season == "Winter1819" | wolf_dat_all_reclass2$Season == "Winter1920" | wolf_dat_all_reclass2$Season == "Winter2021",]
-  #'  Note the reclassified landcover_type data for bobData
-  bobData_smr <- bob_dat_all_reclass[bob_dat_all_reclass$Season == "Summer18" | bob_dat_all_reclass$Season == "Summer19" | bob_dat_all_reclass$Season == "Summer20",]
-  bobData_wtr <- bob_dat_all_reclass[bob_dat_all_reclass$Season == "Winter1819" | bob_dat_all_reclass$Season == "Winter1920" | bob_dat_all_reclass$Season == "Winter2021",]
-  #'  Note the reclassified landcover_type data for coyData
-  coyData_smr <- coy_dat_all_reclass[coy_dat_all_reclass$Season == "Summer18" | coy_dat_all_reclass$Season == "Summer19" | coy_dat_all_reclass$Season == "Summer20",]
-  coyData_wtr <- coy_dat_all_reclass[coy_dat_all_reclass$Season == "Winter1819" | coy_dat_all_reclass$Season == "Winter1920" | coy_dat_all_reclass$Season == "Winter2021",]
+  wolf_dat_OK_reclass2 <- wolf_dat_all_reclass2[wolf_dat_all_reclass2$Area == "OK",]
+  wolf_dat_NE_reclass2 <- wolf_dat_all_reclass2[wolf_dat_all_reclass2$Area == "NE",]
+  wolfData_smr_OK <- wolf_dat_OK_reclass2[wolf_dat_OK_reclass2$Season == "Summer18" | wolf_dat_OK_reclass2$Season == "Summer19" | wolf_dat_OK_reclass2$Season == "Summer20",]
+  wolfData_smr_NE <- wolf_dat_NE_reclass2[wolf_dat_NE_reclass2$Season == "Summer18" | wolf_dat_NE_reclass2$Season == "Summer19" | wolf_dat_NE_reclass2$Season == "Summer20",]
+  wolfData_wtr_OK <- wolf_dat_OK_reclass2[wolf_dat_OK_reclass2$Season == "Winter1819" | wolf_dat_OK_reclass2$Season == "Winter1920" | wolf_dat_OK_reclass2$Season == "Winter2021",]
+  wolfData_wtr_NE <- wolf_dat_NE_reclass2[wolf_dat_NE_reclass2$Season == "Winter1819" | wolf_dat_NE_reclass2$Season == "Winter1920" | wolf_dat_NE_reclass2$Season == "Winter2021",]
+  #' #'  Note the reclassified landcover_type data for bobData
+  #' bobData_smr <- bob_dat_all_reclass[bob_dat_all_reclass$Season == "Summer18" | bob_dat_all_reclass$Season == "Summer19" | bob_dat_all_reclass$Season == "Summer20",]
+  #' bobData_wtr <- bob_dat_all_reclass[bob_dat_all_reclass$Season == "Winter1819" | bob_dat_all_reclass$Season == "Winter1920" | bob_dat_all_reclass$Season == "Winter2021",]
+  #' #'  Note the reclassified landcover_type data for coyData
+  #' coyData_smr <- coy_dat_all_reclass[coy_dat_all_reclass$Season == "Summer18" | coy_dat_all_reclass$Season == "Summer19" | coy_dat_all_reclass$Season == "Summer20",]
+  #' coyData_wtr <- coy_dat_all_reclass[coy_dat_all_reclass$Season == "Winter1819" | coy_dat_all_reclass$Season == "Winter1920" | coy_dat_all_reclass$Season == "Winter2021",]
 
   
   ####  Data partitioning  ####
@@ -261,14 +271,18 @@
   elkDataz_wtr <- Ztrans_Kfold(elkData_wtr, K = K)
   wtdDataz_smr <- Ztrans_Kfold(wtdData_smr, K = K)
   wtdDataz_wtr <- Ztrans_Kfold(wtdData_wtr, K = K)
-  cougDataz_smr <- Ztrans_Kfold(cougData_smr, K = K)
-  cougDataz_wtr <- Ztrans_Kfold(cougData_wtr, K = K)
-  wolfDataz_smr <- Ztrans_Kfold(wolfData_smr, K = K)
-  wolfDataz_wtr <- Ztrans_Kfold(wolfData_wtr, K = K)
-  bobDataz_smr <- Ztrans_Kfold(bobData_smr, K = K)
-  bobDataz_wtr <- Ztrans_Kfold(bobData_wtr, K = K)
-  coyDataz_smr <- Ztrans_Kfold(coyData_smr, K = K)
-  coyDataz_wtr <- Ztrans_Kfold(coyData_wtr, K = K)
+  cougDataz_smr_OK <- Ztrans_Kfold(cougData_smr_OK, K = K)
+  cougDataz_smr_NE <- Ztrans_Kfold(cougData_smr_NE, K = K)
+  cougDataz_wtr_OK <- Ztrans_Kfold(cougData_wtr_OK, K = K)
+  cougDataz_wtr_NE <- Ztrans_Kfold(cougData_wtr_NE, K = K)
+  wolfDataz_smr_OK <- Ztrans_Kfold(wolfData_smr_OK, K = K)
+  wolfDataz_smr_NE <- Ztrans_Kfold(wolfData_smr_NE, K = K)
+  wolfDataz_wtr_OK <- Ztrans_Kfold(wolfData_wtr_OK, K = K)
+  wolfDataz_wtr_NE <- Ztrans_Kfold(wolfData_wtr_NE, K = K)
+  # bobDataz_smr <- Ztrans_Kfold(bobData_smr, K = K)
+  # bobDataz_wtr <- Ztrans_Kfold(bobData_wtr, K = K)
+  # coyDataz_smr <- Ztrans_Kfold(coyData_smr, K = K)
+  # coyDataz_wtr <- Ztrans_Kfold(coyData_wtr, K = K)
  
   
   #'  Function to partition standardized TRAINING data based on folds
@@ -293,14 +307,18 @@
   elkData_wtr_train <- training_dat(elkDataz_wtr)
   wtdData_smr_train <- training_dat(wtdDataz_smr)
   wtdData_wtr_train <- training_dat(wtdDataz_wtr)
-  cougData_smr_train <- training_dat(cougDataz_smr)
-  cougData_wtr_train <- training_dat(cougDataz_wtr)
-  wolfData_smr_train <- training_dat(wolfDataz_smr)
-  wolfData_wtr_train <- training_dat(wolfDataz_wtr)
-  bobData_smr_train <- training_dat(bobDataz_smr)
-  bobData_wtr_train <- training_dat(bobDataz_wtr)
-  coyData_smr_train <- training_dat(coyDataz_smr)
-  coyData_wtr_train <- training_dat(coyDataz_wtr)
+  cougData_smr_OK_train <- training_dat(cougDataz_smr_OK)
+  cougData_smr_NE_train <- training_dat(cougDataz_smr_NE)
+  cougData_wtr_OK_train <- training_dat(cougDataz_wtr_OK)
+  cougData_wtr_NE_train <- training_dat(cougDataz_wtr_NE)
+  wolfData_smr_OK_train <- training_dat(wolfDataz_smr_OK)
+  wolfData_smr_NE_train <- training_dat(wolfDataz_smr_NE)
+  wolfData_wtr_OK_train <- training_dat(wolfDataz_wtr_OK)
+  wolfData_wtr_NE_train <- training_dat(wolfDataz_wtr_NE)
+  # bobData_smr_train <- training_dat(bobDataz_smr)
+  # bobData_wtr_train <- training_dat(bobDataz_wtr)
+  # coyData_smr_train <- training_dat(coyDataz_smr)
+  # coyData_wtr_train <- training_dat(coyDataz_wtr)
 
   #'  Double checked this split correctly
   unique(mdData_smr_train[[5]][".folds"]) # should have folds 1 - 4, not 5
@@ -329,14 +347,18 @@
   elkData_wtr_test <- testing_dat(elkDataz_wtr)
   wtdData_smr_test <- testing_dat(wtdDataz_smr)
   wtdData_wtr_test <- testing_dat(wtdDataz_wtr)
-  cougData_smr_test <- testing_dat(cougDataz_smr)
-  cougData_wtr_test <- testing_dat(cougDataz_wtr)
-  wolfData_smr_test <- testing_dat(wolfDataz_smr)
-  wolfData_wtr_test <- testing_dat(wolfDataz_wtr)
-  bobData_smr_test <- testing_dat(bobDataz_smr)
-  bobData_wtr_test <- testing_dat(bobDataz_wtr)
-  coyData_smr_test <- testing_dat(coyDataz_smr)
-  coyData_wtr_test <- testing_dat(coyDataz_wtr)
+  cougData_smr_OK_test <- testing_dat(cougDataz_smr_OK)
+  cougData_smr_NE_test <- testing_dat(cougDataz_smr_NE)
+  cougData_wtr_OK_test <- testing_dat(cougDataz_wtr_OK)
+  cougData_wtr_NE_test <- testing_dat(cougDataz_wtr_NE)
+  wolfData_smr_OK_test <- testing_dat(wolfDataz_smr_OK)
+  wolfData_smr_NE_test <- testing_dat(wolfDataz_smr_NE)
+  wolfData_wtr_OK_test <- testing_dat(wolfDataz_wtr_OK)
+  wolfData_wtr_NE_test <- testing_dat(wolfDataz_wtr_NE)
+  # bobData_smr_test <- testing_dat(bobDataz_smr)
+  # bobData_wtr_test <- testing_dat(bobDataz_wtr)
+  # coyData_smr_test <- testing_dat(coyDataz_smr)
+  # coyData_wtr_test <- testing_dat(coyDataz_wtr)
 
   #'  Double checked this split correctly
   unique(mdData_smr_test[[5]][".folds"]) # should only be fold 5
@@ -350,14 +372,18 @@
   save(elkData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/elkData_wtr_TestData.RData")
   save(wtdData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/wtdData_smr_TestData.RData")
   save(wtdData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/wtdData_wtr_TestData.RData")
-  save(cougData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/cougData_smr_TestData.RData")
-  save(cougData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/cougData_wtr_TestData.RData")
-  save(wolfData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/wolfData_smr_TestData.RData")
-  save(wolfData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/wolfData_wtr_TestData.RData")
-  save(bobData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/bobData_smr_TestData.RData")
-  save(bobData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/bobData_wtr_TestData.RData")
-  save(coyData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/coyData_smr_TestData.RData")
-  save(coyData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/coyData_wtr_TestData.RData")
+  save(cougData_smr_OK_test, file = "./Outputs/RSF_output/Kfold_CV/cougData_smr_OK_TestData.RData")
+  save(cougData_smr_NE_test, file = "./Outputs/RSF_output/Kfold_CV/cougData_smr_NE_TestData.RData")
+  save(cougData_wtr_OK_test, file = "./Outputs/RSF_output/Kfold_CV/cougData_wtr_OK_TestData.RData")
+  save(cougData_wtr_NE_test, file = "./Outputs/RSF_output/Kfold_CV/cougData_wtr_NE_TestData.RData")
+  save(wolfData_smr_OK_test, file = "./Outputs/RSF_output/Kfold_CV/wolfData_smr_OK_TestData.RData")
+  save(wolfData_smr_NE_test, file = "./Outputs/RSF_output/Kfold_CV/wolfData_smr_NE_TestData.RData")
+  save(wolfData_wtr_OK_test, file = "./Outputs/RSF_output/Kfold_CV/wolfData_wtr_OK_TestData.RData")
+  save(wolfData_wtr_NE_test, file = "./Outputs/RSF_output/Kfold_CV/wolfData_wtr_NE_TestData.RData")
+  # save(bobData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/bobData_smr_TestData.RData")
+  # save(bobData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/bobData_wtr_TestData.RData")
+  # save(coyData_smr_test, file = "./Outputs/RSF_output/Kfold_CV/coyData_smr_TestData.RData")
+  # save(coyData_wtr_test, file = "./Outputs/RSF_output/Kfold_CV/coyData_wtr_TestData.RData")
   
   
   ####  RSF models for K-fold CV  ####
@@ -379,25 +405,25 @@
   wtd_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   wtd_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   #'  Cougar models
-  # coug_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  # coug_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  coug_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
-  coug_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
+  coug_smr_OK_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  coug_smr_NE_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  coug_wtr_OK_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  coug_wtr_NE_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
   #'  Wolf models
-  # wolf_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)"
-  # wolf_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
-  wolf_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
-  wolf_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  #'  Bobcat models
-  # bob_smr_mod <- "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)"
-  # bob_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Landcover_type + (1|ID)"
-  bob_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
-  bob_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  #'  Coyote models
-  # coy_smr_mod <- "Used ~ 1 + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)"  
-  # coy_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)"
-  coy_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + CanopyCover + Landcover_type + (1|ID)"  
-  coy_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + CanopyCover + Landcover_type + (1|ID)"
+  wolf_smr_OK_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  wolf_smr_NE_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  wolf_wtr_OK_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  wolf_wtr_NE_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  #' #'  Bobcat models
+  #' # bob_smr_mod <- "Used ~ 1 + Elev + Slope + RoadDen + Dist2Water + HumanMod + Dist2Edge + Landcover_type + (1|ID)"
+  #' # bob_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + HumanMod + CanopyCover + Landcover_type + (1|ID)"
+  #' bob_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
+  #' bob_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  #' #'  Coyote models
+  #' # coy_smr_mod <- "Used ~ 1 + Slope + RoadDen + Dist2Water + CanopyCover + Landcover_type + (1|ID)"  
+  #' # coy_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + Landcover_type + (1|ID)"
+  #' coy_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + CanopyCover + Landcover_type + (1|ID)"  
+  #' coy_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + Dist2Edge + CanopyCover + Landcover_type + (1|ID)"
  
   
   #'  =============================
@@ -433,28 +459,36 @@
   save(wtd_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_", Sys.Date(), ".RData"))
   
   #'  Cougar K-fold model training
-  coug_kfold_smr <- lapply(cougData_smr_train, glmm_fn, mod = coug_smr_mod)
-  coug_kfold_wtr <- lapply(cougData_wtr_train, glmm_fn, mod = coug_wtr_mod)
-  save(coug_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_", Sys.Date(), ".RData"))
-  save(coug_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_", Sys.Date(), ".RData"))
+  coug_kfold_smr_OK <- lapply(cougData_smr_OK_train, glmm_fn, mod = coug_smr_OK_mod)
+  coug_kfold_smr_NE <- lapply(cougData_smr_NE_train, glmm_fn, mod = coug_smr_NE_mod)
+  coug_kfold_wtr_OK <- lapply(cougData_wtr_OK_train, glmm_fn, mod = coug_wtr_OK_mod)
+  coug_kfold_wtr_NE <- lapply(cougData_wtr_NE-train, glmm_fn, mod = coug_wtr_NE_mod)
+  save(coug_kfold_smr_OK, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_OK_", Sys.Date(), ".RData"))
+  save(coug_kfold_smr_NE, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_NE_", Sys.Date(), ".RData"))
+  save(coug_kfold_wtr_OK, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_OK_", Sys.Date(), ".RData"))
+  save(coug_kfold_wtr_NE, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_NE_", Sys.Date(), ".RData"))
   
   #'  Wolf K-fold model training
-  wolf_kfold_smr <- lapply(wolfData_smr_train, glmm_fn, mod = wolf_smr_mod)
-  wolf_kfold_wtr <- lapply(wolfData_wtr_train, glmm_fn, mod = wolf_wtr_mod)
-  save(wolf_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_", Sys.Date(), ".RData"))
-  save(wolf_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_", Sys.Date(), ".RData"))
-
-  #'  Bobcat K-fold model training
-  bob_kfold_smr <- lapply(bobData_smr_train, glmm_fn, mod = bob_smr_mod)
-  bob_kfold_wtr <- lapply(bobData_wtr_train, glmm_fn, mod = bob_wtr_mod)
-  save(bob_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/bob_kfold_smr_", Sys.Date(), ".RData"))
-  save(bob_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_", Sys.Date(), ".RData"))
+  wolf_kfold_smr_OK <- lapply(wolfData_smr_OK_train, glmm_fn, mod = wolf_smr_OK_mod)
+  wolf_kfold_smr_NE <- lapply(wolfData_smr_NE_train, glmm_fn, mod = wolf_smr_NE_mod)
+  wolf_kfold_wtr_OK <- lapply(wolfData_wtr_OK_train, glmm_fn, mod = wolf_wtr_OK_mod)
+  wolf_kfold_wtr_NE <- lapply(wolfData_wtr_NE_train, glmm_fn, mod = wolf_wtr_NE_mod)
+  save(wolf_kfold_smr_OK, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_OK_", Sys.Date(), ".RData"))
+  save(wolf_kfold_smr_NE, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_NE_", Sys.Date(), ".RData"))
+  save(wolf_kfold_wtr_OK, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_OK_", Sys.Date(), ".RData"))
+  save(wolf_kfold_wtr_NE, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_NE_", Sys.Date(), ".RData"))
   
-  #'  Coyote K-fold model training
-  coy_kfold_smr <- lapply(coyData_smr_train, glmm_fn, mod = coy_smr_mod)
-  coy_kfold_wtr <- lapply(coyData_wtr_train, glmm_fn, mod = coy_wtr_mod)
-  save(coy_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_", Sys.Date(), ".RData"))
-  save(coy_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_", Sys.Date(), ".RData"))
+  #' #'  Bobcat K-fold model training
+  #' bob_kfold_smr <- lapply(bobData_smr_train, glmm_fn, mod = bob_smr_mod)
+  #' bob_kfold_wtr <- lapply(bobData_wtr_train, glmm_fn, mod = bob_wtr_mod)
+  #' save(bob_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/bob_kfold_smr_", Sys.Date(), ".RData"))
+  #' save(bob_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_", Sys.Date(), ".RData"))
+  #' 
+  #' #'  Coyote K-fold model training
+  #' coy_kfold_smr <- lapply(coyData_smr_train, glmm_fn, mod = coy_smr_mod)
+  #' coy_kfold_wtr <- lapply(coyData_wtr_train, glmm_fn, mod = coy_wtr_mod)
+  #' save(coy_kfold_smr, file = paste0("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_", Sys.Date(), ".RData"))
+  #' save(coy_kfold_wtr, file = paste0("./Outputs/RSF_output/Kfold_CV/coy_kfold_wtr_", Sys.Date(), ".RData"))
 
   
   #'  =================================
