@@ -462,7 +462,7 @@
   coug_kfold_smr_OK <- lapply(cougData_smr_OK_train, glmm_fn, mod = coug_smr_OK_mod)
   coug_kfold_smr_NE <- lapply(cougData_smr_NE_train, glmm_fn, mod = coug_smr_NE_mod)
   coug_kfold_wtr_OK <- lapply(cougData_wtr_OK_train, glmm_fn, mod = coug_wtr_OK_mod)
-  coug_kfold_wtr_NE <- lapply(cougData_wtr_NE-train, glmm_fn, mod = coug_wtr_NE_mod)
+  coug_kfold_wtr_NE <- lapply(cougData_wtr_NE_train, glmm_fn, mod = coug_wtr_NE_mod)
   save(coug_kfold_smr_OK, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_OK_", Sys.Date(), ".RData"))
   save(coug_kfold_smr_NE, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_NE_", Sys.Date(), ".RData"))
   save(coug_kfold_wtr_OK, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_OK_", Sys.Date(), ".RData"))
