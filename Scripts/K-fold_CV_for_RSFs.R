@@ -48,6 +48,14 @@
   # load("./Outputs/RSF_pts/bob_dat_all_2022-05-17.RData")
   # load("./Outputs/RSF_pts/coy_dat_all_2022-05-17.RData")
   
+  #'  Fix use/available data for wolves (accidentally converted all NE used locations to OK in Collar_RSF_DataPrep.R)
+  wolf_dat_all <- mutate(wolf_dat_all,
+                         Area = ifelse(grepl("W61M", ID), "OK", "NE"),  
+                         Area = ifelse(grepl("W88M", ID), "OK", Area),
+                         Area = ifelse(grepl("W93M", ID), "OK", Area),
+                         Area = ifelse(grepl("W94M", ID), "OK", Area),
+                         Area = ifelse(grepl("W110M", ID), "OK", Area))
+  
   #'  Read in study area grids (1km^2)
   NE_1km <- raster("./Shapefiles/NE_1km_grid_mask.tif") 
   OK_1km <- raster("./Shapefiles/OK_1km_grid_mask.tif") 
@@ -469,8 +477,8 @@
   save(coug_kfold_wtr_NE, file = paste0("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_NE_", Sys.Date(), ".RData"))
   
   #'  Wolf K-fold model training
-  wolf_kfold_smr_OK <- lapply(wolfData_smr_OK_train, glmm_fn, mod = wolf_smr_OK_mod)
-  wolf_kfold_smr_NE <- lapply(wolfData_smr_NE_train, glmm_fn, mod = wolf_smr_NE_mod)
+  wolf_kfold_smr_OK <- lapply(wolfData_smr_OK_train, glmm_fn, mod = wolf_smr_OK_mod)  # singular boundary on random effect (same as with full OK smr data set)
+  wolf_kfold_smr_NE <- lapply(wolfData_smr_NE_train, glmm_fn, mod = wolf_smr_NE_mod)  
   wolf_kfold_wtr_OK <- lapply(wolfData_wtr_OK_train, glmm_fn, mod = wolf_wtr_OK_mod)
   wolf_kfold_wtr_NE <- lapply(wolfData_wtr_NE_train, glmm_fn, mod = wolf_wtr_NE_mod)
   save(wolf_kfold_smr_OK, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_OK_", Sys.Date(), ".RData"))
@@ -583,14 +591,14 @@
   load("./Outputs/RSF_output/Kfold_CV/elk_kfold_wtr_2022-06-14.RData")
   load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_smr_2022-06-14.RData")
   load("./Outputs/RSF_output/Kfold_CV/wtd_kfold_wtr_2022-06-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2023-05-06.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2023-05-06.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2023-05-06.RData")
-  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2023-05-06.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2023-05-06.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2023-05-06.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2023-05-06.RData")
-  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2023-05-06.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2023-04-07.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_smr_2023-04-07.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2023-04-07.RData")
+  load("./Outputs/RSF_output/Kfold_CV/coug_kfold_wtr_2023-04-07.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2023-04-07.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_smr_2023-04-07.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2023-04-07.RData")
+  load("./Outputs/RSF_output/Kfold_CV/wolf_kfold_wtr_2023-04-07.RData")
   # load("./Outputs/RSF_output/Kfold_CV/bob_kfold_smr_2022-06-14.RData")
   # load("./Outputs/RSF_output/Kfold_CV/bob_kfold_wtr_2022-06-14.RData")
   # load("./Outputs/RSF_output/Kfold_CV/coy_kfold_smr_2022-06-14.RData")
@@ -766,7 +774,7 @@
   wolf_wtr1819_NE_Kpredict <- lapply(wolf_wtr_NE_trainout, predict_rsf, cov = wolf_wtr_NE_zcovs[[1]])
   wolf_wtr1920_NE_Kpredict <- lapply(wolf_wtr_NE_trainout, predict_rsf, cov = wolf_wtr_NE_zcovs[[2]])
   wolf_wtr2021_NE_Kpredict <- lapply(wolf_wtr_NE_trainout, predict_rsf, cov = wolf_wtr_NE_zcovs[[3]])
-  wolf_wtr_NE_Kpredict <- list(wolf_wtr1819_NE_Kpredict, wolf_wtr1920_NE_Kpredict, wolf_wtr202_NE1_Kpredict)
+  wolf_wtr_NE_Kpredict <- list(wolf_wtr1819_NE_Kpredict, wolf_wtr1920_NE_Kpredict, wolf_wtr2021_NE_Kpredict)
   save(wolf_wtr_NE_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/wolf_wtr_NE_Kpredict_", Sys.Date(), ".RData"))
   # bob_smr18_Kpredict <- lapply(bob_smr_trainout, predict_rsf, cov = bob_smr_zcovs[[1]])
   # bob_smr19_Kpredict <- lapply(bob_smr_trainout, predict_rsf, cov = bob_smr_zcovs[[2]])
@@ -1058,14 +1066,18 @@
   elk_wtr_usedbin <- lapply(elk_wtr_Kbins, used_bins, test_used = elk_wtr_test_used)
   wtd_smr_usedbin <- lapply(wtd_smr_Kbins, used_bins, test_used = wtd_smr_test_used)
   wtd_wtr_usedbin <- lapply(wtd_wtr_Kbins, used_bins, test_used = wtd_wtr_test_used)
-  coug_smr_usedbin <- lapply(coug_smr_Kbins, used_bins, test_used = coug_smr_test_used)
-  coug_wtr_usedbin <- lapply(coug_wtr_Kbins, used_bins, test_used = coug_wtr_test_used)
-  wolf_smr_usedbin <- lapply(wolf_smr_Kbins, used_bins, test_used = wolf_smr_test_used)
-  wolf_wtr_usedbin <- lapply(wolf_wtr_Kbins, used_bins, test_used = wolf_wtr_test_used)
-  bob_smr_usedbin <- lapply(bob_smr_Kbins, used_bins, test_used = bob_smr_test_used)
-  bob_wtr_usedbin <- lapply(bob_wtr_Kbins, used_bins, test_used = bob_wtr_test_used)
-  coy_smr_usedbin <- lapply(coy_smr_Kbins, used_bins, test_used = coy_smr_test_used)
-  coy_wtr_usedbin <- lapply(coy_wtr_Kbins, used_bins, test_used = coy_wtr_test_used)
+  coug_smr_OK_usedbin <- lapply(coug_smr_OK_Kbins, used_bins, test_used = coug_smr_OK_test_used)
+  coug_smr_NE_usedbin <- lapply(coug_smr_NE_Kbins, used_bins, test_used = coug_smr_NE_test_used)
+  coug_wtr_OK_usedbin <- lapply(coug_wtr_OK_Kbins, used_bins, test_used = coug_wtr_OK_test_used)
+  coug_wtr_NE_usedbin <- lapply(coug_wtr_NE_Kbins, used_bins, test_used = coug_wtr_NE_test_used)
+  wolf_smr_OK_usedbin <- lapply(wolf_smr_OK_Kbins, used_bins, test_used = wolf_smr_OK_test_used)
+  wolf_smr_NE_usedbin <- lapply(wolf_smr_NE_Kbins, used_bins, test_used = wolf_smr_NE_test_used)
+  wolf_wtr_OK_usedbin <- lapply(wolf_wtr_OK_Kbins, used_bins, test_used = wolf_wtr_OK_test_used)
+  wolf_wtr_NE_usedbin <- lapply(wolf_wtr_NE_Kbins, used_bins, test_used = wolf_wtr_NE_test_used)
+  # bob_smr_usedbin <- lapply(bob_smr_Kbins, used_bins, test_used = bob_smr_test_used)
+  # bob_wtr_usedbin <- lapply(bob_wtr_Kbins, used_bins, test_used = bob_wtr_test_used)
+  # coy_smr_usedbin <- lapply(coy_smr_Kbins, used_bins, test_used = coy_smr_test_used)
+  # coy_wtr_usedbin <- lapply(coy_wtr_Kbins, used_bins, test_used = coy_wtr_test_used)
 
   
   #'  Function to area weight frequency of each bin and calculate Spearman's 
@@ -1125,14 +1137,18 @@
   elk_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = elk_wtr_usedbin, bin_area = elk_wtr_karea, species = "Elk", season = "Winter")
   wtd_smr_SpRankCor <- Sp_Rank_Cor(used_bin = wtd_smr_usedbin, bin_area = wtd_smr_karea, species = "White-tailed Deer", season = "Summer")
   wtd_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = wtd_wtr_usedbin, bin_area = wtd_wtr_karea, species = "White-tailed Deer", season = "Winter")
-  coug_smr_SpRankCor <- Sp_Rank_Cor(used_bin = coug_smr_usedbin, bin_area = coug_smr_karea, species = "Cougar", season = "Summer")
-  coug_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = coug_wtr_usedbin, bin_area = coug_wtr_karea, species = "Cougar", season = "Winter")
-  wolf_smr_SpRankCor <- Sp_Rank_Cor(used_bin = wolf_smr_usedbin, bin_area = wolf_smr_karea, species = "Wolf", season = "Summer")
-  wolf_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = wolf_wtr_usedbin, bin_area = wolf_wtr_karea, species = "Wolf", season = "Winter")
-  bob_smr_SpRankCor <- Sp_Rank_Cor(used_bin = bob_smr_usedbin, bin_area = bob_smr_karea, species = "Bobcat", season = "Summer")
-  bob_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = bob_wtr_usedbin, bin_area = bob_wtr_karea, species = "Bobcat", season = "Winter")
-  coy_smr_SpRankCor <- Sp_Rank_Cor(used_bin = coy_smr_usedbin, bin_area = coy_smr_karea, species = "Coyote", season = "Summer")
-  coy_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = coy_wtr_usedbin, bin_area = coy_wtr_karea, species = "Coyote", season = "Winter")
+  coug_smr_OK_SpRankCor <- Sp_Rank_Cor(used_bin = coug_smr_OK_usedbin, bin_area = coug_smr_OK_karea, species = "Cougar OK", season = "Summer")
+  coug_smr_NE_SpRankCor <- Sp_Rank_Cor(used_bin = coug_smr_NE_usedbin, bin_area = coug_smr_NE_karea, species = "Cougar NE", season = "Summer")
+  coug_wtr_OK_SpRankCor <- Sp_Rank_Cor(used_bin = coug_wtr_OK_usedbin, bin_area = coug_wtr_OK_karea, species = "Cougar OK", season = "Winter")
+  coug_wtr_NE_SpRankCor <- Sp_Rank_Cor(used_bin = coug_wtr_NE_usedbin, bin_area = coug_wtr_NE_karea, species = "Cougar NE", season = "Winter")
+  wolf_smr_OK_SpRankCor <- Sp_Rank_Cor(used_bin = wolf_smr_OK_usedbin, bin_area = wolf_smr_OK_karea, species = "Wolf oK", season = "Summer")
+  wolf_smr_NE_SpRankCor <- Sp_Rank_Cor(used_bin = wolf_smr_NE_usedbin, bin_area = wolf_smr_NE_karea, species = "Wolf NE", season = "Summer")
+  wolf_wtr_OK_SpRankCor <- Sp_Rank_Cor(used_bin = wolf_wtr_OK_usedbin, bin_area = wolf_wtr_OK_karea, species = "Wolf OK", season = "Winter")
+  wolf_wtr_NE_SpRankCor <- Sp_Rank_Cor(used_bin = wolf_wtr_NE_usedbin, bin_area = wolf_wtr_NE_karea, species = "Wolf NE", season = "Winter")
+  # bob_smr_SpRankCor <- Sp_Rank_Cor(used_bin = bob_smr_usedbin, bin_area = bob_smr_karea, species = "Bobcat", season = "Summer")
+  # bob_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = bob_wtr_usedbin, bin_area = bob_wtr_karea, species = "Bobcat", season = "Winter")
+  # coy_smr_SpRankCor <- Sp_Rank_Cor(used_bin = coy_smr_usedbin, bin_area = coy_smr_karea, species = "Coyote", season = "Summer")
+  # coy_wtr_SpRankCor <- Sp_Rank_Cor(used_bin = coy_wtr_usedbin, bin_area = coy_wtr_karea, species = "Coyote", season = "Winter")
   
   #'  ================================================
   ####  Table Spearman's Rank Correlation results  ####
@@ -1140,9 +1156,10 @@
   #'  Create a single df of all Spearman's Rank Correlation results
   spearman_out <- rbind(md_smr_SpRankCor, md_wtr_SpRankCor, elk_smr_SpRankCor, 
                         elk_wtr_SpRankCor, wtd_smr_SpRankCor, wtd_wtr_SpRankCor, 
-                        coug_smr_SpRankCor, coug_wtr_SpRankCor, wolf_smr_SpRankCor, 
-                        wolf_wtr_SpRankCor, bob_smr_SpRankCor, bob_wtr_SpRankCor, 
-                        coy_smr_SpRankCor, coy_wtr_SpRankCor)
+                        coug_smr_OK_SpRankCor, coug_smr_NE_SpRankCor, coug_wtr_OK_SpRankCor, 
+                        coug_wtr_NE_SpRankCor, wolf_smr_OK_SpRankCor, wolf_smr_NE_SpRankCor,
+                        wolf_wtr_OK_SpRankCor, wolf_wtr_NE_SpRankCor) #bob_smr_SpRankCor, bob_wtr_SpRankCor, 
+                        #coy_smr_SpRankCor, coy_wtr_SpRankCor)
   spearman_out <- dplyr::select(spearman_out, c("Species", "Season", "mu.SpCor", "se.SpCor"))
   
   write.csv(spearman_out, "./Outputs/RSF_output/Kfold_CV/Spearman_Rank_Correlations.csv")
