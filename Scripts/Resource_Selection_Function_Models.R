@@ -759,10 +759,11 @@
   coug_wolf_RSF_predicted <- list(coug_smr_OK_rsf_sa, coug_smr_NE_rsf_sa, 
                                   coug_wtr_OK_rsf_sa, coug_wtr_NE_rsf_sa, 
                                   wolf_smr_OK_rsf_sa, wolf_smr_NE_rsf_sa, 
-                                  wolf_wtr_NE_rsf_sa, wolf_wtr_NE_rsf_sa)
+                                  wolf_wtr_OK_rsf_sa, wolf_wtr_NE_rsf_sa)
   save(coug_wolf_RSF_predicted, file = paste0("./Outputs/RSF_output/coug_wolf_RSF_predicted_", Sys.Date(), ".RData"))
   
   load("./Outputs/RSF_output/all_spp_RSF_predicted_2022-06-14.RData") #all_spp_RSF_predicted_2022-06-14.RData both study areas combined for predator RSFs
+  load("./Outputs/RSF_output/coug_wolf_RSF_predicted_2023-04-04.RData")
   
   #'  Function to identify any outliers
   outliers <- function(predicted, title, covs_list) {
@@ -806,6 +807,16 @@
   # coy_wtr_outliers <- lapply(coy_wtr_rsf_sa, outliers, title = "Coyote Winter RSF Predictions", covs_list = coy_wtr_zcovs[[1]]) 
   
   wolf_smr_outliers<- lapply(all_spp_RSF_predicted[[9]], outliers, title = "Wolf Summer RSF Predictions", covs_list = wolf_smr_zcovs[[1]])
+  
+  # coug_smr_OK_outliers <- lapply(coug_wolf_RSF_predicted[[1]], outliers, title = "Cougar Summer Okanogan RSF Predictions", covs_list = coug_smr_OK_zcovs[[1]])
+  # coug_smr_NE_outliers <- lapply(coug_wolf_RSF_predicted[[2]], outliers, title = "Cougar Summer Northeast RSF Predictions", covs_list = coug_smr_NE_zcovs[[1]])
+  # coug_wtr_OK_outliers <- lapply(coug_wolf_RSF_predicted[[3]], outliers, title = "Cougar Winter Okanogan RSF Predictions", covs_list = coug_wtr_OK_zcovs[[1]])
+  # coug_wtr_NE_outliers <- lapply(coug_wolf_RSF_predicted[[4]], outliers, title = "Cougar Winter Northeast RSF Predictions", covs_list = coug_wtr_NE_zcovs[[1]])
+  # wolf_smr_OK_outliers <- lapply(coug_wolf_RSF_predicted[[5]], outliers, title = "Wolf Summer Okanogan RSF Predictions", covs_list = wolf_smr_OK_zcovs[[1]])
+  # wolf_smr_NE_outliers <- lapply(coug_wolf_RSF_predicted[[6]], outliers, title = "Wolf Summer Northeast RSF Predictions", covs_list = wolf_smr_NE_zcovs[[1]])
+  # wolf_wtr_OK_outliers <- lapply(coug_wolf_RSF_predicted[[7]], outliers, title = "Wolf Winter Okanogan RSF Predictions", covs_list = wolf_wtr_OK_zcovs[[1]])
+  # wolf_wtr_NE_outliers <- lapply(coug_wolf_RSF_predicted[[8]], outliers, title = "Wolf Winter Northeast RSF Predictions", covs_list = wolf_wtr_NE_zcovs[[1]])
+  
   
   #'  Re-scale predicted RSF values between 0 & 1 for plotting
   RSF_rescale <- function(out) {
@@ -890,12 +901,12 @@
   wtd_wtr_RSFstack <- rename_raster(wtd_wtr_RSFraster)
   coug_smr_OK_RSFstack <- rename_raster(coug_smr_OK_RSFraster)
   coug_smr_NE_RSFstack <- rename_raster(coug_smr_NE_RSFraster)
-  coug_wtr_NE_RSFstack <- rename_raster(coug_wtr_OK_RSFraster)
-  coug_wtr_OK_RSFstack <- rename_raster(coug_wtr_NE_RSFraster)
-  wolf_smr_NE_RSFstack <- rename_raster(wolf_smr_OK_RSFraster)
-  wolf_smr_OK_RSFstack <- rename_raster(wolf_smr_NE_RSFraster)
-  wolf_wtr_NE_RSFstack <- rename_raster(wolf_wtr_OK_RSFraster)
-  wolf_wtr_OK_RSFstack <- rename_raster(wolf_wtr_NE_RSFraster)
+  coug_wtr_OK_RSFstack <- rename_raster(coug_wtr_OK_RSFraster)
+  coug_wtr_NE_RSFstack <- rename_raster(coug_wtr_NE_RSFraster)
+  wolf_smr_OK_RSFstack <- rename_raster(wolf_smr_OK_RSFraster)
+  wolf_smr_NE_RSFstack <- rename_raster(wolf_smr_NE_RSFraster)
+  wolf_wtr_OK_RSFstack <- rename_raster(wolf_wtr_OK_RSFraster)
+  wolf_wtr_NE_RSFstack <- rename_raster(wolf_wtr_NE_RSFraster)
   # bob_smr_RSFstack <- rename_raster(bob_smr_RSFraster)
   # bob_wtr_RSFstack <- rename_raster(bob_wtr_RSFraster)
   # coy_smr_RSFstack <- rename_raster(coy_smr_RSFraster)
