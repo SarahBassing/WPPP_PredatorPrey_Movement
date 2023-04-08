@@ -77,14 +77,18 @@
   elk_wtr_rsf <- rast("./Shapefiles/Predicted_RSFs/elk_wtr_RSFstack_global.tif")
   wtd_smr_rsf <- rast("./Shapefiles/Predicted_RSFs/wtd_smr_RSFstack_global.tif")
   wtd_wtr_rsf <- rast("./Shapefiles/Predicted_RSFs/wtd_wtr_RSFstack_global.tif")
-  coug_smr_rsf <- rast("./Shapefiles/Predicted_RSFs/coug_smr_RSFstack_global.tif")
-  coug_wtr_rsf <- rast("./Shapefiles/Predicted_RSFs/coug_wtr_RSFstack_global.tif")
-  wolf_smr_rsf <- rast("./Shapefiles/Predicted_RSFs/wolf_smr_RSFstack_global.tif")
-  wolf_wtr_rsf <- rast("./Shapefiles/Predicted_RSFs/wolf_wtr_RSFstack_global.tif")
-  bob_smr_rsf <- rast("./Shapefiles/Predicted_RSFs/bob_smr_RSFstack_global.tif")
-  bob_wtr_rsf <- rast("./Shapefiles/Predicted_RSFs/bob_wtr_RSFstack_global.tif")
-  coy_smr_rsf <- rast("./Shapefiles/Predicted_RSFs/coy_smr_RSFstack_global.tif")
-  coy_wtr_rsf <- rast("./Shapefiles/Predicted_RSFs/coy_wtr_RSFstack_global.tif")
+  coug_smr_OK_rsf <- rast("./Shapefiles/Predicted_RSFs/coug_smr_OK_RSFstack.tif")
+  coug_smr_NE_rsf <- rast("./Shapefiles/Predicted_RSFs/coug_smr_NE_RSFstack.tif")
+  coug_wtr_OK_rsf <- rast("./Shapefiles/Predicted_RSFs/coug_wtr_OK_RSFstack.tif")
+  coug_wtr_NE_rsf <- rast("./Shapefiles/Predicted_RSFs/coug_wtr_NE_RSFstack.tif")
+  wolf_smr_OK_rsf <- rast("./Shapefiles/Predicted_RSFs/wolf_smr_OK_RSFstack.tif")
+  wolf_smr_NE_rsf <- rast("./Shapefiles/Predicted_RSFs/wolf_smr_NE_RSFstack.tif")
+  wolf_wtr_OK_rsf <- rast("./Shapefiles/Predicted_RSFs/wolf_wtr_OK_RSFstack.tif")
+  wolf_wtr_NE_rsf <- rast("./Shapefiles/Predicted_RSFs/wolf_wtr_NE_RSFstack.tif")
+  # bob_smr_rsf <- rast("./Shapefiles/Predicted_RSFs/bob_smr_RSFstack_global.tif")
+  # bob_wtr_rsf <- rast("./Shapefiles/Predicted_RSFs/bob_wtr_RSFstack_global.tif")
+  # coy_smr_rsf <- rast("./Shapefiles/Predicted_RSFs/coy_smr_RSFstack_global.tif")
+  # coy_wtr_rsf <- rast("./Shapefiles/Predicted_RSFs/coy_wtr_RSFstack_global.tif")
   
   #'  Identify projections & resolutions of spatial layers
   crs(TRI, describe=TRUE, proj=TRUE) #projection(tri)
@@ -361,61 +365,83 @@
       ) %>%
       dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, WTD_smr, WTD_wtr)) 
     ####  COUGAR  ####
-    coug_smr <- terra::extract(coug_smr_rsf, vect(locs))
-    names(coug_smr) <- c("obs", "COUG_smr18", "COUG_smr19", "COUG_smr20")
-    coug_wtr <- terra::extract(coug_wtr_rsf, vect(locs))
-    names(coug_wtr) <- c("obs", "COUG_wtr1819", "COUG_wtr1920", "COUG_wtr2021")
-    coug_rsf <- full_join(coug_smr, coug_wtr, by = "obs") %>%
+    coug_smr_OK <- terra::extract(coug_smr_OK_rsf, vect(locs))
+    names(coug_smr_OK) <- c("obs", "COUG_smr18_OK", "COUG_smr19_OK", "COUG_smr20_OK")
+    coug_smr_NE <- terra::extract(coug_smr_NE_rsf, vect(locs))
+    names(coug_smr_NE) <- c("obs", "COUG_smr18_NE", "COUG_smr19_NE", "COUG_smr20_NE")
+    coug_wtr_OK <- terra::extract(coug_wtr_OK_rsf, vect(locs))
+    names(coug_wtr_OK) <- c("obs", "COUG_wtr1819_OK", "COUG_wtr1920_OK", "COUG_wtr2021_OK")
+    coug_wtr_NE <- terra::extract(coug_wtr_NE_rsf, vect(locs))
+    names(coug_wtr_NE) <- c("obs", "COUG_wtr1819_NE", "COUG_wtr1920_NE", "COUG_wtr2021_NE")
+    coug_rsf <- full_join(coug_smr_OK, coug_smr_NE, by = "obs") %>%
+      full_join(coug_wtr_OK, by = "obs") %>%
+      full_join(coug_wtr_NE, by = "obs") %>%
       full_join(locs, by = "obs") %>%
       mutate(
-        COUG_smr = ifelse(Season == "Summer18", COUG_smr18, COUG_smr20),
-        COUG_smr = ifelse(Season == "Summer19", COUG_smr19, COUG_smr),
-        COUG_wtr = ifelse(Season == "Winter1819", COUG_wtr1819, COUG_wtr2021),
-        COUG_wtr = ifelse(Season == "Winter1920", COUG_wtr1920, COUG_wtr)
+        #'  Keep in mind this approach provides a meaningless value for summer/winter
+        #'  RSF when the Season is winter/summer - be sure to drop this column later
+        COUG_smr_OK = ifelse(Season == "Summer18", COUG_smr18_OK, COUG_smr20_OK),
+        COUG_smr_OK = ifelse(Season == "Summer19", COUG_smr19_OK, COUG_smr_OK),
+        COUG_smr_NE = ifelse(Season == "Summer18", COUG_smr18_NE, COUG_smr20_NE),
+        COUG_smr_NE = ifelse(Season == "Summer19", COUG_smr19_NE, COUG_smr_NE),
+        COUG_wtr_OK = ifelse(Season == "Winter1819", COUG_wtr1819_OK, COUG_wtr2021_OK),
+        COUG_wtr_OK = ifelse(Season == "Winter1920", COUG_wtr1920_OK, COUG_wtr_OK),
+        COUG_wtr_NE = ifelse(Season == "Winter1819", COUG_wtr1819_NE, COUG_wtr2021_NE),
+        COUG_wtr_NE = ifelse(Season == "Winter1920", COUG_wtr1920_NE, COUG_wtr_NE)
       ) %>%
-      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, COUG_smr, COUG_wtr)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, COUG_smr_OK, COUG_smr_NE, COUG_wtr_OK, COUG_wtr_NE)) 
     ####  WOLF  ####
-    wolf_smr <- terra::extract(wolf_smr_rsf, vect(locs))
-    names(wolf_smr) <- c("obs", "WOLF_smr18", "WOLF_smr19", "WOLF_smr20")
-    wolf_wtr <- terra::extract(wolf_wtr_rsf, vect(locs))
-    names(wolf_wtr) <- c("obs", "WOLF_wtr1819", "WOLF_wtr1920", "WOLF_wtr2021")
-    wolf_rsf <- full_join(wolf_smr, wolf_wtr, by = "obs") %>%
+    wolf_smr_OK <- terra::extract(wolf_smr_OK_rsf, vect(locs))
+    names(wolf_smr_OK) <- c("obs", "WOLF_smr18_OK", "WOLF_smr19_OK", "WOLF_smr20_OK")
+    wolf_smr_NE <- terra::extract(wolf_smr_NE_rsf, vect(locs))
+    names(wolf_smr_NE) <- c("obs", "WOLF_smr18_NE", "WOLF_smr19_NE", "WOLF_smr20_NE")
+    wolf_wtr_OK <- terra::extract(wolf_wtr_OK_rsf, vect(locs))
+    names(wolf_wtr_OK) <- c("obs", "WOLF_wtr1819_OK", "WOLF_wtr1920_OK", "WOLF_wtr2021_OK")
+    wolf_wtr_NE <- terra::extract(wolf_wtr_NE_rsf, vect(locs))
+    names(wolf_wtr_NE) <- c("obs", "WOLF_wtr1819_NE", "WOLF_wtr1920_NE", "WOLF_wtr2021_NE")
+    wolf_rsf <- full_join(wolf_smr_OK, wolf_smr_NE, by = "obs") %>%
+      full_join(wolf_wtr_OK, by = "obs") %>%
+      full_join(wolf_wtr_NE, by = "obs") %>%
       full_join(locs, by = "obs") %>%
       mutate(
-        WOLF_smr = ifelse(Season == "Summer18", WOLF_smr18, WOLF_smr20),
-        WOLF_smr = ifelse(Season == "Summer19", WOLF_smr19, WOLF_smr),
-        WOLF_wtr = ifelse(Season == "Winter1819", WOLF_wtr1819, WOLF_wtr2021),
-        WOLF_wtr = ifelse(Season == "Winter1920", WOLF_wtr1920, WOLF_wtr)
+        WOLF_smr_OK = ifelse(Season == "Summer18", WOLF_smr18_OK, WOLF_smr20_OK),
+        WOLF_smr_OK = ifelse(Season == "Summer19", WOLF_smr19_OK, WOLF_smr_OK),
+        WOLF_smr_NE = ifelse(Season == "Summer18", WOLF_smr18_NE, WOLF_smr20_NE),
+        WOLF_smr_NE = ifelse(Season == "Summer19", WOLF_smr19_NE, WOLF_smr_NE),
+        WOLF_wtr_OK = ifelse(Season == "Winter1819", WOLF_wtr1819_OK, WOLF_wtr2021_OK),
+        WOLF_wtr_OK = ifelse(Season == "Winter1920", WOLF_wtr1920_OK, WOLF_wtr_OK),
+        WOLF_wtr_NE = ifelse(Season == "Winter1819", WOLF_wtr1819_NE, WOLF_wtr2021_NE),
+        WOLF_wtr_NE = ifelse(Season == "Winter1920", WOLF_wtr1920_NE, WOLF_wtr_NE)
       ) %>%
-      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, WOLF_smr, WOLF_wtr)) 
-    ####  BOBCAT  ####
-    bob_smr <- terra::extract(bob_smr_rsf, vect(locs))
-    names(bob_smr) <- c("obs", "BOB_smr18", "BOB_smr19", "BOB_smr20")
-    bob_wtr <- terra::extract(bob_wtr_rsf, vect(locs))
-    names(bob_wtr) <- c("obs", "BOB_wtr1819", "BOB_wtr1920", "BOB_wtr2021")
-    bob_rsf <- full_join(bob_smr, bob_wtr, by = "obs") %>%
-      full_join(locs, by = "obs") %>%
-      mutate(
-        BOB_smr = ifelse(Season == "Summer18", BOB_smr18, BOB_smr20),
-        BOB_smr = ifelse(Season == "Summer19", BOB_smr19, BOB_smr),
-        BOB_wtr = ifelse(Season == "Winter1819", BOB_wtr1819, BOB_wtr2021),
-        BOB_wtr = ifelse(Season == "Winter1920", BOB_wtr1920, BOB_wtr)
-      ) %>%
-      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, BOB_smr, BOB_wtr)) 
-    ####  COYOTE  ####
-    coy_smr <- terra::extract(coy_smr_rsf, vect(locs))
-    names(coy_smr) <- c("obs", "COY_smr18", "COY_smr19", "COY_smr20")
-    coy_wtr <- terra::extract(coy_wtr_rsf, vect(locs))
-    names(coy_wtr) <- c("obs", "COY_wtr1819", "COY_wtr1920", "COY_wtr2021")
-    coy_rsf <- full_join(coy_smr, coy_wtr, by = "obs") %>%
-      full_join(locs, by = "obs") %>%
-      mutate(
-        COY_smr = ifelse(Season == "Summer18", COY_smr18, COY_smr20),
-        COY_smr = ifelse(Season == "Summer19", COY_smr19, COY_smr),
-        COY_wtr = ifelse(Season == "Winter1819", COY_wtr1819, COY_wtr2021),
-        COY_wtr = ifelse(Season == "Winter1920", COY_wtr1920, COY_wtr)
-      ) %>%
-      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, COY_smr, COY_wtr)) 
+      dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, WOLF_smr_OK, WOLF_smr_NE, WOLF_wtr_OK, WOLF_wtr_NE)) 
+    # ####  BOBCAT  ####
+    # bob_smr <- terra::extract(bob_smr_rsf, vect(locs))
+    # names(bob_smr) <- c("obs", "BOB_smr18", "BOB_smr19", "BOB_smr20")
+    # bob_wtr <- terra::extract(bob_wtr_rsf, vect(locs))
+    # names(bob_wtr) <- c("obs", "BOB_wtr1819", "BOB_wtr1920", "BOB_wtr2021")
+    # bob_rsf <- full_join(bob_smr, bob_wtr, by = "obs") %>%
+    #   full_join(locs, by = "obs") %>%
+    #   mutate(
+    #     BOB_smr = ifelse(Season == "Summer18", BOB_smr18, BOB_smr20),
+    #     BOB_smr = ifelse(Season == "Summer19", BOB_smr19, BOB_smr),
+    #     BOB_wtr = ifelse(Season == "Winter1819", BOB_wtr1819, BOB_wtr2021),
+    #     BOB_wtr = ifelse(Season == "Winter1920", BOB_wtr1920, BOB_wtr)
+    #   ) %>%
+    #   dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, BOB_smr, BOB_wtr)) 
+    # ####  COYOTE  ####
+    # coy_smr <- terra::extract(coy_smr_rsf, vect(locs))
+    # names(coy_smr) <- c("obs", "COY_smr18", "COY_smr19", "COY_smr20")
+    # coy_wtr <- terra::extract(coy_wtr_rsf, vect(locs))
+    # names(coy_wtr) <- c("obs", "COY_wtr1819", "COY_wtr1920", "COY_wtr2021")
+    # coy_rsf <- full_join(coy_smr, coy_wtr, by = "obs") %>%
+    #   full_join(locs, by = "obs") %>%
+    #   mutate(
+    #     COY_smr = ifelse(Season == "Summer18", COY_smr18, COY_smr20),
+    #     COY_smr = ifelse(Season == "Summer19", COY_smr19, COY_smr),
+    #     COY_wtr = ifelse(Season == "Winter1819", COY_wtr1819, COY_wtr2021),
+    #     COY_wtr = ifelse(Season == "Winter1920", COY_wtr1920, COY_wtr)
+    #   ) %>%
+    #   dplyr::select(c(obs, ID, AnimalID, Season, StudyArea, COY_smr, COY_wtr)) 
     
     
     #'  Join all extracted covariates together
@@ -427,14 +453,15 @@
       full_join(wtd_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
       full_join(coug_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
       full_join(wolf_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
-      full_join(coy_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
-      full_join(bob_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      # full_join(coy_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
+      # full_join(bob_rsf, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
       full_join(locs, by = c("obs", "ID", "AnimalID", "Season", "StudyArea")) %>%
       dplyr::select(c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", 
                       "Date", "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_smr",       
                       "MD_wtr", "ELK_smr", "ELK_wtr", "WTD_smr", "WTD_wtr",
-                      "COUG_smr", "COUG_wtr", "WOLF_smr", "WOLF_wtr", "BOB_smr",
-                      "BOB_wtr", "COY_smr", "COY_wtr"))
+                      "COUG_smr_OK", "COUG_smr_NE", "COUG_wtr_OK", "COUG_wtr_NE", 
+                      "WOLF_smr_OK", "WOLF_smr_NE", "WOLF_wtr_OK", "WOLF_wtr_NE"))
+                      # "BOB_smr", "BOB_wtr", "COY_smr", "COY_wtr"))
 
     return(crwOut_covs)
   }
@@ -448,7 +475,7 @@
   # wtdw_telem_covs <- cov_extract(sf_locs[[6]])
   # spp_telem_covs <- future_lapply(sf_locs, cov_extract)
   
-  ats_telem_covs <- lapply(sf_ats_locs, cov_extract)
+  # ats_telem_covs <- lapply(sf_ats_locs, cov_extract)
   
   #'  End time keeping
   end.time <- Sys.time()
@@ -478,8 +505,8 @@
   #'  but missing RSF values b/c those locations were masked in the RSF analyses,
   #'  producing NAs for all RSF values at these locations
   remove_wtr_covs <- function(covs) {
-    smr_data <- dplyr::select(covs, -c("MD_wtr", "ELK_wtr", "WTD_wtr", "COUG_wtr", 
-                                           "WOLF_wtr", "BOB_wtr", "COY_wtr")) %>%
+    smr_data <- dplyr::select(covs, -c("MD_wtr", "ELK_wtr", "WTD_wtr", "COUG_wtr_OK", 
+                                       "COUG_wtr_NE", "WOLF_wtr_OK", "WOLF_wtr_NE")) %>% #"BOB_wtr", "COY_wtr"
       #'  Add columns for location hour, re-factored hour, & whether it's day or 
       #'  night based on sunrise/sunset times over course of each month
       mutate(hour = as.integer(strftime(time, format = "%H", tz="Etc/GMT+8")),
@@ -501,16 +528,16 @@
              daytime = ifelse(month == 9 & hour < 7 | hour > 19, 1, daytime))
     names(smr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
-                     "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF", "hour", 
-                     "hour_fix", "hour3", "month", "daytime")
+                     "WTD_RSF", "COUG_RSF_OK","COUG_RSF_NE", "WOLF_RSF_OK", "WOLF_RSF_NE",   #"BOB_RSF", "COY_RSF", 
+                     "hour", "hour_fix", "hour3", "month", "daytime")
     return(smr_data)
   }
   smr_telem_data <- lapply(smr_covs, remove_wtr_covs)
   
   
   remove_smr_covs <- function(covs) {
-    wtr_data <- dplyr::select(covs, -c("MD_smr", "ELK_smr", "WTD_smr", "COUG_smr",  
-                                           "WOLF_smr", "BOB_smr", "COY_smr")) %>%
+    wtr_data <- dplyr::select(covs, -c("MD_smr", "ELK_smr", "WTD_smr", "COUG_smr_OK", 
+                                       "COUG_smr_NE", "WOLF_smr_OK", "WOLF_smr_NE")) %>% #"BOB_smr", "COY_smr"
       #'  Add columns for location hour, re-factored hour, & whether it's day or 
       #'  night based on sunrise/sunset times over course of each month
       mutate(hour = as.integer(strftime(time, format = "%H", tz="Etc/GMT+8")),
@@ -534,8 +561,8 @@
              daytime = ifelse(month == 2 & hour < 7 | hour > 17, 1, daytime))
     names(wtr_data) <- c("obs", "ID", "AnimalID", "Season", "StudyArea", "time", "Date", 
                      "Dist2Road", "PercOpen", "SnowCover", "TRI", "MD_RSF", "ELK_RSF", 
-                     "WTD_RSF", "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF", "hour", 
-                     "hour_fix", "hour3", "month", "daytime")
+                     "WTD_RSF", "COUG_RSF_OK", "COUG_RSF_NE", "WOLF_RSF_OK", "WOLF_RSF_NE", #"BOB_RSF", "COY_RSF", 
+                     "hour", "hour_fix", "hour3", "month", "daytime")
     return(wtr_data)
   }
   wtr_telem_data <- lapply(wtr_covs, remove_smr_covs)
@@ -606,24 +633,30 @@
                   smr_telem_data[[5]], wtr_telem_data[[5]], smr_telem_data[[7]], wtr_telem_data[[7]],
                   smr_telem_data[[9]], wtr_telem_data[[9]], smr_telem_data[[11]], wtr_telem_data[[11]])
   
-  #'  Remove MD & ELK/WTD data from NE & OK covariates, respectively
+  #'  Remove MD vs ELK/WTD and COUG/WOLF OK vs NE data from NE & OK covariates, respectively
   #'  These columns of pure NAs will cause problems when merging covariate data
   #'  with crwOut data in HMM script
   #'  Remove RSF data for species collared only in NE from OK data sets
-  nix_ELK_WTD <- function(OK_covs) {
-    no_ELK_WTD <- dplyr::select(OK_covs, -c(ELK_RSF, WTD_RSF))
-    return(no_ELK_WTD)
+  nix_NE_RSFs <- function(OK_covs) {
+    no_NE_RSFs <- dplyr::select(OK_covs, -c(ELK_RSF, WTD_RSF, COUG_RSF_NE, WOLF_RSF_NE)) %>%
+      #'  Rename study areas-specific cougar and wolf columns
+      rename(COUG_RSF = COUG_RSF_OK,
+             WOLF_RSF = WOLF_RSF_OK)
+    return(no_NE_RSFs)
   }
-  skinny_OK <- lapply(OK_covs, nix_ELK_WTD)
+  skinny_OK <- lapply(OK_covs, nix_NE_RSFs)
   
-  ats_covs <- lapply(ats_telem_data, nix_ELK_WTD)
+  ats_covs <- lapply(ats_telem_data, nix_NE_RSFs)
   
   #'  Remove RSF data for species collared only in OK from NE data sets
-  nix_MD <- function(NE_covs) {
-    no_MD <- dplyr::select(NE_covs, -c(MD_RSF))
-    return(no_MD)
+  nix_OK_RSFs <- function(NE_covs) {
+    no_OK_RSFs <- dplyr::select(NE_covs, -c(MD_RSF, COUG_RSF_OK, WOLF_RSF_OK)) %>%
+      #'  Rename study areas-specific cougar and wolf columns
+      rename(COUG_RSF = COUG_RSF_NE,
+             WOLF_RSF = WOLF_RSF_NE)
+    return(no_OK_RSFs)
   }
-  skinny_NE <- lapply(NE_covs, nix_MD)
+  skinny_NE <- lapply(NE_covs, nix_OK_RSFs)
   
   
   #'  Merge back into one giant list keeping track of list order!
