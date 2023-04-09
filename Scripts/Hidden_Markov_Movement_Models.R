@@ -27,7 +27,7 @@
 
   #'  Load crwOut & covaraite data
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_2022-03-14.RData")    
-  load("./Outputs/Telemetry_covs/spp_telem_covs_2022-05-23.RData")  #2022-03-16 unweighted RSFs
+  load("./Outputs/Telemetry_covs/spp_telem_covs_2023-04-08.RData")  #2022-05-23 cougar/wolf RSF combined study areas
   
   #'  Merge datasets and create momentuHMMData object
   #'  Data merged and scaled by study area separately b/c different species collared
@@ -53,16 +53,16 @@
     #' crwlMerge$crwPredict$WTD_RSF <- scale(crwlMerge$crwPredict$WTD_RSF)   # not in OK data sets
     crwlMerge$crwPredict$COUG_RSF <- scale(crwlMerge$crwPredict$COUG_RSF)
     crwlMerge$crwPredict$WOLF_RSF <- scale(crwlMerge$crwPredict$WOLF_RSF)
-    crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
-    crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
+    # crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
+    # crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
     crwlMerge$crwPredict$hour <- as.integer(crwlMerge$crwPredict$hour)
     crwlMerge$crwPredict$hour_fix <- as.integer(crwlMerge$crwPredict$hour_fix)
     crwlMerge$crwPredict$hour3 <- as.integer(crwlMerge$crwPredict$hour3)
     #'  Prep crwlMerge data for fitHMM function
     Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", #"NDVI", 
                                                     "SnowCover", "TRI", "MD_RSF", 
-                                                    "COUG_RSF", "WOLF_RSF", "BOB_RSF", 
-                                                    "COY_RSF", "hour", "hour_fix",
+                                                    "COUG_RSF", "WOLF_RSF", # "BOB_RSF", "COY_RSF", 
+                                                    "hour", "hour_fix",
                                                     "hour3", "daytime", "Sex", 
                                                     "StudyArea", "Season"))  # "ELK_RSF", "WTD_RSF", 
     return(Data)
@@ -102,17 +102,16 @@
     crwlMerge$crwPredict$WTD_RSF <- scale(crwlMerge$crwPredict$WTD_RSF)
     crwlMerge$crwPredict$COUG_RSF <- scale(crwlMerge$crwPredict$COUG_RSF)
     crwlMerge$crwPredict$WOLF_RSF <- scale(crwlMerge$crwPredict$WOLF_RSF)
-    crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
-    crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
+    # crwlMerge$crwPredict$BOB_RSF <- scale(crwlMerge$crwPredict$BOB_RSF)
+    # crwlMerge$crwPredict$COY_RSF <- scale(crwlMerge$crwPredict$COY_RSF)
     crwlMerge$crwPredict$hour <- as.integer(crwlMerge$crwPredict$hour)
     crwlMerge$crwPredict$hour_fix <- as.integer(crwlMerge$crwPredict$hour_fix)
     crwlMerge$crwPredict$hour3 <- as.integer(crwlMerge$crwPredict$hour3)
     #'  Prep crwlMerge data for fitHMM function
     Data <- prepData(data = crwlMerge, covNames = c("Dist2Road", "PercOpen", #"NDVI", 
                                                     "SnowCover", "TRI", "ELK_RSF", 
-                                                    "WTD_RSF", "COUG_RSF", "WOLF_RSF",
-                                                    "BOB_RSF", "COY_RSF", "hour", 
-                                                    "hour_fix", "hour3", "daytime",
+                                                    "WTD_RSF", "COUG_RSF", "WOLF_RSF", #"BOB_RSF", "COY_RSF", 
+                                                    "hour", "hour_fix", "hour3", "daytime",
                                                     "Sex", "StudyArea", "Season")) # "MD_RSF",
     return(Data)
   }
@@ -140,7 +139,7 @@
                    bobData_wtr_NE, coyData_smr_OK, coyData_wtr_OK, coyData_smr_NE, 
                    coyData_wtr_NE)
   save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_", Sys.Date(), ".RData"))
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-05-23.RData") #2022-03-16
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2023-04-08.RData") #2022-05-23
   names(hmm_data) <- c("mdData_smr", "mdData_wtr", "elkData_smr", "elkData_wtr", "wtdData_smr", "wtdData_wtr",
                   "cougData_smr_OK", "cougData_wtr_OK", "cougData_smr_NE", "cougData_wtr_NE",
                   "wolfData_smr_OK", "wolfData_wtr_OK", "wolfData_smr_NE", "wolfData_wtr_NE",
@@ -168,7 +167,7 @@
   cov_correlation_OK <- function(dat) {
     covs <- dat %>%
       dplyr::select(c("Dist2Road", "PercOpen", "TRI", "MD_RSF", "COUG_RSF", #"NDVI", 
-                      "WOLF_RSF", "BOB_RSF", "COY_RSF")) 
+                      "WOLF_RSF"))#, "BOB_RSF", "COY_RSF")) 
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
@@ -187,7 +186,7 @@
   cov_correlation_NE <- function(dat) {
     covs <- dat %>%
       dplyr::select(c("Dist2Road", "PercOpen", "TRI", "ELK_RSF", "WTD_RSF", #"NDVI", 
-                      "COUG_RSF", "WOLF_RSF", "BOB_RSF", "COY_RSF")) 
+                      "COUG_RSF", "WOLF_RSF"))#, "BOB_RSF", "COY_RSF")) 
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
@@ -269,12 +268,19 @@
   #'  What's up with the ACF? Plot step lengths against hour to look for patterns
   mdData_smr <- hmm_data[[1]] 
   mdData_wtr <- hmm_data[[2]] 
+  elkData_smr <- hmm_data[[3]]
+  elkData_wtr <- hmm_data[[4]]
   wtdData_smr <- hmm_data[[5]] 
   wtdData_wtr <- hmm_data[[6]] 
   cougData_smr_OK <- hmm_data[[7]] 
   cougData_wtr_OK <- hmm_data[[8]] 
+  cougData_smr_NE <- hmm_data[[9]]
+  cougData_wtr_NE <- hmm_data[[10]]
+  wolfData_smr_OK <- hmm_data[[11]]
+  wolfData_wtr_OK <- hmm_data[[12]]
   wolfData_smr_NE <- hmm_data[[13]] 
   wolfData_wtr_NE <- hmm_data[[14]] 
+  
   
   write.csv(mdData_smr, "./Outputs/Telemetry_crwOut/mdData_smr_crwOut.csv")
   write.csv(mdData_wtr, "./Outputs/Telemetry_crwOut/mdData_wtr_crwOut.csv")
@@ -463,14 +469,15 @@
   #' md_HMM_smr_BOB <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_bob, fits = 1)
   #' md_HMM_smr_COY <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_coy, fits = 1)
   #' #'  Global model 
-  #' md_HMM_smr_wc <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
-  #'  COY & TRI highly correlated (-0.75) so running models with TRI & MD separately
-  #'  Will use AIC to choose final model  
-  md_HMM_smr_noCoy <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
-  md_HMM_smr_noTRI <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noTRI, fits = 1)
-  AIC(md_HMM_smr_noTRI, md_HMM_smr_noCoy)
-  #'  Final model based on AIC above (noCoy has lower AIC by 83)
-  md_HMM_smr <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
+  #' #' md_HMM_smr_wc <- HMM_fit(mdData_smr, dists_wc, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
+  #' #'  COY & TRI highly correlated (-0.75) so running models with TRI & MD separately
+  #' #'  Will use AIC to choose final model  
+  #' md_HMM_smr_noCoy <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
+  #' md_HMM_smr_noTRI <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noTRI, fits = 1)
+  #' AIC(md_HMM_smr_noTRI, md_HMM_smr_noCoy)
+  #' #'  Final model based on AIC above (noCoy has lower AIC by 83)
+  #' md_HMM_smr <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all_noCoy, fits = 1)
+  md_HMM_smr <- HMM_fit(mdData_smr, dists_vm, Par0_m1_md, DM_Zerotime, trans_formula_smr_all, fits = 1)
   #'  QQplot of residuals
   plotPR(md_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better? NOPE looks real bad on step length
@@ -515,7 +522,7 @@
   #' elk_HMM_smr_COY <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy, fits = 1)
   #' #'  Global model
   #' elk_HMM_smr_wc <- HMM_fit(elkData_smr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all_noBob, fits = 1)
-  elk_HMM_smr <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all_noBob, fits = 1)
+  elk_HMM_smr <- HMM_fit(elkData_smr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_smr_all, fits = 1)
   #'  QQplot of residuals
   plotPR(elk_HMM_smr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -538,7 +545,7 @@
   #' elk_HMM_wtr_COY <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_coy, fits = 1)
   #' #'  Global model
   #' elk_HMM_wtr_wc <- HMM_fit(elkData_wtr, dists_wc, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all_noBob, fits = 1)
-  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all_noBob, fits = 1)
+  elk_HMM_wtr <- HMM_fit(elkData_wtr, dists_vm, Par0_m1_elk, DM_Zerotime, trans_formula_wtr_all, fits = 1)
   #'  QQplot of residuals
   plotPR(elk_HMM_wtr, lag.max = 100, ncores = 4)
   #'  Does temporal autocorrelation look any better?
@@ -958,21 +965,21 @@
   
 
   ####  Summarize Results  ####
-  load("./Outputs/HMM_output/spp_HMM_output_2022-06-15.RData")
+  load("./Outputs/HMM_output/spp_HMM_output_2023-04-08.RData") #2022-06-15
   load("./Outputs/HMM_output/ungulate_HMM_output_2023-04-04.RData")
   
-  #'  Swap original ungulate models with updated models (2023-04-04: no mesopredators)
-  spp_HMM_output_new <- list(ungulate_HMM_output[[1]], ungulate_HMM_output[[2]], 
-                             ungulate_HMM_output[[3]], ungulate_HMM_output[[4]], 
-                             ungulate_HMM_output[[5]], ungulate_HMM_output[[6]], 
-                             spp_HMM_output[[7]], spp_HMM_output[[8]], 
-                             spp_HMM_output[[9]], spp_HMM_output[[10]], spp_HMM_output[[11]], 
-                             spp_HMM_output[[12]], spp_HMM_output[[13]], spp_HMM_output[[14]],
-                             spp_HMM_output[[15]], spp_HMM_output[[16]], spp_HMM_output[[17]], 
-                             spp_HMM_output[[18]], spp_HMM_output[[19]], spp_HMM_output[[20]])
-                             # spp_HMM_output[[21]], spp_HMM_output[[22]])
-  #'  Rename to keep life simpler
-  spp_HMM_output <- spp_HMM_output_new
+  #' #'  Swap original ungulate models with updated models (2023-04-04: no mesopredators)
+  #' spp_HMM_output_new <- list(ungulate_HMM_output[[1]], ungulate_HMM_output[[2]], 
+  #'                            ungulate_HMM_output[[3]], ungulate_HMM_output[[4]], 
+  #'                            ungulate_HMM_output[[5]], ungulate_HMM_output[[6]], 
+  #'                            spp_HMM_output[[7]], spp_HMM_output[[8]], 
+  #'                            spp_HMM_output[[9]], spp_HMM_output[[10]], spp_HMM_output[[11]], 
+  #'                            spp_HMM_output[[12]], spp_HMM_output[[13]], spp_HMM_output[[14]],
+  #'                            spp_HMM_output[[15]], spp_HMM_output[[16]], spp_HMM_output[[17]], 
+  #'                            spp_HMM_output[[18]], spp_HMM_output[[19]], spp_HMM_output[[20]])
+  #'                            # spp_HMM_output[[21]], spp_HMM_output[[22]])
+  #' #'  Rename to keep life simpler
+  #' spp_HMM_output <- spp_HMM_output_new
   
   #'  Review model output
   print(spp_HMM_output[[1]]) # md_HMM_smr
