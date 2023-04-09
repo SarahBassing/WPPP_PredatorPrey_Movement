@@ -1865,7 +1865,7 @@
                       subtitle = '     Northeast 2018 - 2021') + plot_layout(ncol = 2))
   
   
-  pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots_04.04.23.pdf")
+  pdf(file = "./Outputs/HMM_output/Stationary_State_Prob_Plots_04.08.23.pdf")
   plot(md_smr_patch, main = "Stationary State Probabilties for Summer Mule Deer")
   plot(md_wtr_patch, main = "Stationary State Probabilties for Winter Mule Deer")
   plot(elk_smr_patch, main = "Stationary State Probabilties for Summer Elk")
