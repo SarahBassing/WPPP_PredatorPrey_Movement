@@ -16,10 +16,10 @@
   # library(scico)
   
   #'  Load raw data with standardized covariates
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-05-23.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2023-04-08.RData") #2022-05-23
 
   #'  Load HMM results
-  load("./Outputs/HMM_output/spp_HMM_output_2022-06-15.RData") #2022-05-27
+  load("./Outputs/HMM_output/spp_HMM_output_2023-04-08.RData") #2022-06-15
   
   
   ####  Stationary State Probs with MEAN Covariate Values  ####
@@ -34,14 +34,12 @@
     #'  held at their mean value (0 b/c data are centered and scaled)
     stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
                                                    SnowCover = snow, TRI = 0,
-                                                   COUG_RSF = 0, WOLF_RSF = 0,
-                                                   BOB_RSF = 0, COY_RSF = 0))
+                                                   COUG_RSF = 0, WOLF_RSF = 0))
     print(stay_mu0)
     #'  Plot stationary state probabilities and extract predicted estimates
     fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
                                                   SnowCover = snow, TRI = 0,
-                                                  COUG_RSF = 0, WOLF_RSF = 0,
-                                                  BOB_RSF = 0, COY_RSF = 0),
+                                                  COUG_RSF = 0, WOLF_RSF = 0),
                           col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE)
     stationary_probs <- list(stay_pr, fig)
     
@@ -160,7 +158,7 @@
   #'  Cougar, coyote, wolf ["#D41159", "#FFC20A", "#0C7BDC"]
   
   #'  Ungulate stationary state ~ Cougar RSF
-  coug_effects <- rbind(md_wtr_PrStay$COUG_RSF, #md_smr_PrStay$COUG_RSF,
+  coug_effects <- rbind(md_smr_PrStay$COUG_RSF, md_wtr_PrStay$COUG_RSF,
                         elk_smr_PrStay$COUG_RSF, elk_wtr_PrStay$COUG_RSF,
                         wtd_smr_PrStay$COUG_RSF, wtd_wtr_PrStay$COUG_RSF) %>%
     filter(!State == "Encamped") %>%
@@ -187,7 +185,7 @@
     #labs(title = "Ungulate movement in response to relative probability of use by cougars")
   
   #'  Ungulate stationary state ~ Wolf RSF
-  wolf_effects <- rbind(md_wtr_PrStay$WOLF_RSF, #md_smr_PrStay$WOLF_RSF, 
+  wolf_effects <- rbind(md_smr_PrStay$WOLF_RSF, #md_wtr_PrStay$WOLF_RSF,
                         elk_smr_PrStay$WOLF_RSF, elk_wtr_PrStay$WOLF_RSF,
                         wtd_smr_PrStay$WOLF_RSF, wtd_wtr_PrStay$WOLF_RSF) %>%
     filter(!State == "Encamped") %>%
@@ -214,59 +212,59 @@
     #ylab("Probability of exploratory state") #+
     #labs(title = "Ungulate movement in response to relative wolf site use")
   
-  #'  Ungulate stationary state ~ Bobcat RSF
-  bob_effects <- rbind(md_smr_PrStay$BOB_RSF, md_wtr_PrStay$BOB_RSF,
-                       wtd_smr_PrStay$BOB_RSF, wtd_wtr_PrStay$BOB_RSF) %>%
-    filter(!State == "Encamped") %>%
-    mutate(Species = as.factor(Species),
-           Season = as.factor(Season),
-           StudyArea = as.factor(StudyArea)) %>% 
-    dplyr::select(-c(StudyArea, State))
-  prey_bob_plot <- ggplot(bob_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
-    geom_line(size = 0.75) + 
-    scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#E66100", "#5D3A9B")) + 
-    #'  Add confidence intervals
-    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#E66100", "#5D3A9B")) +
-    #'  Get rid of lines and gray background
-    theme_bw() +
-    theme(panel.border = element_blank()) +
-    theme(axis.line = element_line(color = 'black')) +
-    theme(text = element_text(size = 14)) +
-    #theme(legend.position="bottom") +
-    xlim(-2, 2.5) + ylim(0, 1.0) +
-    xlab("Scaled bobcat RSF value") +
-    ylab("Probability of exploratory state") +
-    labs(title = "Ungulate stationary state probabilities in response to relative probability of use by bobcats")
+  #' #'  Ungulate stationary state ~ Bobcat RSF
+  #' bob_effects <- rbind(md_smr_PrStay$BOB_RSF, md_wtr_PrStay$BOB_RSF,
+  #'                      wtd_smr_PrStay$BOB_RSF, wtd_wtr_PrStay$BOB_RSF) %>%
+  #'   filter(!State == "Encamped") %>%
+  #'   mutate(Species = as.factor(Species),
+  #'          Season = as.factor(Season),
+  #'          StudyArea = as.factor(StudyArea)) %>% 
+  #'   dplyr::select(-c(StudyArea, State))
+  #' prey_bob_plot <- ggplot(bob_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  #'   geom_line(size = 0.75) + 
+  #'   scale_linetype_manual(values=c("solid", "dashed")) +
+  #'   scale_color_manual(values=c("#E66100", "#5D3A9B")) + 
+  #'   #'  Add confidence intervals
+  #'   geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+  #'   scale_fill_manual(values=c("#E66100", "#5D3A9B")) +
+  #'   #'  Get rid of lines and gray background
+  #'   theme_bw() +
+  #'   theme(panel.border = element_blank()) +
+  #'   theme(axis.line = element_line(color = 'black')) +
+  #'   theme(text = element_text(size = 14)) +
+  #'   #theme(legend.position="bottom") +
+  #'   xlim(-2, 2.5) + ylim(0, 1.0) +
+  #'   xlab("Scaled bobcat RSF value") +
+  #'   ylab("Probability of exploratory state") +
+  #'   labs(title = "Ungulate stationary state probabilities in response to relative probability of use by bobcats")
   
-  #'  Ungulate stationary state ~ Coyote RSF
-  coy_effects <- rbind(md_wtr_PrStay$COY_RSF, #md_smr_PrStay$COY_RSF, 
-                       elk_wtr_PrStay$COY_RSF, #elk_smr_PrStay$COY_RSF, 
-                       wtd_smr_PrStay$COY_RSF, wtd_wtr_PrStay$COY_RSF) %>%
-    filter(!State == "Encamped") %>%
-    mutate(Species = as.factor(Species),
-           Season = as.factor(Season),
-           StudyArea = as.factor(StudyArea)) %>% 
-    dplyr::select(-c(StudyArea, State))
-  prey_coy_plot <- ggplot(coy_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
-    geom_line(size = 0.75) + 
-    scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) +  #"#332288", "#44AA99", "#CC6677"
-    #'  Add confidence intervals
-    geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + #"#40B0A6", "#E66100", "#5D3A9B"
-    #'  Get rid of lines and gray background
-    theme_bw() +
-    theme(panel.border = element_blank()) +
-    theme(axis.line = element_line(color = 'black')) +
-    theme(axis.title.y = element_blank()) +
-    theme(text = element_text(size = 14)) +
-    #theme(legend.position="bottom") +
-    xlim(-2, 2.5) + ylim(0, 1.0) +
-    xlab("Scaled coyote RSF value") #+
-    #ylab("Probability of exploratory state") #+
-    #labs(title = "Ungulate movement in response to relative coyote site use")
+  #' #'  Ungulate stationary state ~ Coyote RSF
+  #' coy_effects <- rbind(md_wtr_PrStay$COY_RSF, #md_smr_PrStay$COY_RSF, 
+  #'                      elk_wtr_PrStay$COY_RSF, #elk_smr_PrStay$COY_RSF, 
+  #'                      wtd_smr_PrStay$COY_RSF, wtd_wtr_PrStay$COY_RSF) %>%
+  #'   filter(!State == "Encamped") %>%
+  #'   mutate(Species = as.factor(Species),
+  #'          Season = as.factor(Season),
+  #'          StudyArea = as.factor(StudyArea)) %>% 
+  #'   dplyr::select(-c(StudyArea, State))
+  #' prey_coy_plot <- ggplot(coy_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
+  #'   geom_line(size = 0.75) + 
+  #'   scale_linetype_manual(values=c("solid", "dashed")) +
+  #'   scale_color_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) +  #"#332288", "#44AA99", "#CC6677"
+  #'   #'  Add confidence intervals
+  #'   geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
+  #'   scale_fill_manual(values=c("#40B0A6", "#E66100", "#5D3A9B")) + #"#40B0A6", "#E66100", "#5D3A9B"
+  #'   #'  Get rid of lines and gray background
+  #'   theme_bw() +
+  #'   theme(panel.border = element_blank()) +
+  #'   theme(axis.line = element_line(color = 'black')) +
+  #'   theme(axis.title.y = element_blank()) +
+  #'   theme(text = element_text(size = 14)) +
+  #'   #theme(legend.position="bottom") +
+  #'   xlim(-2, 2.5) + ylim(0, 1.0) +
+  #'   xlab("Scaled coyote RSF value") #+
+  #'   #ylab("Probability of exploratory state") #+
+  #'   #labs(title = "Ungulate movement in response to relative coyote site use")
   
   #'  Predator stationary state ~ Mule Deer RSF
   md_effects <- rbind(coug_smr_OK_PrStay$MD_RSF, #coug_wtr_OK_PrStay$MD_RSF,
@@ -354,17 +352,17 @@
   #'  Save
   ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_coug_plot.tiff", prey_coug_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
   ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_wolf_plot.tiff", prey_wolf_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_bob_plot.tiff", prey_bob_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_coy_plot.tiff", prey_coy_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  # ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_bob_plot.tiff", prey_bob_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
+  # ggsave("./Outputs/Figures for ms/HMM Stationary States/prey_coy_plot.tiff", prey_coy_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
   ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_md_plot.tiff", pred_md_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
   ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_elk_plot.tiff", pred_elk_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
   ggsave("./Outputs/Figures for ms/HMM Stationary States/pred_wtd_plot.tiff", pred_wtd_plot, width = 7, height = 7, dpi = 800, units = "in", device = 'tiff')
   
   
   #'  Patchwork figures together in panels
-  PredEffect_onPrey_fig <- prey_coug_plot + prey_wolf_plot + prey_coy_plot +
+  PredEffect_onPrey_fig <- prey_coug_plot + prey_wolf_plot + #prey_coy_plot +
       plot_layout(guides = 'collect') + 
-      plot_layout(ncol = 3) +
+      plot_layout(ncol = 2) +
       plot_annotation(tag_levels = 'a', 
                       title = 'Ungulate stationary state probabilities') & 
     theme(plot.tag = element_text(size = 12)) 
@@ -375,8 +373,8 @@
                     title = 'Predator stationary state probabilities') & 
     theme(plot.tag = element_text(size = 12)) 
   
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/PredEffect_onPrey_StationaryProb_plot_121922.tiff", PredEffect_onPrey_fig, width = 11, height = 7, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/PreyEffect_onPred_StationaryProb_plot_121922.tiff", PreyEffect_onPred_fig, width = 11, height = 7, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/PredEffect_onPrey_StationaryProb_plot_041223.tiff", PredEffect_onPrey_fig, width = 11, height = 7, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/PreyEffect_onPred_StationaryProb_plot_041223.tiff", PreyEffect_onPred_fig, width = 11, height = 7, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
   
   
   PredPrey_patchwork <- PreyEffect_onPred_fig / PredEffect_onPrey_fig +
@@ -386,7 +384,7 @@
     theme(legend.text = element_text(size = 16)) &
     theme(legend.title = element_text(size = 16)) &
     theme(plot.tag = element_text(size = 16)) 
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/PredPrey_StationaryProb_plot_121922.tiff", PredPrey_patchwork, width = 13, height = 14, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/PredPrey_StationaryProb_plot_041223.tiff", PredPrey_patchwork, width = 13, height = 14, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
   
   
   
@@ -399,7 +397,7 @@
   #'  Ungulate stationary state ~ TRI
   tri_effects_prey <- rbind(md_smr_PrStay$TRI, md_wtr_PrStay$TRI,
                             elk_smr_PrStay$TRI, elk_wtr_PrStay$TRI,
-                            wtd_wtr_PrStay$TRI) %>% #wtd_smr_PrStay$TRI, 
+                            wtd_smr_PrStay$TRI) %>% # wtd_wtr_PrStay$TRI
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
@@ -424,7 +422,7 @@
   
   #'  Ungulate stationary state ~ Distance to Road
   dist2rd_effects_prey <- rbind(md_smr_PrStay$Dist2Road, md_wtr_PrStay$Dist2Road,
-                                elk_smr_PrStay$Dist2Road, elk_wtr_PrStay$Dist2Road,
+                                elk_smr_PrStay$Dist2Road, #elk_wtr_PrStay$Dist2Road,
                                 wtd_smr_PrStay$Dist2Road) %>% #, wtd_wtr_PrStay$Dist2Road
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
@@ -449,7 +447,7 @@
     #labs(title = "Ungulate stationary state probabilities in response to distance to nearest road")
   
   #'  Ungulate stationary state ~ Habitat Openness
-  percopen_effects_prey <- rbind(md_wtr_PrStay$PercOpen, #md_smr_PrStay$PercOpen, 
+  percopen_effects_prey <- rbind(md_smr_PrStay$PercOpen, md_wtr_PrStay$PercOpen,  
                                  elk_smr_PrStay$PercOpen) %>% #, elk_wtr_PrStay$PercOpen,
                                  #wtd_smr_PrStay$PercOpen, wtd_wtr_PrStay$PercOpen) %>%
     filter(!State == "Encamped") %>%
@@ -476,8 +474,8 @@
   
   #'  Predator stationary state ~ TRI
   tri_effects_pred_OK <- rbind(coug_smr_OK_PrStay$TRI, coug_wtr_OK_PrStay$TRI,
-                               wolf_smr_OK_PrStay$TRI, #wolf_wtr_OK_PrStay$TRI,
-                               coy_smr_OK_PrStay$TRI, coy_wtr_OK_PrStay$TRI) %>%
+                               wolf_smr_OK_PrStay$TRI) %>% #, wolf_wtr_OK_PrStay$TRI,
+                               # coy_smr_OK_PrStay$TRI, coy_wtr_OK_PrStay$TRI) %>%
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
@@ -502,8 +500,8 @@
     #labs(title = "Predator stationary state probabilities in response to habitat complexity, Okanogan")
   
   tri_effects_pred_NE <- rbind(coug_smr_NE_PrStay$TRI, coug_wtr_NE_PrStay$TRI,
-                               wolf_smr_NE_PrStay$TRI, wolf_wtr_NE_PrStay$TRI,
-                               coy_wtr_NE_PrStay$TRI) %>% #coy_smr_NE_PrStay$TRI, 
+                               wolf_smr_NE_PrStay$TRI, wolf_wtr_NE_PrStay$TRI) %>%
+                               #coy_wtr_NE_PrStay$TRI) %>% #coy_smr_NE_PrStay$TRI, 
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
@@ -555,8 +553,8 @@
     #labs(title = "Predator stationary state probabilities in response to distance to nearest road, Okanogan")
   
   dist2rd_effects_pred_NE <- rbind(coug_smr_NE_PrStay$Dist2Road, coug_wtr_NE_PrStay$Dist2Road,
-                                   wolf_smr_NE_PrStay$Dist2Road, #wolf_wtr_NE_PrStay$Dist2Road,
-                                   coy_smr_NE_PrStay$Dist2Road) %>% #coy_wtr_NE_PrStay$Dist2Road) %>%
+                                   wolf_smr_NE_PrStay$Dist2Road) %>% #, wolf_wtr_NE_PrStay$Dist2Road,
+                                   #coy_smr_NE_PrStay$Dist2Road) %>% #coy_wtr_NE_PrStay$Dist2Road) %>%
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
@@ -582,8 +580,8 @@
   
   #'  Predator stationary state ~ Open Habitat
   percopen_effects_pred_OK <- rbind(coug_wtr_OK_PrStay$PercOpen, #coug_smr_OK_PrStay$PercOpen, 
-                                    wolf_smr_OK_PrStay$PercOpen, wolf_wtr_OK_PrStay$PercOpen,
-                                    coy_wtr_OK_PrStay$PercOpen) %>% #coy_smr_OK_PrStay$PercOpen, 
+                                    wolf_smr_OK_PrStay$PercOpen, wolf_wtr_OK_PrStay$PercOpen) %>% #,
+                                    #coy_wtr_OK_PrStay$PercOpen) %>% #coy_smr_OK_PrStay$PercOpen, 
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
@@ -607,9 +605,9 @@
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to percentage of open habitat, Okanogan")
   
-  percopen_effects_pred_NE <- rbind(coug_smr_NE_PrStay$PercOpen, coug_wtr_NE_PrStay$PercOpen,
+  percopen_effects_pred_NE <- rbind(coug_smr_NE_PrStay$PercOpen, coug_wtr_NE_PrStay$PercOpen) %>% #,
                                     #wolf_smr_NE_PrStay$PercOpen, wolf_wtr_NE_PrStay$PercOpen,
-                                    coy_wtr_NE_PrStay$PercOpen) %>% #coy_smr_NE_PrStay$PercOpen, 
+                                    #coy_wtr_NE_PrStay$PercOpen) %>% #coy_smr_NE_PrStay$PercOpen, 
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
@@ -675,9 +673,9 @@
     theme(legend.title = element_text(size = 16)) &
     theme(plot.tag = element_text(size = 16))
   
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/TRI_StationaryProb_plot_121922.tiff", tri_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/RoadDist_StationaryProb_plot_121922.tiff", road_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat_StationaryProb_plot_121922.tiff", open_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/TRI_StationaryProb_plot_041223.tiff", tri_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/RoadDist_StationaryProb_plot_041223.tiff", road_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat_StationaryProb_plot_041223.tiff", open_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
   
   
   
