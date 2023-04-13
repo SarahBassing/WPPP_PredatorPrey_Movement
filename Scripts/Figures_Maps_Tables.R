@@ -29,8 +29,8 @@
   library(tidyverse)
   
   #'  Load HMM results
-  load("./Outputs/HMM_output/spp_HMM_output_2022-03-15.RData")
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-16.RData")
+  load("./Outputs/HMM_output/spp_HMM_output_2023-04-08.RData") #2022-03-15 study area RSF combined
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2023-04-08.RData") #2022-03-16
   
   #'  Get some basics pulled together to be used across most figures
   #'  -----------------------------
@@ -185,14 +185,14 @@
     #'  held at their mean value (0 b/c data are centered and scaled)
     stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0, 
                                                    SnowCover = 0, TRI = 0, 
-                                                   COUG_RSF = 0, WOLF_RSF = 0,
-                                                   BOB_RSF = 0, COY_RSF = 0))
+                                                   COUG_RSF = 0, WOLF_RSF = 0))
+                                                   # BOB_RSF = 0, COY_RSF = 0))
     print(stay_mu0)
     #'  Plot stationary state probabilities and extract predicted estimates
     fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
                                                   SnowCover = 0, TRI = 0, 
-                                                  COUG_RSF = 0, WOLF_RSF = 0,
-                                                  BOB_RSF = 0, COY_RSF = 0),
+                                                  COUG_RSF = 0, WOLF_RSF = 0),
+                                                  # BOB_RSF = 0, COY_RSF = 0),
                           col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE) 
     stationary_probs <- list(stay_pr, fig)
     
@@ -356,17 +356,17 @@
   #'  significant on the transition probabilities
   library(patchwork)
   #'  MULE DEER panels
-  (md_smr_patch <- md_smr_fig[[1]] + 
+  (md_smr_patch <- md_smr_fig[[1]] + md_smr_fig[[2]] + 
       md_smr_fig[[3]] + theme(axis.title.y = element_blank()) + 
-      md_smr_fig[[5]] + md_smr_fig[[6]] + theme(axis.title.y = element_blank()) + 
+      md_smr_fig[[4]] + md_smr_fig[[5]] + guide_area() + theme(axis.title.y = element_blank()) + 
       plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Summer Mule Deer Stationary State Probabilities',
                       subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 2))
   (md_wtr_patch <- md_wtr_fig[[1]] + md_wtr_fig[[2]] + theme(axis.title.y = element_blank()) + 
       md_wtr_fig[[3]] + theme(axis.title.y = element_blank()) + #md_wtr_fig[[4]] + 
-      md_wtr_fig[[5]] + theme(axis.title.y = element_blank()) + md_wtr_fig[[6]] + 
-      theme(axis.title.y = element_blank()) + md_wtr_fig[[7]] + theme(axis.title.y = element_blank()) + 
-      md_wtr_fig[[8]] + guide_area() + 
+      md_wtr_fig[[5]] + theme(axis.title.y = element_blank()) + #md_wtr_fig[[6]] + 
+      theme(axis.title.y = element_blank()) + #md_wtr_fig[[7]] + theme(axis.title.y = element_blank()) + 
+      guide_area() + #md_wtr_fig[[8]]  + 
       plot_layout(guides = 'collect') + 
       plot_annotation(title = 'Winter Mule Deer Stationary State Probabilities',
                       subtitle = '     Okanogan 2018 - 2021') + plot_layout(ncol = 3))
