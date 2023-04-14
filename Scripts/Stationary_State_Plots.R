@@ -268,8 +268,8 @@
   
   #'  Predator stationary state ~ Mule Deer RSF
   md_effects <- rbind(coug_smr_OK_PrStay$MD_RSF, #coug_wtr_OK_PrStay$MD_RSF,
-                      wolf_smr_OK_PrStay$MD_RSF, #wolf_wtr_OK_PrStay$MD_RSF,
-                      coy_smr_OK_PrStay$MD_RSF) %>% #, coy_wtr_OK_PrStay$MD_RSF
+                      wolf_smr_OK_PrStay$MD_RSF) %>%  #wolf_wtr_OK_PrStay$MD_RSF,
+                      #coy_smr_OK_PrStay$MD_RSF, coy_wtr_OK_PrStay$MD_RSF
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
@@ -278,10 +278,10 @@
   pred_md_plot <- ggplot(md_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    scale_color_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) + 
+    scale_fill_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
@@ -323,8 +323,8 @@
   
   #'  Predator stationary state ~ White-tailed Deer RSF
   wtd_effects <- rbind(coug_smr_NE_PrStay$WTD_RSF, #coug_wtr_NE_PrStay$WTD_RSF,
-                       wolf_wtr_NE_PrStay$WTD_RSF, #wolf_smr_NE_PrStay$WTD_RSF, 
-                       coy_wtr_NE_PrStay$WTD_RSF) %>% #coy_smr_NE_PrStay$WTD_RSF, 
+                       wolf_wtr_NE_PrStay$WTD_RSF) %>% #wolf_smr_NE_PrStay$WTD_RSF, 
+                        #coy_wtr_NE_PrStay$WTD_RSF, coy_smr_NE_PrStay$WTD_RSF, 
     filter(!State == "Encamped") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
@@ -333,10 +333,10 @@
   pred_wtd_plot <- ggplot(wtd_effects, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    scale_color_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    scale_fill_manual(values=c("#D41159", "#0C7BDC")) +    #, "#FFC20A"
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
@@ -442,6 +442,7 @@
     theme(axis.line = element_line(color = 'black')) +
     #theme(legend.position="bottom") +
     xlim(-1, 4.5) + ylim(0, 1.0) +
+    guides(fill = guide_legend(title = "Prey Species"), color = guide_legend(title = "Prey Species")) +
     xlab("Scaled distance to road") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Ungulate stationary state probabilities in response to distance to nearest road")
@@ -466,8 +467,10 @@
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(legend.position="none") +
     #theme(legend.position="bottom") +
     xlim(-1.5, 2.5) + ylim(0, 1.0) +
+    guides(fill = guide_legend(title = "Prey Species"), color = guide_legend(title = "Prey Species")) +
     xlab("Scaled percent open habitat") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Ungulate stationary state probabilities in response to percentage of open habitat")
@@ -484,10 +487,10 @@
   pred_OK_tri_plot <- ggplot(tri_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    scale_color_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    scale_fill_manual(values=c("#D41159", "#0C7BDC")) +   #, "#FFC20A"  
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
@@ -510,10 +513,10 @@
   pred_NE_tri_plot <- ggplot(tri_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    scale_color_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    scale_fill_manual(values=c("#D41159", "#0C7BDC")) +   #, "#FFC20A"  
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
@@ -537,10 +540,10 @@
   pred_OK_dist2rd_plot <- ggplot(dist2rd_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#D41159", "#0C7BDC")) +   #"#FFC20A", 
+    scale_color_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#D41159", "#0C7BDC")) +     #"#FFC20A", 
+    scale_fill_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
@@ -548,6 +551,7 @@
     theme(axis.title.y = element_blank()) +
     theme(legend.position="none") +
     xlim(-1, 4.5) + ylim(0, 1.0) +
+    guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled distance to road, OK") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to distance to nearest road, Okanogan")
@@ -563,10 +567,10 @@
   pred_NE_dist2rd_plot <- ggplot(dist2rd_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    scale_color_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A" 
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    scale_fill_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"     
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
@@ -574,6 +578,7 @@
     theme(axis.title.y = element_blank()) +
     #theme(legend.position="bottom") +
     xlim(-1, 4.5) + ylim(0, 1.0) +
+    guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled distance to road, NE") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to distance to nearest road, Northeast")
@@ -590,17 +595,19 @@
   pred_OK_open_plot <- ggplot(percopen_effects_pred_OK, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +  
+    scale_color_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#D41159", "#FFC20A", "#0C7BDC")) +     
+    scale_fill_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
     theme(axis.title.y = element_blank()) +
+    theme(legend.position="none") +
     #theme(legend.position="bottom") +
     xlim(-1.5, 1.5) + ylim(0, 1.0) +
+    guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled percent open, OK") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to percentage of open habitat, Okanogan")
@@ -616,10 +623,10 @@
   pred_NE_open_plot <- ggplot(percopen_effects_pred_NE, aes(x = cov, y = est, colour = Species, linetype = Season)) + 
     geom_line(size = 0.75) + 
     scale_linetype_manual(values=c("solid", "dashed")) +
-    scale_color_manual(values=c("#D41159", "#FFC20A")) +  #, "#0C7BDC"
+    scale_color_manual(values=c("#D41159", "#0C7BDC")) +  #, "#FFC20A"
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = lci, ymax = uci, fill = Species), alpha = 0.3, colour = NA) +
-    scale_fill_manual(values=c("#D41159", "#FFC20A")) +     #, "#0C7BDC"
+    scale_fill_manual(values=c("#D41159", "#0C7BDC")) +     #, "#FFC20A"
     #'  Get rid of lines and gray background
     theme_bw() +
     theme(panel.border = element_blank()) +
@@ -627,6 +634,7 @@
     theme(axis.title.y = element_blank()) +
     theme(legend.position="none") +
     xlim(-1, 3) + ylim(0, 1.0) +
+    guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled percent open, NE") +
     ylab("Probability of exploratory state") #+
     #labs(title = "Predator stationary state probabilities in response to percentage of open habitat, Northeast")
@@ -652,30 +660,43 @@
     theme(axis.text = element_text(size = 16)) &
     theme(legend.text = element_text(size = 16)) &
     theme(legend.title = element_text(size = 16))
-  road_fig <- prey_dist2rd_plot + pred_OK_dist2rd_plot + pred_NE_dist2rd_plot +
-      plot_layout(guides = 'collect') + 
-      plot_layout(ncol = 3) +
-      plot_annotation(tag_levels = 'a',
-                      title = 'Effect of distance to nearst road on stationary state probabilities') & 
+  # road_fig <- prey_dist2rd_plot + pred_OK_dist2rd_plot + pred_NE_dist2rd_plot +
+  #     plot_layout(guides = 'collect') + 
+  #     plot_layout(ncol = 3) +
+  #     plot_annotation(tag_levels = 'a',
+  #                     title = 'Effect of distance to nearst road on stationary state probabilities') & 
+  #   theme(axis.title = element_text(size = 16)) &
+  #   theme(axis.text = element_text(size = 16)) &
+  #   theme(legend.text = element_text(size = 16)) &
+  #   theme(legend.title = element_text(size = 16)) &
+  #   theme(plot.tag = element_text(size = 16)) 
+  # open_fig <- prey_open_plot + pred_OK_open_plot + pred_NE_open_plot +
+  #   plot_layout(guides = 'collect') + 
+  #   plot_layout(ncol = 3) +
+  #   plot_annotation(tag_levels = 'a', 
+  #                   title = 'Effect of open habitat on stationary state probabilities') & 
+  #   theme(axis.title = element_text(size = 16)) &
+  #   theme(axis.text = element_text(size = 16)) &
+  #   theme(legend.text = element_text(size = 16)) &
+  #   theme(legend.title = element_text(size = 16)) &
+  #   theme(plot.tag = element_text(size = 16))
+  
+  open_road_fig <- prey_dist2rd_plot + pred_OK_dist2rd_plot + pred_NE_dist2rd_plot +
+    prey_open_plot + pred_OK_open_plot + pred_NE_open_plot +
+    plot_layout(guides = 'collect') + 
+    plot_layout(ncol = 3) +
+    plot_annotation(tag_levels = 'a',
+                    title = 'Effect of distance to nearst road and open habitat on stationary state probabilities') & 
     theme(axis.title = element_text(size = 16)) &
     theme(axis.text = element_text(size = 16)) &
     theme(legend.text = element_text(size = 16)) &
     theme(legend.title = element_text(size = 16)) &
     theme(plot.tag = element_text(size = 16)) 
-  open_fig <- prey_open_plot + pred_OK_open_plot + pred_NE_open_plot +
-    plot_layout(guides = 'collect') + 
-    plot_layout(ncol = 3) +
-    plot_annotation(tag_levels = 'a', 
-                    title = 'Effect of open habitat on stationary state probabilities') & 
-    theme(axis.title = element_text(size = 16)) &
-    theme(axis.text = element_text(size = 16)) &
-    theme(legend.text = element_text(size = 16)) &
-    theme(legend.title = element_text(size = 16)) &
-    theme(plot.tag = element_text(size = 16))
   
   ggsave("./Outputs/Figures for ms/HMM Stationary States/TRI_StationaryProb_plot_041223.tiff", tri_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/RoadDist_StationaryProb_plot_041223.tiff", road_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat_StationaryProb_plot_041223.tiff", open_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
+  # ggsave("./Outputs/Figures for ms/HMM Stationary States/RoadDist_StationaryProb_plot_041223.tiff", road_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
+  # ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat_StationaryProb_plot_041223.tiff", open_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat-RoadDist_StationaryProb_plot_041223.tiff", open_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
   
   
   
