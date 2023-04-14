@@ -117,8 +117,8 @@
       #'  Hold list of interest
       cov <- stay_covs[[l]]
       #'  Add column indicating which behavioral state values belong to
-      cov[[1]]$State <- "Encamped"
-      cov[[2]]$State <- "Exploratory"
+      cov[[1]]$State <- "State 1"
+      cov[[2]]$State <- "State 2"
       #'  Convert to data frame instead of list
       cov <- rbind(as.data.frame(cov[[1]]), as.data.frame(cov[[2]]))
       cov$State <- as.factor(cov$State)
@@ -161,7 +161,7 @@
   coug_effects <- rbind(md_smr_PrStay$COUG_RSF, md_wtr_PrStay$COUG_RSF,
                         elk_smr_PrStay$COUG_RSF, elk_wtr_PrStay$COUG_RSF,
                         wtd_smr_PrStay$COUG_RSF, wtd_wtr_PrStay$COUG_RSF) %>%
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -181,14 +181,14 @@
     #theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled cougar RSF value") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Ungulate movement in response to relative probability of use by cougars")
   
   #'  Ungulate stationary state ~ Wolf RSF
   wolf_effects <- rbind(md_smr_PrStay$WOLF_RSF, #md_wtr_PrStay$WOLF_RSF,
                         elk_smr_PrStay$WOLF_RSF, elk_wtr_PrStay$WOLF_RSF,
                         wtd_smr_PrStay$WOLF_RSF, wtd_wtr_PrStay$WOLF_RSF) %>%
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -270,7 +270,7 @@
   md_effects <- rbind(coug_smr_OK_PrStay$MD_RSF, #coug_wtr_OK_PrStay$MD_RSF,
                       wolf_smr_OK_PrStay$MD_RSF) %>%  #wolf_wtr_OK_PrStay$MD_RSF,
                       #coy_smr_OK_PrStay$MD_RSF, coy_wtr_OK_PrStay$MD_RSF
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -291,14 +291,14 @@
     theme(legend.position = "none") +
     xlim(-2.5, 2) + ylim(0, 1.0) +
     xlab("Scaled mule deer RSF value") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Predator movement in response to relative mule deer site use")
   
   #'  Predator stationary state ~ Elk RSF
   elk_effects <- rbind(coug_smr_NE_PrStay$ELK_RSF, coug_wtr_NE_PrStay$ELK_RSF,
                        wolf_smr_NE_PrStay$ELK_RSF) %>% #, wolf_wtr_NE_PrStay$ELK_RSF,
                        #coy_smr_NE_PrStay$ELK_RSF, coy_wtr_NE_PrStay$ELK_RSF) %>%
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -318,14 +318,14 @@
     theme(legend.position = "none") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled elk RSF value") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Predator movement in response to relative elk site use")
   
   #'  Predator stationary state ~ White-tailed Deer RSF
   wtd_effects <- rbind(coug_smr_NE_PrStay$WTD_RSF, #coug_wtr_NE_PrStay$WTD_RSF,
                        wolf_wtr_NE_PrStay$WTD_RSF) %>% #wolf_smr_NE_PrStay$WTD_RSF, 
                         #coy_wtr_NE_PrStay$WTD_RSF, coy_smr_NE_PrStay$WTD_RSF, 
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -346,7 +346,7 @@
     #theme(legend.position="bottom") +
     xlim(-2.5, 2) + ylim(0, 1.0) +
     xlab("Scaled white-tailed deer RSF value") #+
-    #ylab("Probability of exploratory state") #+
+    #ylab("Probability of state 2") #+
     #labs(title = "Predator movement in response to relative white-tailed deer site use")
   
   #'  Save
@@ -398,7 +398,7 @@
   tri_effects_prey <- rbind(md_smr_PrStay$TRI, md_wtr_PrStay$TRI,
                             elk_smr_PrStay$TRI, elk_wtr_PrStay$TRI,
                             wtd_smr_PrStay$TRI) %>% # wtd_wtr_PrStay$TRI
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -417,14 +417,14 @@
     #theme(legend.position="bottom") +
     xlim(-2, 4) + ylim(0, 1.0) +
     xlab("Scaled TRI") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Ungulate movement in response to habitat complexity")
   
   #'  Ungulate stationary state ~ Distance to Road
   dist2rd_effects_prey <- rbind(md_smr_PrStay$Dist2Road, md_wtr_PrStay$Dist2Road,
                                 elk_smr_PrStay$Dist2Road, #elk_wtr_PrStay$Dist2Road,
                                 wtd_smr_PrStay$Dist2Road) %>% #, wtd_wtr_PrStay$Dist2Road
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -444,14 +444,14 @@
     xlim(-1, 4.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Prey Species"), color = guide_legend(title = "Prey Species")) +
     xlab("Scaled distance to road") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Ungulate stationary state probabilities in response to distance to nearest road")
   
   #'  Ungulate stationary state ~ Habitat Openness
   percopen_effects_prey <- rbind(md_smr_PrStay$PercOpen, md_wtr_PrStay$PercOpen,  
                                  elk_smr_PrStay$PercOpen) %>% #, elk_wtr_PrStay$PercOpen,
                                  #wtd_smr_PrStay$PercOpen, wtd_wtr_PrStay$PercOpen) %>%
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -472,14 +472,14 @@
     xlim(-1.5, 2.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Prey Species"), color = guide_legend(title = "Prey Species")) +
     xlab("Scaled percent open habitat") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Ungulate stationary state probabilities in response to percentage of open habitat")
   
   #'  Predator stationary state ~ TRI
   tri_effects_pred_OK <- rbind(coug_smr_OK_PrStay$TRI, coug_wtr_OK_PrStay$TRI,
                                wolf_smr_OK_PrStay$TRI) %>% #, wolf_wtr_OK_PrStay$TRI,
                                # coy_smr_OK_PrStay$TRI, coy_wtr_OK_PrStay$TRI) %>%
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -499,13 +499,13 @@
     #theme(legend.position="bottom") +
     xlim(-2, 4) + ylim(0, 1.0) +
     xlab("Scaled TRI, Okanogan") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Predator stationary state probabilities in response to habitat complexity, Okanogan")
   
   tri_effects_pred_NE <- rbind(coug_smr_NE_PrStay$TRI, coug_wtr_NE_PrStay$TRI,
                                wolf_smr_NE_PrStay$TRI, wolf_wtr_NE_PrStay$TRI) %>%
                                #coy_wtr_NE_PrStay$TRI) %>% #coy_smr_NE_PrStay$TRI, 
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -525,14 +525,14 @@
     #theme(legend.position="bottom") +
     xlim(-2, 4) + ylim(0, 1.0) +
     xlab("Scaled TRI, Northeast") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Predator stationary state probabilities in response to habitat complexity, Northeast")
   
   #'  Predator stationary state ~ Distance to Road
   dist2rd_effects_pred_OK <- rbind(coug_smr_OK_PrStay$Dist2Road, coug_wtr_OK_PrStay$Dist2Road,
                                    wolf_wtr_OK_PrStay$Dist2Road) %>% #wolf_smr_OK_PrStay$Dist2Road, 
                                    #coy_smr_OK_PrStay$Dist2Road, coy_wtr_OK_PrStay$Dist2Road) %>%
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -553,13 +553,13 @@
     xlim(-1, 4.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled distance to road, OK") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Predator stationary state probabilities in response to distance to nearest road, Okanogan")
   
   dist2rd_effects_pred_NE <- rbind(coug_smr_NE_PrStay$Dist2Road, coug_wtr_NE_PrStay$Dist2Road,
                                    wolf_smr_NE_PrStay$Dist2Road) %>% #, wolf_wtr_NE_PrStay$Dist2Road,
                                    #coy_smr_NE_PrStay$Dist2Road) %>% #coy_wtr_NE_PrStay$Dist2Road) %>%
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -580,14 +580,14 @@
     xlim(-1, 4.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled distance to road, NE") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Predator stationary state probabilities in response to distance to nearest road, Northeast")
   
   #'  Predator stationary state ~ Open Habitat
   percopen_effects_pred_OK <- rbind(coug_wtr_OK_PrStay$PercOpen, #coug_smr_OK_PrStay$PercOpen, 
                                     wolf_smr_OK_PrStay$PercOpen, wolf_wtr_OK_PrStay$PercOpen) %>% #,
                                     #coy_wtr_OK_PrStay$PercOpen) %>% #coy_smr_OK_PrStay$PercOpen, 
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -609,13 +609,13 @@
     xlim(-1.5, 1.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled percent open, OK") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Predator stationary state probabilities in response to percentage of open habitat, Okanogan")
   
   percopen_effects_pred_NE <- rbind(coug_smr_NE_PrStay$PercOpen, coug_wtr_NE_PrStay$PercOpen) %>% #,
                                     #wolf_smr_NE_PrStay$PercOpen, wolf_wtr_NE_PrStay$PercOpen,
                                     #coy_wtr_NE_PrStay$PercOpen) %>% #coy_smr_NE_PrStay$PercOpen, 
-    filter(!State == "Encamped") %>%
+    filter(!State == "State 1") %>%
     mutate(Species = as.factor(Species),
            Season = as.factor(Season),
            StudyArea = as.factor(StudyArea)) %>% 
@@ -636,7 +636,7 @@
     xlim(-1, 3) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled percent open, NE") +
-    ylab("Probability of exploratory state") #+
+    ylab("Probability of state 2") #+
     #labs(title = "Predator stationary state probabilities in response to percentage of open habitat, Northeast")
   
   #'  Save
@@ -687,16 +687,17 @@
     plot_layout(ncol = 3) +
     plot_annotation(tag_levels = 'a',
                     title = 'Effect of distance to nearst road and open habitat on stationary state probabilities') & 
+    theme(title = element_text(size = 18)) &
     theme(axis.title = element_text(size = 16)) &
     theme(axis.text = element_text(size = 16)) &
     theme(legend.text = element_text(size = 16)) &
     theme(legend.title = element_text(size = 16)) &
-    theme(plot.tag = element_text(size = 16)) 
+    theme(plot.tag = element_text(size = 18)) 
   
   ggsave("./Outputs/Figures for ms/HMM Stationary States/TRI_StationaryProb_plot_041223.tiff", tri_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
   # ggsave("./Outputs/Figures for ms/HMM Stationary States/RoadDist_StationaryProb_plot_041223.tiff", road_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
   # ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat_StationaryProb_plot_041223.tiff", open_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat-RoadDist_StationaryProb_plot_041223.tiff", open_fig, width = 13, height = 7, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Figures for ms/HMM Stationary States/OpenHabitat-RoadDist_StationaryProb_plot_041223.tiff", open_road_fig, width = 13, height = 13, dpi = 800, units = "in", device = 'tiff', compression = 'lzw')
   
   
   
