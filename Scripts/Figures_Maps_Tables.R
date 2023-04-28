@@ -121,89 +121,192 @@
   coug_ok_df <- as.data.frame(coug_ok); coug_ne_df <- as.data.frame(coug_ne)
   colnames(coug_ok_df) <- c("x", "y", "Predicted cougar RSF")
   colnames(coug_ne_df) <- c("x", "y", "Predicted cougar RSF")
+  bbox_ok <- st_bbox(coug_ok_rsf)
+  bbox_ne <- st_bbox(coug_ne_rsf)
+  
+  
+  bb_ok <- as(raster::extent(-120.9383, -119.44461, 47.91375, 49.27185), "SpatialPolygons")
+  proj4string(bb_ok) <- wgs84
+  bb_OK_sf <- st_as_sf(bb_ok)
+  bb_OK_buff <- st_buffer(bb_OK_sf, dist = 0)
+  bb_ne <- as(raster::extent(-118.41078, -116.98113, 47.83598, 48.94838), "SpatialPolygons")
+  proj4string(bb_ne) <- wgs84
+  bb_NE_sf <- st_as_sf(bb_ne)
+  bb_NE_buff <- st_buffer(bb_NE_sf, dist = 0)
+  
   
   ####  1. Map study area and WA State inset  ####
   #'  ============================================
-  #'  Plot state of WA with study areas
-  #'  https://r-spatial.org/r/2018/10/25/ggplot2-sf.html
-  WA_SA_map <- ggplot() + 
-    # geom_sf(data = USA, fill = "white", color = "black", size = 0.4) +
-    # geom_sf(data = OK_SA, fill = "#0072B2", color = "#0072B2") +
-    # geom_sf(data = NE_SA, fill = "#009E73", color = "#009E73") +
-    geom_sf(data = USA, fill = "gray95", color = "black", size = 0.4) +
-    geom_sf(data = WA, fill = "white", color = "black", size = 0.4) +
-    geom_sf(data = OK_SA, fill = "black", color = "black") +
-    geom_sf(data = NE_SA, fill = "black", color = "black") +
-    #' #'  Add study area bounding box
-    #' geom_sf(data = bb_sf_buff, fill = NA, color = "#D55E00", size = 0.5) + 
-    #'  Constrain plot to two study areas plus some room on the side & bottom
-    # coord_sf(xlim = c(-126.05, -65.8), ylim = c(24.05, 50.05), expand = FALSE) +
-    coord_sf(xlim = c(-126.05, -103.05), ylim = c(30, 50.05), expand = FALSE) +
-    #'  Get rid of lines and axis labels
-    theme_void()
-    #' theme_bw() +
-    #' theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-    #'       axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank(),
-    #'       axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank(),
-    #'       #'  No margins around figure
-    #'       plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) 
-  plot(WA_SA_map)
+  #'  https://upgo.lab.mcgill.ca/2019/12/13/making-beautiful-maps/
   
-  library(viridis)
-  #'  Plot study areas with RSF rasters
-  NE_rsf_map <- ggplot() +
+  WA_map <- ggplot() + 
+    # geom_sf(data = USA, fill = "gray95", color = "black", size = 0.4) +
+    geom_sf(data = WA, fill = "white", color = "black", size = 0.4) +
     geom_raster(data = coug_ne_df, aes(x = x, y = y, fill = `Predicted cougar RSF`)) +
-    scale_fill_viridis_c(option = "viridis", na.value = "grey50") + #na.value not working
-    guides(fill = guide_colourbar(barwidth = 6, barheight = 0.75)) +
-    #'  Add study area outlines and label with their names
-    geom_sf(data = NE_SA, fill = NA, color = "black", size = 1.5) + 
-    geom_sf(data = city_sf[city_sf$City == "Chewelah, WA",], shape = 23, size = 4, fill = "gold") +
-    #'  Get rid of lines and gray background
-    theme_bw(base_size = 16) +
-    # theme(panel.border = element_blank()) +
-    theme(legend.position = "bottom",
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          plot.margin = margin(t = 0, r = 0, b = 0, l = 0)) +
-    #'  Change legend, axis, & main titles
-    xlab("Longitude") + ylab("Latitude") +
-    labs(fill = 'Predicted cougar RSF')  +
-    ggtitle("Northeast study area") +
-  #'  Add scale bar (be sure to double check the scale)
-  annotation_scale(aes(width_hint = 0.5, unit_category = "metric", style = "bar"), pad_y = unit(0.3, "cm"), text_cex = 1.2) +
-  #'  Add north arrow
-  annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "black", text_col = "black"), 
-                         height = unit(1, "cm"), width = unit(1, "cm")) #,
-                         #pad_x = unit(0.5, "cm"), pad_y = unit(0.55, "cm"))
-  plot(NE_rsf_map)
+    geom_raster(data = coug_ok_df, aes(x = x, y = y, fill = `Predicted cougar RSF`)) +
+    scale_fill_viridis_c(option = "viridis", na.value = "grey50") +
+    guides(fill = guide_colourbar(barwidth = 10, barheight = 0.85)) +
+    geom_sf(data = bb_OK_buff, fill = NA, color = "black", size = 1.05) +
+    geom_sf(data = bb_NE_buff, fill = NA, color = "black", size = 1.05) +
+    # coord_sf(xlim = c(-130.05, -103.05), ylim = c(30, 50.05), expand = FALSE) +
+    # coord_sf(xlim = c(-126.05, -97.05), ylim = c(32, 50.05), expand = FALSE) +
+    coord_sf(xlim = c(-125.05, -108.05), ylim = c(39, 50.05)) +
+    theme_bw(base_size = 20) +
+    theme(#plot.background = element_rect(fill = "gray50"),
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.border = element_blank(),
+      axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank(),
+      axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank(),
+      plot.margin = margin(t = 0, r = 1, b = 0, l = 1, unit = "pt")) +
+    # theme_void(base_size = 20) +
+    theme(legend.position = c(0.75, 0.08), legend.box = "horizontal", legend.direction = "horizontal") #c(0.55, 0.05)
+    # theme(legend.justification = c(0,1),
+    #       legend.position = c(0.75, 0.25)) 
+  # plot(WA_map)
+  
+  inset_map <- ggdraw(WA_map) +
+  # WA_map %>%
+  #   ggdraw() +
+    draw_plot(
+      {
+        WA_map + 
+          geom_sf(data = OK_SA, fill = NA, color = "black", size = 1.5)  +
+          geom_sf(data = city_sf[city_sf$City == "Winthrop, WA",], shape = 23, size = 4, fill = "gold") +
+          annotation_scale(aes(width_hint = 0.65, unit_category = "metric", style = "bar"), pad_y = unit(15.5, "cm"), text_cex = 1.2) +
+          annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "black", text_col = "black"),
+                                 height = unit(2, "cm"), width = unit(2, "cm")) +
+          coord_sf(
+            xlim = c(bbox_ok[1], bbox_ok[3]),
+            ylim = c(bbox_ok[2], bbox_ok[4]),
+            expand = FALSE) +
+          theme(legend.position = "none",
+                plot.background = element_rect(fill = "white")) 
+          
+      },
+      x = 0.05,
+      y = 0.02, #0.19,
+      width = 0.55,
+      height = 0.55) +
+    draw_plot(
+      {
+        WA_map + 
+          geom_sf(data = NE_SA, fill = NA, color = "black", size = 1.75) + 
+          geom_sf(data = city_sf[city_sf$City == "Chewelah, WA",], shape = 23, size = 4, fill = "gold") +
+          annotation_scale(aes(width_hint = 0.65, unit_category = "metric", style = "bar"), pad_y = unit(15.25, "cm"), text_cex = 1.2) + 
+          annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "black", text_col = "black"),
+                                 height = unit(2, "cm"), width = unit(2, "cm")) +
+          coord_sf(
+            xlim = c(bbox_ne[1], bbox_ne[3]),
+            ylim = c(bbox_ne[2], bbox_ne[4]),
+            expand = FALSE) +
+          theme(legend.position = "none", 
+                plot.background = element_rect(fill = "white")) 
+        
+      },
+      x = 0.4, 
+      y = 0.2,
+      width = 0.55,
+      height = 0.55)
+  # plot(inset_map)
+  
+  ggsave(filename = "./Outputs/Figures for ms/StudyArea_RSF_inset_map.png", plot = inset_map, 
+         width = 18, height = 12, dpi = 600)
+  
+  
+   
+  #' #'  Plot state of WA with study areas
+  #' #'  https://r-spatial.org/r/2018/10/25/ggplot2-sf.html
+  #' WA_SA_map <- ggplot() + 
+  #'   # geom_sf(data = USA, fill = "white", color = "black", size = 0.4) +
+  #'   # geom_sf(data = OK_SA, fill = "#0072B2", color = "#0072B2") +
+  #'   # geom_sf(data = NE_SA, fill = "#009E73", color = "#009E73") +
+  #'   geom_sf(data = USA, fill = "gray95", color = "black", size = 0.4) +
+  #'   geom_sf(data = WA, fill = "white", color = "black", size = 0.4) +
+  #'   geom_sf(data = OK_SA, fill = NA, color = "black", size = 1.5) +
+  #'   geom_sf(data = NE_SA, fill = NA, color = "black", size = 1.5) +
+  #'   #' #'  Add study area bounding box
+  #'   #' geom_sf(data = bb_sf_buff, fill = NA, color = "#D55E00", size = 0.5) + 
+  #'   #'  Constrain plot to two study areas plus some room on the side & bottom
+  #'   # coord_sf(xlim = c(-126.05, -65.8), ylim = c(24.05, 50.05), expand = FALSE) +
+  #'   coord_sf(xlim = c(-130.05, -103.05), ylim = c(30, 50.05), expand = FALSE) +
+  #'   theme(plot.background = element_rect(fill = "gray50"),
+  #'         plot.margin = margin(t = 0, r = 1, b = 0, l = 1, unit = "pt")) +
+  #'   #'  Get rid of lines and axis labels
+  #'   theme_void()
+  #' # theme_bw() +
+  #' # theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  #' #       axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank(),
+  #' #       axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank())
+  #' plot(WA_SA_map)
+  #' 
+  #' library(viridis)
+  #' library(ggthemes)
+  #' #'  Plot study areas with RSF rasters
+  #' NE_rsf_map <- ggplot() +
+  #'   geom_raster(data = coug_ne_df, aes(x = x, y = y, fill = `Predicted cougar RSF`)) +
+  #'   scale_fill_viridis_c(option = "viridis", na.value = "grey50") + #na.value not working
+  #'   guides(fill = guide_colourbar(barwidth = 8, barheight = 0.85)) +
+  #'   #'  Add study area outlines and label with their names
+  #'   geom_sf(data = NE_SA, fill = NA, color = "black", size = 1.75) + 
+  #'   geom_sf(data = city_sf[city_sf$City == "Chewelah, WA",], shape = 23, size = 4, fill = "gold") +
+  #'   #'  Get rid of lines and gray background
+  #'   # theme_bw(base_size = 16) +
+  #'   theme_tufte(base_size = 16) +
+  #'   # theme(panel.border = element_blank()) +
+  #'   theme(legend.position = "bottom",
+  #'         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+  #'         plot.margin = margin(t = 0, r = 0, b = 0, l = 0),
+  #'         plot.background = element_rect(fill = "white")) +
+  #'   #'  Change legend, axis, & main titles
+  #'   xlab("Longitude") + ylab("Latitude") +
+  #'   labs(fill = 'Predicted cougar RSF')  +
+  #'   ggtitle("Northeast study area") +
+  #' #'  Add scale bar (be sure to double check the scale)
+  #' annotation_scale(aes(width_hint = 0.5, unit_category = "metric", style = "bar"), pad_y = unit(0.3, "cm"), text_cex = 1.2) +
+  #' #'  Add north arrow
+  #' annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "black", text_col = "black"), 
+  #'                        height = unit(1, "cm"), width = unit(1, "cm"))#,
+  #'                        #pad_x = unit(0.5, "cm"), pad_y = unit(0.55, "cm"))
+  #' plot(NE_rsf_map)
+  #' 
+  #' OK_rsf_map <- ggplot() +
+  #'   geom_raster(data = coug_ok_df, aes(x = x, y = y, fill = `Predicted cougar RSF`)) +
+  #'   scale_fill_viridis_c(option = "viridis", na.value = "grey50") + #na.value not working
+  #'   guides(fill = guide_colourbar(barwidth = 8, barheight = 0.85)) +
+  #'   #'  Add study area outline and center city
+  #'   geom_sf(data = OK_SA, fill = NA, color = "black", size = 1.75) +
+  #'   geom_sf(data = city_sf[city_sf$City == "Winthrop, WA",], shape = 23, size = 4, fill = "gold") +
+  #'   #'  Get rid of lines and gray background
+  #'   # theme_bw(base_size = 16) +
+  #'   theme_tufte(base_size = 16) +
+  #'   # theme(panel.border = element_blank()) +
+  #'   theme(legend.position = "bottom",
+  #'         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+  #'         plot.margin = margin(t = 4, r = 0, b = 0, l = 0),
+  #'         plot.background = element_rect(fill = "white")) +
+  #'   #'  Change legend, axis, & main titles
+  #'   xlab("Longitude") + ylab("Latitude") +
+  #'   labs(fill = 'Predicted cougar RSF')  +
+  #'   ggtitle("Okanogan study area") +
+  #'   #'  Add scale bar (be sure to double check the scale)
+  #'   annotation_scale(aes(width_hint = 0.5, unit_category = "metric", style = "bar"), pad_y = unit(0.3, "cm"), text_cex = 1.2) +
+  #'   #'  Add north arrow
+  #'   annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "black", text_col = "black"), 
+  #'                          height = unit(1, "cm"), width = unit(1, "cm")) #,
+  #'                          #pad_x = unit(0.5, "cm"), pad_y = unit(0.55, "cm"))
+  #'   plot(OK_rsf_map)
+  #'   
+  #'   #'  Build plot with map of study areas and inset map of WA
+  #' #'  https://geocompr.github.io/post/2019/ggplot2-inset-maps/
+  #' #'  This will look bad in the viewer panel but plots better when saved with ggsave
+  #' SA_RSF_map <- ggdraw() +
+  #'   draw_plot(WA_SA_map) +
+  #'   draw_plot(OK_rsf_map, x = -0.15, y = 0.0, width = 0.7, height = 0.7) +
+  #'   draw_plot(NE_rsf_map, x = 0.42, y = 0.25, width = 0.65, height = 0.65)
+  #' SA_RSF_map
+  #' ggsave(filename = "./Outputs/Figures for ms/StudyArea_rsf_map.png", plot = SA_RSF_map, 
+  #'        width = 20, height = 14, dpi = 600)
   
 
-  OK_rsf_map <- ggplot() +
-    geom_raster(data = coug_ok_df, aes(x = x, y = y, fill = `Predicted cougar RSF`)) +
-    scale_fill_viridis_c(option = "viridis", na.value = "grey50") + #na.value not working
-    guides(fill = guide_colourbar(barwidth = 6, barheight = 0.75)) +
-    #'  Add study area outline and center city
-    geom_sf(data = OK_SA, fill = NA, color = "black", size = 1) +
-    geom_sf(data = city_sf[city_sf$City == "Winthrop, WA",], shape = 23, size = 4, fill = "gold") +
-    #'  Get rid of lines and gray background
-    theme_bw(base_size = 16) +
-    # theme(panel.border = element_blank()) +
-    theme(legend.position = "bottom",
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          plot.margin = margin(t = 4, r = 0, b = 0, l = 0)) +
-    #'  Change legend, axis, & main titles
-    xlab("Longitude") + ylab("Latitude") +
-    labs(fill = 'Predicted cougar RSF')  +
-    ggtitle("Okanogan study area") +
-    #'  Add scale bar (be sure to double check the scale)
-    annotation_scale(aes(width_hint = 0.5, unit_category = "metric", style = "bar"), pad_y = unit(0.3, "cm"), text_cex = 1.2) +
-    #'  Add north arrow
-    annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "black", text_col = "black"), 
-                           height = unit(1, "cm"), width = unit(1, "cm")) #,
-                           #pad_x = unit(0.5, "cm"), pad_y = unit(0.55, "cm"))
-    plot(OK_rsf_map)
-  
-  
-  
   #' SA_map <- ggplot() +
   #'   #' geom_raster(data = tri_p_df, aes(x = x, y = y, fill = `TRI value`, alpha = `TRI value`), show.legend = FALSE) + #, alpha = `TRI value`
   #'   #' #'  alpha adjusts transparency of the raster (can also just set it range = 0.7)
@@ -244,20 +347,7 @@
   #'   #'  Add scale bar (be sure to double check the scale)
   #'   annotation_scale(location = "bl", width_hint = 0.5)
   #' plot(SA_map)
-  
-  
-  #'  Build plot with map of study areas and inset map of WA
-  #'  https://geocompr.github.io/post/2019/ggplot2-inset-maps/
-  #'  This will look bad in the viewer panel but plots better when saved with ggsave
-  SA_RSF_map <- ggdraw() +
-    draw_plot(WA_SA_map) +
-    draw_plot(OK_rsf_map, x = -0.15, y = 0.0, width = 0.7, height = 0.7) +
-    draw_plot(NE_rsf_map, x = 0.42, y = 0.25, width = 0.65, height = 0.65)
-  SA_RSF_map
-  ggsave(filename = "./Outputs/Figures for ms/StudyArea_rsf_map.png", plot = SA_RSF_map, 
-         width = 20, height = 14, dpi = 600)
-    
-    
+
   # gg_inset_map1 <- ggdraw() +
   #   draw_plot(SA_map) +
   #   draw_plot(WA_SA_map, x = 0.6, y = 0.15, width = 0.25, height = 0.25)
