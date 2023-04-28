@@ -158,7 +158,7 @@
       axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank(),
       plot.margin = margin(t = 0, r = 1, b = 0, l = 1, unit = "pt")) +
     # theme_void(base_size = 20) +
-    theme(legend.position = c(0.75, 0.08), legend.box = "horizontal", legend.direction = "horizontal") #c(0.55, 0.05)
+    theme(legend.position = c(0.725, 0.08), legend.box = "horizontal", legend.direction = "horizontal") #c(0.55, 0.05)
     # theme(legend.justification = c(0,1),
     #       legend.position = c(0.75, 0.25)) 
   # plot(WA_map)
@@ -169,10 +169,10 @@
     draw_plot(
       {
         WA_map + 
-          geom_sf(data = OK_SA, fill = NA, color = "black", size = 1.5)  +
+          geom_sf(data = OK_SA, fill = NA, color = "black", size = 2.25)  +
           geom_sf(data = city_sf[city_sf$City == "Winthrop, WA",], shape = 23, size = 4, fill = "gold") +
-          annotation_scale(aes(width_hint = 0.65, unit_category = "metric", style = "bar"), pad_y = unit(15.5, "cm"), text_cex = 1.2) +
-          annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "black", text_col = "black"),
+          annotation_scale(aes(width_hint = 0.65, unit_category = "metric", style = "bar", text_col = "white"), pad_y = unit(15.6, "cm"), text_cex = 1.2) +
+          annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "white", text_col = "black"),
                                  height = unit(2, "cm"), width = unit(2, "cm")) +
           coord_sf(
             xlim = c(bbox_ok[1], bbox_ok[3]),
@@ -189,10 +189,10 @@
     draw_plot(
       {
         WA_map + 
-          geom_sf(data = NE_SA, fill = NA, color = "black", size = 1.75) + 
+          geom_sf(data = NE_SA, fill = NA, color = "black", size = 2.25) + 
           geom_sf(data = city_sf[city_sf$City == "Chewelah, WA",], shape = 23, size = 4, fill = "gold") +
-          annotation_scale(aes(width_hint = 0.65, unit_category = "metric", style = "bar"), pad_y = unit(15.25, "cm"), text_cex = 1.2) + 
-          annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "black", text_col = "black"),
+          annotation_scale(aes(width_hint = 0.65, unit_category = "metric", style = "bar", text_col = "white"), pad_y = unit(15.25, "cm"), text_cex = 1.2) + 
+          annotation_north_arrow(aes(location = "tr", which_north = "true"), style = north_arrow_fancy_orienteering(fill = "white", text_col = "black"),
                                  height = unit(2, "cm"), width = unit(2, "cm")) +
           coord_sf(
             xlim = c(bbox_ne[1], bbox_ne[3]),
