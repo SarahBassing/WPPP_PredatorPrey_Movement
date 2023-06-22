@@ -708,7 +708,7 @@
   #'  =========================================
   #'  Load track and crwOut data
   load("./Outputs/Telemetry_tracks/spp_all_tracks_noDis_noMig_SAspecific_2022-03-14.RData")
-  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2022-03-16.RData")
+  load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2023-04-08.RData") #2022-03-16
   
   #'  Function to generate summary info about collar data 
   #'  Unique collars included in study
@@ -838,7 +838,9 @@
   write.csv(summary_table, file = paste0("./Outputs/Figures for ms/collar_summary_table_", Sys.Date(), ".csv"))
   
   #'  Quick summary stats for in-text reporting
-  season_means <- collar_table %>%
+  #'  Drop mesopredators for revised ms
+  collar_table_skinny <- filter(collar_table, Species != "Coyote" & Species != "Bobcat")
+  season_means <- collar_table_skinny %>% #collar_table
     group_by(Season2) %>%
     summarise(across(c("collars", "ntracks", "nlocs", "interpolated", "prop"), ~ mean(.x, na.rm = TRUE))) %>%
     ungroup() %>%
@@ -851,7 +853,7 @@
     )
   colnames(season_means) <- c("Season", "Mean_Collars", "Mean_Tracks", "Mean_Locations", "Mean_Interpolated", "Mean_Proportion_Interpolated")
   
-  season_se <- collar_table %>%
+  season_se <- collar_table_skinny %>% #collar_table
     group_by(Season2) %>%
     summarise(across(c("collars", "ntracks", "nlocs", "interpolated", "prop"), ~sd(.x)/sqrt(length(.x)))) %>% 
     ungroup() %>%
