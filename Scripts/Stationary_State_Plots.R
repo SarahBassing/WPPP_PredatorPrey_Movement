@@ -181,7 +181,7 @@
     #theme(legend.position="bottom") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
     xlab("Scaled cougar RSF value") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of prey being in faster state") #+
     #labs(title = "Ungulate movement in response to relative probability of use by cougars")
   
   #'  Ungulate stationary state ~ Wolf RSF
@@ -286,12 +286,12 @@
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
-    theme(axis.title.y = element_blank()) +
+    # theme(axis.title.y = element_blank()) +
     theme(text = element_text(size = 14)) +
     theme(legend.position = "none") +
     xlim(-2.5, 2) + ylim(0, 1.0) +
     xlab("Scaled mule deer RSF value") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of predator being in faster state") #+
     #labs(title = "Predator movement in response to relative mule deer site use")
   
   #'  Predator stationary state ~ Elk RSF
@@ -314,11 +314,12 @@
     theme_bw() +
     theme(panel.border = element_blank()) +
     theme(axis.line = element_line(color = 'black')) +
+    theme(axis.title.y = element_blank()) +
     theme(text = element_text(size = 14)) +
     theme(legend.position = "none") +
     xlim(-2, 2.5) + ylim(0, 1.0) +
-    xlab("Scaled elk RSF value") +
-    ylab("Probability of state 2") #+
+    xlab("Scaled elk RSF value") #+
+    # ylab("Probability of being in faster state") #+
     #labs(title = "Predator movement in response to relative elk site use")
   
   #'  Predator stationary state ~ White-tailed Deer RSF
@@ -364,26 +365,29 @@
       plot_layout(guides = 'collect') + 
       plot_layout(ncol = 2) +
       plot_annotation(tag_levels = 'a', 
-                      title = 'Ungulate stationary state probabilities') & 
-    theme(plot.tag = element_text(size = 12)) 
-  PreyEffect_onPred_fig <- pred_elk_plot + pred_md_plot + pred_wtd_plot +
+                      title = 'Ungulate stationary state probabilities',
+                      theme = theme(plot.title = element_text(size = 18))) & 
+    theme(plot.tag = element_text(size = 18)) 
+  PreyEffect_onPred_fig <- pred_md_plot + pred_elk_plot + pred_wtd_plot +
     plot_layout(guides = 'collect') + 
     plot_layout(ncol = 3) +
     plot_annotation(tag_levels = 'a', 
-                    title = 'Predator stationary state probabilities') & 
-    theme(plot.tag = element_text(size = 12)) 
+                    title = 'Predator stationary state probabilities',
+                    theme = theme(plot.title = element_text(size = 18))) & 
+    theme(plot.tag = element_text(size = 18)) 
   
   ggsave("./Outputs/Figures for ms/HMM Stationary States/PredEffect_onPrey_StationaryProb_plot_041223.tiff", PredEffect_onPrey_fig, width = 11, height = 7, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/Figures for ms/HMM Stationary States/PreyEffect_onPred_StationaryProb_plot_041223.tiff", PreyEffect_onPred_fig, width = 11, height = 7, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
   
   
   PredPrey_patchwork <- PreyEffect_onPred_fig / PredEffect_onPrey_fig +
-    plot_annotation(tag_levels = 'a') &
+    plot_annotation(tag_levels = 'a',
+                    theme = theme(plot.title = element_text(size = 18))) &
     theme(axis.title = element_text(size = 16)) &
     theme(axis.text = element_text(size = 16)) &
     theme(legend.text = element_text(size = 16)) &
     theme(legend.title = element_text(size = 16)) &
-    theme(plot.tag = element_text(size = 16)) 
+    theme(plot.tag = element_text(size = 18)) 
   ggsave("./Outputs/Figures for ms/HMM Stationary States/PredPrey_StationaryProb_plot_041223.tiff", PredPrey_patchwork, width = 13, height = 14, dpi = 600, units = "in", device = 'tiff', compression = 'lzw')
   
   
@@ -417,7 +421,7 @@
     #theme(legend.position="bottom") +
     xlim(-2, 4) + ylim(0, 1.0) +
     xlab("Scaled TRI") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of being in faster state") #+
     #labs(title = "Ungulate movement in response to habitat complexity")
   
   #'  Ungulate stationary state ~ Distance to Road
@@ -444,7 +448,7 @@
     xlim(-1, 4.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Prey Species"), color = guide_legend(title = "Prey Species")) +
     xlab("Scaled distance to road") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of being in faster state") #+
     #labs(title = "Ungulate stationary state probabilities in response to distance to nearest road")
   
   #'  Ungulate stationary state ~ Habitat Openness
@@ -472,7 +476,7 @@
     xlim(-1.5, 2.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Prey Species"), color = guide_legend(title = "Prey Species")) +
     xlab("Scaled percent open habitat") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of being in faster state") #+
     #labs(title = "Ungulate stationary state probabilities in response to percentage of open habitat")
   
   #'  Predator stationary state ~ TRI
@@ -499,7 +503,7 @@
     #theme(legend.position="bottom") +
     xlim(-2, 4) + ylim(0, 1.0) +
     xlab("Scaled TRI, Okanogan") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of being in faster state") #+
     #labs(title = "Predator stationary state probabilities in response to habitat complexity, Okanogan")
   
   tri_effects_pred_NE <- rbind(coug_smr_NE_PrStay$TRI, coug_wtr_NE_PrStay$TRI,
@@ -525,7 +529,7 @@
     #theme(legend.position="bottom") +
     xlim(-2, 4) + ylim(0, 1.0) +
     xlab("Scaled TRI, Northeast") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of being in faster state") #+
     #labs(title = "Predator stationary state probabilities in response to habitat complexity, Northeast")
   
   #'  Predator stationary state ~ Distance to Road
@@ -553,7 +557,7 @@
     xlim(-1, 4.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled distance to road, OK") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of being in faster state") #+
     #labs(title = "Predator stationary state probabilities in response to distance to nearest road, Okanogan")
   
   dist2rd_effects_pred_NE <- rbind(coug_smr_NE_PrStay$Dist2Road, coug_wtr_NE_PrStay$Dist2Road,
@@ -580,7 +584,7 @@
     xlim(-1, 4.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled distance to road, NE") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of being in faster state") #+
     #labs(title = "Predator stationary state probabilities in response to distance to nearest road, Northeast")
   
   #'  Predator stationary state ~ Open Habitat
@@ -609,7 +613,7 @@
     xlim(-1.5, 1.5) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled percent open, OK") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of being in faster state") #+
     #labs(title = "Predator stationary state probabilities in response to percentage of open habitat, Okanogan")
   
   percopen_effects_pred_NE <- rbind(coug_smr_NE_PrStay$PercOpen, coug_wtr_NE_PrStay$PercOpen) %>% #,
@@ -636,7 +640,7 @@
     xlim(-1, 3) + ylim(0, 1.0) +
     guides(fill = guide_legend(title = "Predator Species"), color = guide_legend(title = "Predator Species")) +
     xlab("Scaled percent open, NE") +
-    ylab("Probability of state 2") #+
+    ylab("Probability of being in faster state") #+
     #labs(title = "Predator stationary state probabilities in response to percentage of open habitat, Northeast")
   
   #'  Save
@@ -659,7 +663,8 @@
     theme(axis.title = element_text(size = 16)) &
     theme(axis.text = element_text(size = 16)) &
     theme(legend.text = element_text(size = 16)) &
-    theme(legend.title = element_text(size = 16))
+    theme(legend.title = element_text(size = 16)) &
+    theme(plot.tag = element_text(size = 18)) 
   # road_fig <- prey_dist2rd_plot + pred_OK_dist2rd_plot + pred_NE_dist2rd_plot +
   #     plot_layout(guides = 'collect') + 
   #     plot_layout(ncol = 3) +
