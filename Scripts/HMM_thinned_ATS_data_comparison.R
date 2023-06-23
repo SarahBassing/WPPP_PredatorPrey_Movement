@@ -416,7 +416,7 @@
                                          "Transition", "Parameter", "Estimate",
                                          "SE", "CI95")
   
-  write.csv(results_hmm_TransPr_ats, paste0("./Outputs/HMM_output/HMM_Results_TransPr_ATS_long", Sys.Date(), ".csv"))
+  # write.csv(results_hmm_TransPr_ats, paste0("./Outputs/HMM_output/HMM_Results_TransPr_ATS_long", Sys.Date(), ".csv"))
   
   
   
@@ -437,7 +437,7 @@
     arrange(match(`Study Area`, c("Okanogan", "Northeast")), .by_group = TRUE) %>%
     ungroup()
   
-  write.csv(results_hmm_wide_TransPr_ats, paste0("./Outputs/HMM_output/HMM_Results_TransPr_ATS_wide", Sys.Date(), ".csv"))
+  # write.csv(results_hmm_wide_TransPr_ats, paste0("./Outputs/HMM_output/HMM_Results_TransPr_ATS_wide", Sys.Date(), ".csv"))
   
   
   ####  Back-transformed Results  ####
@@ -535,9 +535,9 @@
                                      ats_1hr_backtrans[[3]], ats_2hr_backtrans[[3]], 
                                      ats_3hr_backtrans[[3]]) 
   
-  write.csv(ats_steps_backtrans, paste0("./Outputs/HMM_output/HMM_Results_StepLength_BackTrans_ATS_", Sys.Date(), ".csv"))
-  write.csv(ats_turns_backtrans, paste0("./Outputs/HMM_output/HMM_Results_TurningAngle_BackTrans_ATS_", Sys.Date(), ".csv"))
-  write.csv(ats_TransPr_backtrans, paste0("./Outputs/HMM_output/HMM_Results_TransPr_BackTrans_ATS_", Sys.Date(), ".csv"))
+  # write.csv(ats_steps_backtrans, paste0("./Outputs/HMM_output/HMM_Results_StepLength_BackTrans_ATS_", Sys.Date(), ".csv"))
+  # write.csv(ats_turns_backtrans, paste0("./Outputs/HMM_output/HMM_Results_TurningAngle_BackTrans_ATS_", Sys.Date(), ".csv"))
+  # write.csv(ats_TransPr_backtrans, paste0("./Outputs/HMM_output/HMM_Results_TransPr_BackTrans_ATS_", Sys.Date(), ".csv"))
   
   
   ####  Plot Stationary-State Probabilities  ####
@@ -563,7 +563,7 @@
   
   ####  Prettier Plots for Stationary State Probabilities  ####
   #'  Function to extract stationary state probabilities and plot outputs
-  stay_plots <- function(stay, season, spp, area) {
+  stay_plots <- function(stay, fixinterval, season, spp, area) {
     #'  Extract list of calculated stationary states for range of covariate values 
     #'  from HMM stationary output
     stay_covs <- stay[[2]]
@@ -574,8 +574,8 @@
       #'  Hold list of interest
       cov <- stay_covs[[l]]
       #'  Add column indicating which behavioral state values belong to
-      cov[[1]]$State <- "Encamped"
-      cov[[2]]$State <- "Exploratory"
+      cov[[1]]$State <- "Slower" #"Encamped"
+      cov[[2]]$State <- "Faster" #"Exploratory"
       #'  Convert to data frame instead of list
       cov <- rbind(as.data.frame(cov[[1]]), as.data.frame(cov[[2]]))
       cov$State <- as.factor(cov$State)
@@ -589,16 +589,17 @@
     list_names <- as.data.frame(names(covs_out))
     colnames(list_names) <- "nms"
     list_names <- list_names %>%
-      mutate(nms = ifelse(nms == "PercOpen", "Habitat Openness", nms),
-             nms = ifelse(nms == "Dist2Road", "Distance to Road", nms),
-             nms = ifelse(nms == "SnowCover", "Snow Cover", nms),
-             nms = ifelse(nms == "MD_RSF", "Mule Deer Presence", nms),
-             nms = ifelse(nms == "ELK_RSF", "Elk Presence", nms),
-             nms = ifelse(nms == "WTD_RSF", "White-tailed Deer Presence", nms),
-             nms = ifelse(nms == "COUG_RSF", "Cougar Presence", nms),
-             nms = ifelse(nms == "WOLF_RSF", "Wolf Presence", nms),
-             nms = ifelse(nms == "BOB_RSF", "Bobcat Presence", nms),
-             nms = ifelse(nms == "COY_RSF", "Coyote Presence", nms))
+      mutate(nms = ifelse(nms == "TRI", "Terrain ruggedness", nms),
+             nms = ifelse(nms == "PercOpen", "Open habitat", nms),
+             nms = ifelse(nms == "Dist2Road", "Distance to road", nms),
+             nms = ifelse(nms == "SnowCover", "Snow cover", nms),
+             nms = ifelse(nms == "MD_RSF", "Mule deer RSF", nms),
+             nms = ifelse(nms == "ELK_RSF", "Elk RSF", nms),
+             nms = ifelse(nms == "WTD_RSF", "White-tailed deer RSF", nms),
+             nms = ifelse(nms == "COUG_RSF", "Cougar RSF", nms),
+             nms = ifelse(nms == "WOLF_RSF", "Wolf RSF", nms),
+             nms = ifelse(nms == "BOB_RSF", "Bobcat RSF", nms),
+             nms = ifelse(nms == "COY_RSF", "Coyote RSF", nms))
     #'  Force back to an atomic vector of characters (needed for looping below)
     list_names <- list_names$nms
     
@@ -619,10 +620,10 @@
         ylim(0,1.0) +
         #'  Use list name as X-axis title
         xlab(list_names[l]) +
-        ylab("Stationary State Probability") +
-        labs(#title = paste(area, season, spp, "Stationary State Probabilities"), 
+        ylab(paste(fixinterval, "fix \nStationary state probability")) +
+        labs(#title = paste("Fix interval:", fixinterval), #title = paste(area, season, spp, "Stationary State Probabilities"), 
           fill = "Movement State", color = "Movement State") 
-      #theme(legend.position="bottom")
+      # theme(legend.position="bottom")
       #'  Review figure
       plot(stay_plot)
       #'  Append figures
@@ -633,56 +634,70 @@
   }
   #'  Run each species through- for loops should allow the different coefficients
   #'  to still plot nicely
-  ats_full_fig <- stay_plots(stay_ats_full, season = "Winter", spp = "Cougar ATS 10-min", area = "Okanogan")
-  ats_30m_fig <- stay_plots(stay_ats_30m, season = "Winter", spp = "Cougar ATS 30-min", area = "Okanogan")
-  ats_1hr_fig <- stay_plots(stay_ats_1hr, season = "Winter", spp = "Cougar ATS 1-hr", area = "Okanogan")
-  ats_2hr_fig <- stay_plots(stay_ats_2hr, season = "Winter", spp = "Cougar ATS 2-hr", area = "Okanogan")
-  ats_4hr_fig <- stay_plots(stay_ats_4hr, season = "Winter", spp = "Cougar ATS 4-hr", area = "Okanogan")
+  ats_full_fig <- stay_plots(stay_ats_full, fixinterval = "10-minute", season = "Winter", spp = "Cougar ATS 10-min", area = "Okanogan")
+  ats_30m_fig <- stay_plots(stay_ats_30m, fixinterval = "30-minute", season = "Winter", spp = "Cougar ATS 30-min", area = "Okanogan")
+  ats_1hr_fig <- stay_plots(stay_ats_1hr, fixinterval = "1-hour", season = "Winter", spp = "Cougar ATS 1-hr", area = "Okanogan")
+  ats_2hr_fig <- stay_plots(stay_ats_2hr, fixinterval = "2-hour", season = "Winter", spp = "Cougar ATS 2-hr", area = "Okanogan")
+  ats_4hr_fig <- stay_plots(stay_ats_4hr, fixinterval = "4-hour", season = "Winter", spp = "Cougar ATS 4-hr", area = "Okanogan")
   
   
   #'  Patchwork figures together in panels
   library(patchwork)
   length(ats_full_fig)
-  (ats_full_patch <- ats_full_fig[[1]] + ats_full_fig[[2]] + 
-      theme(axis.title.y = element_blank()) + ats_full_fig[[3]] + 
-      theme(axis.title.y = element_blank()) + 
-      plot_layout(guides = 'collect') + 
-      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
-                      subtitle = '     ATS 10-min interval'))
+  (ats_full_patch <- ats_full_fig[[1]] + theme(axis.title.x = element_blank(), axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0))) + 
+      ats_full_fig[[2]] + theme(axis.title.y = element_blank(), axis.title.x = element_blank()) + 
+      ats_full_fig[[3]] + theme(axis.title.y = element_blank(), axis.title.x = element_blank()) + 
+      # plot_layout(guides = 'collect') + #& theme(legend.position = 'bottom') + 
+      plot_annotation(#title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = 'Fix interval: 10-min',
+                      theme = theme(plot.subtitle = element_text(size = 18))) +
+      plot_layout(guides = 'collect') & theme(legend.position = "none") & theme(text = element_text(size = 16)))
   length(ats_30m_fig)
-  (ats_30m_patch <- ats_30m_fig[[1]] + ats_30m_fig[[2]] + 
-      theme(axis.title.y = element_blank()) + ats_30m_fig[[3]] + 
-      theme(axis.title.y = element_blank()) + 
-      plot_layout(guides = 'collect') + 
-      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
-                      subtitle = '     ATS 30-min interval'))
+  (ats_30m_patch <- ats_30m_fig[[1]] + theme(axis.title.x = element_blank(), axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0))) + 
+      ats_30m_fig[[2]] + theme(axis.title.y = element_blank(), axis.title.x = element_blank()) + 
+      ats_30m_fig[[3]] + theme(axis.title.y = element_blank(), axis.title.x = element_blank()) + 
+      # plot_layout(guides = 'collect') + 
+      plot_annotation(#title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = 'Fix interval: 30-min',
+                      theme = theme(plot.subtitle = element_text(size = 18))) +
+      plot_layout(guides = 'collect') & theme(legend.position = "none") & theme(text = element_text(size = 16)))
   length(ats_1hr_fig)
-  (ats_1hr_patch <- ats_1hr_fig[[1]] + ats_1hr_fig[[2]] + 
-      theme(axis.title.y = element_blank()) + ats_1hr_fig[[3]] + 
-      theme(axis.title.y = element_blank()) + 
-      plot_layout(guides = 'collect') + 
-      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
-                      subtitle = '     ATS 1-hr interval'))
+  (ats_1hr_patch <- ats_1hr_fig[[1]] + theme(axis.title.x = element_blank(), axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0))) + 
+      ats_1hr_fig[[2]] + theme(axis.title.y = element_blank(), axis.title.x = element_blank()) + 
+      ats_1hr_fig[[3]] + theme(axis.title.y = element_blank(), axis.title.x = element_blank()) + 
+      # plot_layout(guides = 'collect') + 
+      plot_annotation(#title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = 'Fix interval: 1-hour',
+                      theme = theme(plot.subtitle = element_text(size = 18))) +
+      plot_layout(guides = 'collect') & theme(legend.position = "none") & theme(text = element_text(size = 16)))
   length(ats_2hr_fig)
-  (ats_2hr_patch <- ats_2hr_fig[[1]] + ats_2hr_fig[[2]] + 
-      theme(axis.title.y = element_blank()) + ats_2hr_fig[[3]] + 
-      theme(axis.title.y = element_blank()) + 
-      plot_layout(guides = 'collect') + 
-      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
-                      subtitle = '     ATS 2-hr interval'))
+  (ats_2hr_patch <- ats_2hr_fig[[1]] + theme(axis.title.x = element_blank(), axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0))) + 
+      ats_2hr_fig[[2]] + theme(axis.title.y = element_blank(), axis.title.x = element_blank()) + 
+      ats_2hr_fig[[3]] + theme(axis.title.y = element_blank(), axis.title.x = element_blank()) + 
+      # plot_layout(guides = 'collect') + 
+      plot_annotation(#title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = 'Fix interval: 2-hour',
+                      theme = theme(plot.subtitle = element_text(size = 18))) +
+      plot_layout(guides = 'collect') & theme(legend.position = "none") & theme(text = element_text(size = 16)))
   length(ats_4hr_fig)
-  (ats_4hr_patch <- ats_4hr_fig[[1]] + ats_4hr_fig[[2]] + 
-      theme(axis.title.y = element_blank()) + ats_4hr_fig[[3]] + 
-      theme(axis.title.y = element_blank()) + 
-      plot_layout(guides = 'collect') + 
-      plot_annotation(title = 'Winter Cougar Stationary State Probabilities',
-                      subtitle = '     ATS 4-hr interval'))
+  (ats_4hr_patch <- ats_4hr_fig[[1]] + theme(axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0))) +
+      ats_4hr_fig[[2]] + theme(axis.title.y = element_blank()) + 
+      ats_4hr_fig[[3]] + theme(axis.title.y = element_blank()) + 
+      # plot_layout(guides = 'collect') + 
+      plot_annotation(#title = 'Winter Cougar Stationary State Probabilities',
+                      subtitle = 'Fix interval: 4-hour',
+                      theme = theme(plot.subtitle = element_text(size = 18))) +
+      plot_layout(guides = 'collect') & theme(legend.position = 'bottom') & theme(text = element_text(size = 16)))
   
-  (ATS_comparision <- ats_full_patch / ats_30m_patch / ats_1hr_patch / ats_2hr_patch / ats_4hr_patch)
-  
-  png(file="./Outputs/HMM_Output/ATS_fixrate_comparison.png", width = 700, height = 1200)
   (ATS_comparision <- ats_full_patch / ats_30m_patch / ats_1hr_patch / ats_2hr_patch / ats_4hr_patch
-    + plot_annotation(title = 'Winter OK Cougar Stationary State Probabilities', subtitle = '     ATS collar relcations thinned from 10-min to 30-min, 1-hr, 2-hr, & 4-hr intervals'))
+    + plot_layout(guides = 'collect') & theme(text = element_text(size = 16))) 
+  
+  png(file="./Outputs/HMM_Output/ATS_fixrate_comparison.png", width = 750, height = 1200)
+  (ATS_comparision <- ats_full_patch / ats_30m_patch / ats_1hr_patch / ats_2hr_patch / ats_4hr_patch
+    + plot_annotation(title = 'Effect of fix interval on predicted stationary state probabilities', 
+                      # subtitle = '     Relcations thinned from 10-min to 30-min, 1-hr, 2-hr, & 4-hr intervals',
+                      theme = theme(plot.title = element_text(size = 18), plot.subtitle = element_text(size = 18)))
+    + plot_layout(guides = 'collect') & theme(text = element_text(size = 16)))
   dev.off()
 
   
