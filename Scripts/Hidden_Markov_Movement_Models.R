@@ -138,7 +138,7 @@
                    wolfData_wtr_NE, bobData_smr_OK, bobData_wtr_OK, bobData_smr_NE, 
                    bobData_wtr_NE, coyData_smr_OK, coyData_wtr_OK, coyData_smr_NE, 
                    coyData_wtr_NE)
-  save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_", Sys.Date(), ".RData"))
+  # save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_", Sys.Date(), ".RData"))
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2023-04-08.RData") #2022-05-23
   names(hmm_data) <- c("mdData_smr", "mdData_wtr", "elkData_smr", "elkData_wtr", "wtdData_smr", "wtdData_wtr",
                   "cougData_smr_OK", "cougData_wtr_OK", "cougData_smr_NE", "cougData_wtr_NE",
