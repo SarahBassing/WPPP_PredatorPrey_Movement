@@ -5,7 +5,7 @@
   #'  December 2021
   #'  ============================================
   #'  Script uses the rgee package to call the Google Earth Engine API to extract
-  #'  spatially and temporally mapped covariate data for telemtry relocations.
+  #'  spatially and temporally mapped covariate data for telemetry relocations.
   #'  This requires having an account with Google Earth Engine and Anaconda installed.
   #'  
   #'  Follow these links for instructions to install rgee package (it's complicated).
