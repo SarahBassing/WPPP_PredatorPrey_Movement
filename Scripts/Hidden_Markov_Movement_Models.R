@@ -158,6 +158,8 @@
   #'                 "wolfData_smr_OK", "wolfData_wtr_OK", "wolfData_smr_NE", "wolfData_wtr_NE",
   #'                 "bobData_smr_OK", "bobData_wtr_OK", "bobData_smr_NE", "bobData_wtr_NE",
   #'                 "coyData_smr_OK", "coyData_wtr_OK", "coyData_smr_NE", "coyData_wtr_NE")
+  #' #'  Remove coyote and bobcat data 
+  #' hmm_data <- hmm_data[-c(15:22)]
   #' save(hmm_data, file = paste0("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_for_pub_", Sys.Date(), ".RData"))
   
   
