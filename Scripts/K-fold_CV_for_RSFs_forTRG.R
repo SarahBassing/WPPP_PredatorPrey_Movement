@@ -377,7 +377,7 @@
   #'  ---OR--- used global model, only removing highly correlated variables when needed
   #'  in Resource_Selection_Function_Models.R script
   #'  Cougar models
-  coug_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
+  coug_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
   coug_fll_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
   coug_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   coug_sprg_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)" 
@@ -392,10 +392,10 @@
   bob_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   bob_sprg_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   #'  Coyote models
-  coy_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  coy_fll_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  coy_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
-  coy_sprg_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  coy_smr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  coy_fll_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  coy_wtr_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
+  coy_sprg_mod <- "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)"
   
   
   ####  K-fold model training  ####
@@ -534,22 +534,22 @@
   
   
   #'  Read in saved k-fold trained model results
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_kfold_smr_forTRG_2023-07-12.RData") #2022-06-16
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_kfold_fll_forTRG_2023-07-12.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_kfold_wtr_forTRG_2023-07-12.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_kfold_sprg_forTRG_2023-07-12.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_kfold_smr_forTRG_2023-07-12.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_kfold_fll_forTRG_2023-07-12.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_kfold_wtr_forTRG_2023-07-12.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_kfold_sprg_forTRG_2023-07-12.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_kfold_smr_forTRG_2023-07-13.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_kfold_fll_forTRG_2023-07-13.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_kfold_wtr_forTRG_2023-07-13.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_kfold_sprg_forTRG_2023-07-13.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_kfold_smr_forTRG_2023-07-13.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_kfold_fll_forTRG_2023-07-13.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_kfold_wtr_forTRG_2023-07-13.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_kfold_sprg_forTRG_2023-07-13.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_kfold_smr_forTRG_2022-06-16.RData") # forTRG_2023-07-12 includes HumanMod in all models
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_kfold_fll_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_kfold_wtr_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_kfold_sprg_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_kfold_smr_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_kfold_fll_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_kfold_wtr_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_kfold_sprg_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_kfold_smr_forTRG_2022-06-16.RData")  # forTRG_2023-07-13 inlculded HumanMod in all models
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_kfold_fll_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_kfold_wtr_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_kfold_sprg_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_kfold_smr_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_kfold_fll_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_kfold_wtr_forTRG_2022-06-16.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_kfold_sprg_forTRG_2022-06-16.RData")
   
   #'  Function to save parameter estimates from each trained model
   #'  Use coef(mod) to look at random effects estimates
@@ -748,22 +748,22 @@
   coy_sprg_Kpredict <- list(coy_sprg17_Kpredict, coy_sprg18_Kpredict, coy_sprg19_Kpredict, coy_sprg20_Kpredict)
   save(coy_sprg_Kpredict, file = paste0("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_sprg_Kpredict_forTRG_", Sys.Date(), ".RData"))
   
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_smr_Kpredict_forTRG_2023-07-14.RData") #2022-06-17
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_fll_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_wtr_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_sprg_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_smr_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_fll_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_wtr_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_sprg_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_smr_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_fll_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_wtr_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_sprg_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_smr_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_fll_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_wtr_Kpredict_forTRG_2023-07-14.RData")
-  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_sprg_Kpredict_forTRG_2023-07-14.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_smr_Kpredict_forTRG_2022-06-17.RData") #2022-06-17 #2023-07-14 includes HumanMod on all models
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_fll_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_wtr_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coug_sprg_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_smr_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_fll_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_wtr_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/wolf_sprg_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_smr_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_fll_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_wtr_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/bob_sprg_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_smr_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_fll_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_wtr_Kpredict_forTRG_2022-06-17.RData")
+  load("./Outputs/RSF_output/Kfold_CV/Kfold_CV_forTRG/coy_sprg_Kpredict_forTRG_2022-06-17.RData")
   
   #'  Function to identify any outliers
   outliers <- function(predicted, title) { 
