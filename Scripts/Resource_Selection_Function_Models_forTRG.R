@@ -206,9 +206,6 @@
   (coy_wtr_corr <- cov_correlation(coyData_wtr))
   (coy_sprg_corr <- cov_correlation(coyData_sprg))
   
-  #'  Just checking but will still use all covariates in each RSF even if highly
-  #'  correlated b/c trying to make as predictive as possible
-  
   
   #'  Resource Selection Function Models
   #'  ==================================
@@ -234,7 +231,9 @@
   #'  Run species, season, and year specific models through glmm function
   
   ####  Cougar RSFs  ####
-  coug_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_smr) 
+  coug_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_smr) 
+  coug_smr2 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_smr) 
+  AIC(coug_smr, coug_smr2)
   coug_fll <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_fll) 
   coug_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_wtr) 
   coug_sprg <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = cougDataz_sprg) 
@@ -253,10 +252,20 @@
   bob_sprg <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)",  dat = bobDataz_sprg) 
   
   ####  Coyote RSFs  ####
-  coy_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_smr)  
-  coy_fll <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_fll)  
-  coy_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_wtr) 
-  coy_sprg <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_sprg)  
+  coy_smr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_smr)  
+  coy_fll <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_fll)  
+  coy_wtr <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_wtr) 
+  coy_sprg <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_sprg)  
+  
+  coy_smr2 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_smr)  
+  coy_fll2 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_fll)  
+  coy_wtr2 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_wtr) 
+  coy_sprg2 <- glmm_fn(mod = "Used ~ 1 + Elev + I(Elev^2) + Slope + RoadDen + Dist2Water + HumanMod + CanopyCover + Dist2Edge + Landcover_type + (1|ID)", dat = coyDataz_sprg)  
+  
+  AIC(coy_smr, coy_smr2)
+  AIC(coy_fll, coy_fll2)
+  AIC(coy_wtr, coy_wtr2)
+  AIC(coy_sprg, coy_sprg2)
   
   #'  Group species-specific models
   RSF_COUG_list <- list(coug_smr, coug_fll, coug_wtr, coug_sprg)
@@ -276,10 +285,10 @@
   #'  ==============================================
   
   #'  Load RSFs
-  load("./Outputs/RSF_output/RSF_COUG_list_forTRG_2023-07-07.RData") # _forTRG_2022-06-15
-  load("./Outputs/RSF_output/RSF_WOLF_list_forTRG_2023-07-07.RData")
-  load("./Outputs/RSF_output/RSF_BOB_list_forTRG_2023-07-07.RData")
-  load("./Outputs/RSF_output/RSF_COY_list_forTRG_2023-07-07.RData")
+  load("./Outputs/RSF_output/RSF_COUG_list_forTRG_2022-06-15.RData") # forTRG_2023-07-07 included HumanMod in cougar/coyote models
+  load("./Outputs/RSF_output/RSF_WOLF_list_forTRG_2022-06-15.RData")
+  load("./Outputs/RSF_output/RSF_BOB_list_forTRG_2022-06-15.RData")
+  load("./Outputs/RSF_output/RSF_COY_list_forTRG_2022-06-15.RData")
   
   #'  Load spatial libraries
   library(sf)
