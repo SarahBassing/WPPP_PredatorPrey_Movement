@@ -19,26 +19,27 @@
   load("./Outputs/Telemetry_crwOut/crwOut_ALL_wCovs_2023-04-08.RData") #2022-05-23
 
   #'  Load HMM results
-  load("./Outputs/HMM_output/spp_HMM_output_2023-04-08.RData") #2022-06-15
+  load("./Outputs/HMM_output/spp_HMM_output_Interactions_2024-05-08.RData")
+  # load("./Outputs/HMM_output/spp_HMM_output_2023-04-08.RData") #2022-06-15
   
   
   ####  Stationary State Probs with MEAN Covariate Values  ####
   #'  -----------------------------------------------------
   #'  Functions to extract stationary state probabilities & plot predicted responses
-  stay_probs_prey <- function(hmmm, snow) {
+  stay_probs_prey <- function(hmmm, snow, tri_val, open_val) {
     #'  Calculate stationary state probs. for each state based on covariate data
     #'  for each time step
     stay_pr <- stationary(hmmm)
     stay_pr <- stay_pr[[1]]
     #'  Calculate stationary state probs. for each state when covariate data are
     #'  held at their mean value (0 b/c data are centered and scaled)
-    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
-                                                   SnowCover = snow, TRI = 0,
+    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = open_val,
+                                                   SnowCover = snow, TRI = tri_val,
                                                    COUG_RSF = 0, WOLF_RSF = 0))
     print(stay_mu0)
     #'  Plot stationary state probabilities and extract predicted estimates
-    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
-                                                  SnowCover = snow, TRI = 0,
+    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = open_val,
+                                                  SnowCover = snow, TRI = tri_val,
                                                   COUG_RSF = 0, WOLF_RSF = 0),
                           col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE)
     stationary_probs <- list(stay_pr, fig)
@@ -46,49 +47,94 @@
     return(stationary_probs)
   }
   #'  Extract stationary state probabilities for deer and elk
-  stay_md_smr <- stay_probs_prey(spp_HMM_output[[1]], snow = 0)
-  stay_md_wtr <- stay_probs_prey(spp_HMM_output[[2]], snow = 1)
-  stay_elk_smr <- stay_probs_prey(spp_HMM_output[[3]], snow = 0)
-  stay_elk_wtr <- stay_probs_prey(spp_HMM_output[[4]], snow = 1)
-  stay_wtd_smr <- stay_probs_prey(spp_HMM_output[[5]], snow = 0)
-  stay_wtd_wtr <- stay_probs_prey(spp_HMM_output[[6]], snow = 1)
+  stay_md_smr <- stay_probs_prey(spp_HMM_output[[1]], snow = 0, tri_val = 0, open_val = 0)
+  stay_md_wtr <- stay_probs_prey(spp_HMM_output[[2]], snow = 1, tri_val = 0, open_val = 0)
+  stay_elk_smr <- stay_probs_prey(spp_HMM_output[[3]], snow = 0, tri_val = 0, open_val = 0)
+  stay_elk_wtr <- stay_probs_prey(spp_HMM_output[[4]], snow = 1, tri_val = 0, open_val = 0)
+  stay_wtd_smr <- stay_probs_prey(spp_HMM_output[[5]], snow = 0, tri_val = 0, open_val = 0)
+  stay_wtd_wtr <- stay_probs_prey(spp_HMM_output[[6]], snow = 1, tri_val = 0, open_val = 0)
+  
+  
+  #'  Predict stationary state under varying levels of TRI and PercOpen
+  stay_md_smr_loTRI <- stay_probs_prey(spp_HMM_output[[1]], snow = 0, tri_val = -1, open_val = 0)
+  stay_md_smr_hiTRI <- stay_probs_prey(spp_HMM_output[[1]], snow = 0, tri_val = 1, open_val = 0)
+  stay_md_smr_loOpen <- stay_probs_prey(spp_HMM_output[[1]], snow = 0, tri_val = 0, open_val = -1)
+  stay_md_smr_hiOpen <- stay_probs_prey(spp_HMM_output[[1]], snow = 0, tri_val = 0, open_val = 1)
+  stay_md_wtr_loTRI <- stay_probs_prey(spp_HMM_output[[2]], snow = 1, tri_val = -1, open_val = 0)
+  stay_md_wtr_hiTRI <- stay_probs_prey(spp_HMM_output[[2]], snow = 1, tri_val = 2, open_val = 0)
+  stay_md_wtr_loOpen <- stay_probs_prey(spp_HMM_output[[2]], snow = 1, tri_val = 0, open_val = -2)
+  stay_md_wtr_hiOpen <- stay_probs_prey(spp_HMM_output[[2]], snow = 1, tri_val = 0, open_val = 1)
+  stay_elk_smr_loTRI <- stay_probs_prey(spp_HMM_output[[3]], snow = 0, tri_val = -1, open_val = 0)
+  stay_elk_smr_hiTRI <- stay_probs_prey(spp_HMM_output[[3]], snow = 0, tri_val = 2, open_val = 0)
+  stay_elk_smr_loOpen <- stay_probs_prey(spp_HMM_output[[3]], snow = 0, tri_val = 0, open_val = -0.5)
+  stay_elk_smr_hiOpen <- stay_probs_prey(spp_HMM_output[[3]], snow = 0, tri_val = 0, open_val = 2.5)
+  stay_elk_wtr_loTRI <- stay_probs_prey(spp_HMM_output[[4]], snow = 1, tri_val = -1.5, open_val = 0)
+  stay_elk_wtr_hiTRI <- stay_probs_prey(spp_HMM_output[[4]], snow = 1, tri_val = 0.5, open_val = 0)
+  stay_elk_wtr_loOpen <- stay_probs_prey(spp_HMM_output[[4]], snow = 1, tri_val = 0, open_val = -0.5)
+  stay_elk_wtr_hiOpen <- stay_probs_prey(spp_HMM_output[[4]], snow = 1, tri_val = 0, open_val = 2)
+  stay_wtd_smr_loTRI <- stay_probs_prey(spp_HMM_output[[5]], snow = 0, tri_val = -0.5, open_val = 0)
+  stay_wtd_smr_hiTRI <- stay_probs_prey(spp_HMM_output[[5]], snow = 0, tri_val = 2.5, open_val = 0)
+  stay_wtd_smr_loOpen <- stay_probs_prey(spp_HMM_output[[5]], snow = 0, tri_val = 0, open_val = -0.5)
+  stay_wtd_smr_hiOpen <- stay_probs_prey(spp_HMM_output[[5]], snow = 0, tri_val = 0, open_val = 2)
+  stay_wtd_wtr_loTRI <- stay_probs_prey(spp_HMM_output[[6]], snow = 1, tri_val = -0.5, open_val = 0)
+  stay_wtd_wtr_hiTRI <- stay_probs_prey(spp_HMM_output[[6]], snow = 1, tri_val = 2.5, open_val = 0)
+  stay_wtd_wtr_loOpen <- stay_probs_prey(spp_HMM_output[[6]], snow = 1, tri_val = 0, open_val = -0.5)
+  stay_wtd_wtr_hiOpen <- stay_probs_prey(spp_HMM_output[[6]], snow = 1, tri_val = 0, open_val = 2)
   
   #'  Stationary probabilities for predators in the Okanogan
-  stay_probs_pred_OK <- function(hmmm, snow) {
+  stay_probs_pred_OK <- function(hmmm, snow, tri_val, open_val) {
     stay_pr <- stationary(hmmm)
     stay_pr <- stay_pr[[1]]
-    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
-                                                   SnowCover = snow, TRI = 0, MD_RSF = 0)) 
+    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = open_val,
+                                                   SnowCover = snow, TRI = tri_val, MD_RSF = 0)) 
     print(stay_mu0) 
     #'  Plot stationary state probabilities and extract predicted estimates
-    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
-                                                  SnowCover = snow, TRI = 0, MD_RSF = 0),  
+    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = open_val,
+                                                  SnowCover = snow, TRI = tri_val, MD_RSF = 0),  
                           col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE) 
     stationary_probs <- list(stay_pr, fig)
     
     return(stationary_probs)
   }
   #'  Extract stationary state probabilities
-  stay_coug_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[7]], snow = 0)
-  stay_coug_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[8]], snow = 1)
-  stay_wolf_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[11]], snow = 0)
-  stay_wolf_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[12]], snow = 1)
-  stay_bob_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[15]], snow = 0)
-  # stay_bob_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[16]], snow = 1)
-  stay_coy_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[17]], snow = 0)
-  stay_coy_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[18]], snow = 1)
+  stay_coug_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[7]], snow = 0, tri_val = 0, open_val = 0)
+  stay_coug_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[8]], snow = 1, tri_val = 0, open_val = 0)
+  stay_wolf_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[11]], snow = 0, tri_val = 0, open_val = 0)
+  stay_wolf_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[12]], snow = 1, tri_val = 0, open_val = 0)
+  # stay_bob_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[15]], snow = 0)
+  # # stay_bob_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[16]], snow = 1)
+  # stay_coy_smr_OK <- stay_probs_pred_OK(spp_HMM_output[[17]], snow = 0)
+  # stay_coy_wtr_OK <- stay_probs_pred_OK(spp_HMM_output[[18]], snow = 1)
+  
+  #'  Predict stationary state under varying levels of TRI and PercOpen
+  stay_coug_smr_OK_loTRI <- stay_probs_pred_OK(spp_HMM_output[[7]], snow = 0, tri_val = -1.5, open_val = 0)
+  stay_coug_smr_OK_hiTRI <- stay_probs_pred_OK(spp_HMM_output[[7]], snow = 0, tri_val = 6, open_val = 0)
+  stay_coug_smr_OK_loOpen <- stay_probs_pred_OK(spp_HMM_output[[7]], snow = 0, tri_val = 0, open_val = -1)
+  stay_coug_smr_OK_hiOpen <- stay_probs_pred_OK(spp_HMM_output[[7]], snow = 0, tri_val = 0, open_val = 1)
+  stay_coug_wtr_OK_loTRI <- stay_probs_pred_OK(spp_HMM_output[[8]], snow = 1, tri_val = -1.5, open_val = 0)
+  stay_coug_wtr_OK_hiTRI <- stay_probs_pred_OK(spp_HMM_output[[8]], snow = 1, tri_val = 3.5, open_val = 0)
+  stay_coug_wtr_OK_loOpen <- stay_probs_pred_OK(spp_HMM_output[[8]], snow = 1, tri_val = 0, open_val = -1)
+  stay_coug_wtr_OK_hiOpen <- stay_probs_pred_OK(spp_HMM_output[[8]], snow = 1, tri_val = 0, open_val = 1)
+  stay_wolf_smr_OK_loTRI <- stay_probs_pred_OK(spp_HMM_output[[11]], snow = 0, tri_val = -1, open_val = 0)
+  stay_wolf_smr_OK_hiTRI <- stay_probs_pred_OK(spp_HMM_output[[11]], snow = 0, tri_val = 6, open_val = 0)
+  stay_wolf_smr_OK_loOpen <- stay_probs_pred_OK(spp_HMM_output[[11]], snow = 0, tri_val = 0, open_val = -1)
+  stay_wolf_smr_OK_hiOpen <- stay_probs_pred_OK(spp_HMM_output[[11]], snow = 0, tri_val = 0, open_val = 1)
+  stay_wolf_wtr_OK_loTRI <- stay_probs_pred_OK(spp_HMM_output[[12]], snow = 1, tri_val = -1, open_val = 0)
+  stay_wolf_wtr_OK_hiTRI <- stay_probs_pred_OK(spp_HMM_output[[12]], snow = 1, tri_val = 3, open_val = 0)
+  stay_wolf_wtr_OK_loOpen <- stay_probs_pred_OK(spp_HMM_output[[12]], snow = 1, tri_val = 0, open_val = -1)
+  stay_wolf_wtr_OK_hiOpen <- stay_probs_pred_OK(spp_HMM_output[[12]], snow = 1, tri_val = 0, open_val = 1)
   
   #'  Stationary state probabilities for predators in the Northeast
-  stay_probs_pred_NE <- function(hmmm, snow) {
+  stay_probs_pred_NE <- function(hmmm, snow, tri_val, open_val) {
     stay_pr <- stationary(hmmm)
     stay_pr <- stay_pr[[1]]
-    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
-                                                   SnowCover = snow, TRI = 0, 
+    stay_mu0 <- stationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = open_val,
+                                                   SnowCover = snow, TRI = tri_val, 
                                                    ELK_RSF = 0, WTD_RSF = 0))
     print(stay_mu0) 
     #'  Plot stationary state probabilities and extract predicted estimates
-    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = 0,
-                                                  SnowCover = snow, TRI = 0, 
+    fig <- plotStationary(hmmm, covs = data.frame(Dist2Road = 0, PercOpen = open_val,
+                                                  SnowCover = snow, TRI = tri_val, 
                                                   ELK_RSF = 0, WTD_RSF = 0),    
                           col = c("red", "blue"), plotCI = TRUE, alpha = 0.95, return =  TRUE)
     stationary_probs <- list(stay_pr, fig)
@@ -96,14 +142,34 @@
     return(stationary_probs)
   }
   #'  Extract stationary state probabilities
-  stay_coug_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[9]], snow = 0)
-  stay_coug_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[10]], snow = 1)
-  stay_wolf_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[13]], snow = 0)
-  stay_wolf_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[14]], snow = 1)
-  # stay_bob_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[17]], snow = 0)
-  stay_bob_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[16]], snow = 1)
-  stay_coy_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[19]], snow = 0)
-  stay_coy_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[20]], snow = 1)
+  stay_coug_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[9]], snow = 0, tri_val = 0, open_val = 0)
+  stay_coug_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[10]], snow = 1, tri_val = 0, open_val = 0)
+  stay_wolf_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[13]], snow = 0, tri_val = 0, open_val = 0)
+  stay_wolf_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[14]], snow = 1, tri_val = 0, open_val = 0)
+  # # stay_bob_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[17]], snow = 0)
+  # stay_bob_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[16]], snow = 1)
+  # stay_coy_smr_NE <- stay_probs_pred_NE(spp_HMM_output[[19]], snow = 0)
+  # stay_coy_wtr_NE <- stay_probs_pred_NE(spp_HMM_output[[20]], snow = 1)
+  
+  #'  Predict stationary state under varying levels of TRI and PercOpen
+  stay_coug_smr_NE_loTRI <- stay_probs_pred_NE(spp_HMM_output[[9]], snow = 0, tri_val = -1, open_val = 0)
+  stay_coug_smr_NE_hiTRI <- stay_probs_pred_NE(spp_HMM_output[[9]], snow = 0, tri_val = 6, open_val = 0)
+  stay_coug_smr_NE_loOpen <- stay_probs_pred_NE(spp_HMM_output[[9]], snow = 0, tri_val = 0, open_val = -0.5)
+  stay_coug_smr_NE_hiOpen <- stay_probs_pred_NE(spp_HMM_output[[9]], snow = 0, tri_val = 0, open_val = 4)
+  stay_coug_wtr_NE_loTRI <- stay_probs_pred_NE(spp_HMM_output[[10]], snow = 1, tri_val = -1, open_val = 0)
+  stay_coug_wtr_NE_hiTRI <- stay_probs_pred_NE(spp_HMM_output[[10]], snow = 1, tri_val = 3, open_val = 0)
+  stay_coug_wtr_NE_loOpen <- stay_probs_pred_NE(spp_HMM_output[[10]], snow = 1, tri_val = 0, open_val = -0.5)
+  stay_coug_wtr_NE_hiOpen <- stay_probs_pred_NE(spp_HMM_output[[10]], snow = 1, tri_val = 0, open_val = 4)
+  stay_wolf_smr_NE_loTRI <- stay_probs_pred_NE(spp_HMM_output[[13]], snow = 0, tri_val = -1.5, open_val = 0)
+  stay_wolf_smr_NE_hiTRI <- stay_probs_pred_NE(spp_HMM_output[[13]], snow = 0, tri_val = 3, open_val = 0)
+  stay_wolf_smr_NE_loOpen <- stay_probs_pred_NE(spp_HMM_output[[13]], snow = 0, tri_val = 0, open_val = -0.5)
+  stay_wolf_smr_NE_hiOpen <- stay_probs_pred_NE(spp_HMM_output[[13]], snow = 0, tri_val = 0, open_val = 4)
+  stay_wolf_wtr_NE_loTRI <- stay_probs_pred_NE(spp_HMM_output[[14]], snow = 1, tri_val = -1.5, open_val = 0)
+  stay_wolf_wtr_NE_hiTRI <- stay_probs_pred_NE(spp_HMM_output[[14]], snow = 1, tri_val = 4, open_val = 0)
+  stay_wolf_wtr_NE_loOpen <- stay_probs_pred_NE(spp_HMM_output[[14]], snow = 1, tri_val = 0, open_val = -0.5)
+  stay_wolf_wtr_NE_hiOpen <- stay_probs_pred_NE(spp_HMM_output[[14]], snow = 1, tri_val = 0, open_val = 4)
+  
+  
   
   #'  Function to extract stationary state probabilities for prettier plotting
   stay_covs <- function(stay, season, spp, area) {
